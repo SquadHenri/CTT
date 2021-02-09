@@ -1,0 +1,207 @@
+/*
+
+* Version:          0.1
+
+* Revision date:    09-02-2021
+
+* Author:           Daniel Beernink
+
+*
+
+* Platform:         CTT2.0 Modality
+
+* Type:             Specific Query
+
+* Description:      This query specifies which info exists in the Oracle DB and which info is partly known within the perspective of train calls.
+
+*
+
+* Checked by:
+
+*/
+
+--
+
+SELECT
+
+v.SEQ,
+
+v.VOYTERM,
+
+TO_DATE(DECODE(v2.ACTUALARRDATE, NULL, NULL, TO_CHAR(TO_DATE(TO_CHAR(v2.ACTUALARRDATE, 'DD-MM-YYYY') || ' ' || LPAD(v2.ACTUALARRTIME, 4, '0'), 'DD-MM-YY HH24MI'), 'DD-MM-YYYY HH24:MI:SS')),'DD-MM-YYYY HH24:MI:SS') AS datetimeActualArrival,
+
+TO_DATE(DECODE(v2.ACTUALDEPDATE, NULL, NULL, TO_CHAR(TO_DATE(TO_CHAR(v2.ACTUALDEPDATE, 'DD-MM-YYYY') || ' ' || LPAD(v2.ACTUALDEPTIME, 4, '0'), 'DD-MM-YY HH24MI'), 'DD-MM-YYYY HH24:MI:SS')),'DD-MM-YYYY HH24:MI:SS') AS datetimeActualDeparture,
+
+v.WAGON,
+
+v.WAGTYPE,
+
+v.WPOS,
+
+v2.ADDRESS_BARGEOPER,
+
+v2.COPINOCODELOAD,
+
+v2.COPINOCODEDISCHARGE,
+
+v2.LD AS loadingOrDischarge,
+
+w2.MAXTEU,
+
+w.TARE,
+
+w.LEN,
+
+w.SIZEFT,
+
+w.NRAXES,
+
+w.WAGONMODEL,
+
+w.PAYLOAD
+
+FROM
+
+      ctt2.VOYTERMWAGON v
+
+LEFT JOIN ctt2.VOYTERM v2 ON
+
+      v2.CODE = v.VOYTERM
+
+LEFT JOIN ctt2.WAGON w ON
+
+      w.CODE = v.WAGON
+
+LEFT JOIN ctt2.WAGTYPE w2 ON
+
+      w2.CODE = v.WAGTYPE
+
+WHERE
+
+      v2.ACTUALARRDATE >= SYSDATE -7
+
+      AND v2.ADDRESS_BARGEOPER IN ('$PCCGDY')
+
+UNION
+
+SELECT
+
+v.SEQ,
+
+v.VOYTERM,
+
+TO_DATE(DECODE(v2.ACTUALARRDATE, NULL, NULL, TO_CHAR(TO_DATE(TO_CHAR(v2.ACTUALARRDATE, 'DD-MM-YYYY') || ' ' || LPAD(v2.ACTUALARRTIME, 4, '0'), 'DD-MM-YY HH24MI'), 'DD-MM-YYYY HH24:MI:SS')),'DD-MM-YYYY HH24:MI:SS') AS datetimeActualArrival,
+
+TO_DATE(DECODE(v2.ACTUALDEPDATE, NULL, NULL, TO_CHAR(TO_DATE(TO_CHAR(v2.ACTUALDEPDATE, 'DD-MM-YYYY') || ' ' || LPAD(v2.ACTUALDEPTIME, 4, '0'), 'DD-MM-YY HH24MI'), 'DD-MM-YYYY HH24:MI:SS')),'DD-MM-YYYY HH24:MI:SS') AS datetimeActualDeparture,
+
+v.WAGON,
+
+v.WAGTYPE,
+
+v.WPOS,
+
+v2.ADDRESS_BARGEOPER,
+
+v2.COPINOCODELOAD,
+
+v2.COPINOCODEDISCHARGE,
+
+v2.LD AS loadingOrDischarge,
+
+w2.MAXTEU,
+
+w.TARE,
+
+w.LEN,
+
+w.SIZEFT,
+
+w.NRAXES,
+
+w.WAGONMODEL,
+
+w.PAYLOAD
+
+FROM
+
+      ctt2.VOYTERMWAGON v
+
+LEFT JOIN ctt2.VOYTERM v2 ON
+
+      v2.CODE = v.VOYTERM
+
+LEFT JOIN ctt2.WAGON w ON
+
+      w.CODE = v.WAGON
+
+LEFT JOIN ctt2.WAGTYPE w2 ON
+
+      w2.CODE = v.WAGTYPE
+
+WHERE
+
+      v2.ACTUALARRDATE >= SYSDATE -7
+
+      AND v2.ADDRESS_BARGEOPER IN ('$CONTBA')
+
+UNION
+
+SELECT
+
+v.SEQ,
+
+v.VOYTERM,
+
+TO_DATE(DECODE(v2.ACTUALARRDATE, NULL, NULL, TO_CHAR(TO_DATE(TO_CHAR(v2.ACTUALARRDATE, 'DD-MM-YYYY') || ' ' || LPAD(v2.ACTUALARRTIME, 4, '0'), 'DD-MM-YY HH24MI'), 'DD-MM-YYYY HH24:MI:SS')),'DD-MM-YYYY HH24:MI:SS') AS datetimeActualArrival,
+
+TO_DATE(DECODE(v2.ACTUALDEPDATE, NULL, NULL, TO_CHAR(TO_DATE(TO_CHAR(v2.ACTUALDEPDATE, 'DD-MM-YYYY') || ' ' || LPAD(v2.ACTUALDEPTIME, 4, '0'), 'DD-MM-YY HH24MI'), 'DD-MM-YYYY HH24:MI:SS')),'DD-MM-YYYY HH24:MI:SS') AS datetimeActualDeparture,
+
+v.WAGON,
+
+v.WAGTYPE,
+
+v.WPOS,
+
+v2.ADDRESS_BARGEOPER,
+
+v2.COPINOCODELOAD,
+
+v2.COPINOCODEDISCHARGE,
+
+v2.LD AS loadingOrDischarge,
+
+w2.MAXTEU,
+
+w.TARE,
+
+w.LEN,
+
+w.SIZEFT,
+
+w.NRAXES,
+
+w.WAGONMODEL,
+
+w.PAYLOAD
+
+FROM
+
+      ctt2.VOYTERMWAGON v
+
+LEFT JOIN ctt2.VOYTERM v2 ON
+
+      v2.CODE = v.VOYTERM
+
+LEFT JOIN ctt2.WAGON w ON
+
+      w.CODE = v.WAGON
+
+LEFT JOIN ctt2.WAGTYPE w2 ON
+
+      w2.CODE = v.WAGTYPE
+
+WHERE
+
+      v2.ACTUALARRDATE >= SYSDATE -30
+
+      AND v2.ADDRESS_BARGEOPER IN ('$SHUTRO')
