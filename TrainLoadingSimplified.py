@@ -42,7 +42,7 @@ def main():
     solver = pywraplp.Solver.CreateSolver('SCIP')
 
     # Variables
-    # x[i, j] = 1 if item i is packed in bin j.
+    # x[i, j] = 1 if item i is packed in wagon j.
     x = {}
     for i in data['containers']:
         for j in data['wagons']:
@@ -77,13 +77,14 @@ def main():
         )
     objective.SetMaximization()
 
+
     # Objective2: minimize movement for cranes
     # To test whether two objectives work, this will try to minimize weight
-    # objective2 = solver.Objective()
+    # objective = solver.Objective()
     # for i in data['containers']:
-    #     for j in data['wagons']:
-    #         objective2.SetCoefficient(x[(i, j)], data['container_distances'][i])
-    # objective2.SetMinimization()
+    #      for j in data['wagons']:
+    #          objective.SetCoefficient(x[(i, j)], data['container_distances'][i])
+    # objective.SetMinimization()
 
 
     status = solver.Solve()
@@ -99,9 +100,8 @@ def main():
             print('Wagon ', j, '\n')
             for i in data['containers']:
                 if x[i, j].solution_value() > 0:
-                    print('Item', i, '- weight:', data['container_weights'][i])
+                    print('Item', i, '- weight:', data['container_weights'][i],' - length: ', data['container_lengths'][i])
                     wagon_weight += data['container_weights'][i]
-                    print('Item', i, '- length:', data['container_lengths'][i])
                     wagon_length += data['container_lengths'][i]
             print('Packed wagon weight:', wagon_weight)
             print()
