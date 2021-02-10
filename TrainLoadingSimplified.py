@@ -51,7 +51,7 @@ def main():
     # Constraints
     # Each container can be in at most one wagon.
     for i in data['containers']:
-        solver.Add(sum(x[i, j] for j in data['wagons']) <= 1)
+        solver.Add(sum(x[(i, j)] for j in data['wagons']) <= 1)
     # The amount packed in each wagon cannot exceed its capacity.
     for j in data['wagons']:
         solver.Add(
@@ -61,7 +61,7 @@ def main():
     # The length of the containers cannot exceed the length of the wagon
     for j in data['wagons']:
         solver.Add(
-            sum(x[i,j] * data['container_lengths'][i]
+            sum(x[(i,j)] * data['container_lengths'][i]
             for i in data['containers']) <= data['wagon_length_capacities'][j]
         )
 
@@ -71,9 +71,10 @@ def main():
     # Maximize container_lengths, this is possible because there is a contraint that
     # length cant be exceeded
     objective = solver.Objective()
-    for j in data['wagons']:
-        objective.SetCoefficient(
-            x[(i,j)], data['container_lengths'][j]
+    for i in data['containers']:
+        for j in data['wagons']:
+            objective.SetCoefficient(
+                x[(i,j)], data['container_lengths'][j]
         )
     objective.SetMaximization()
 
@@ -111,6 +112,7 @@ def main():
         print('Total packed length:', total_length)
     else:
         print('The problem does not have an optimal solution.')
+
 
 
 if __name__ == '__main__':
