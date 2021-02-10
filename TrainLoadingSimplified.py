@@ -27,17 +27,15 @@ def create_data_model():
 def main():
     data = create_data_model()
 
-     
-
     # 1 means there is a container, 0 means there is none
     # Possibly add classes of the containers here so we can get more information
-    # Note: this is not used yet
-    container_grid = np.asarray(
-        [
-        [[1,1],[1,0]],
-        [[1,0],[0,0]],
-        [[0,1],[0,0]]
-        ]) 
+    # Note: this 
+    # container_grid = np.asarray(
+    #     [
+    #     [[1,1],[1,0]],
+    #     [[1,0],[0,0]],
+    #     [[0,1],[0,0]]
+    #     ]) 
     
 
     # Create the mip solver with the SCIP backend.
@@ -91,20 +89,26 @@ def main():
     status = solver.Solve()
 
     if status == pywraplp.Solver.OPTIMAL:
-        print('Total leftover space:', objective.Value())
+        print('Total space used:', objective.Value())
         #print('Total packed weight:', objective2.Value())
         total_weight = 0
+        total_length = 0
         for j in data['wagons']:
             wagon_weight = 0
+            wagon_length = 0
             print('Wagon ', j, '\n')
             for i in data['containers']:
                 if x[i, j].solution_value() > 0:
                     print('Item', i, '- weight:', data['container_weights'][i])
                     wagon_weight += data['container_weights'][i]
+                    print('Item', i, '- length:', data['container_lengths'][i])
+                    wagon_length += data['container_lengths'][i]
             print('Packed wagon weight:', wagon_weight)
             print()
+            total_length += wagon_length
             total_weight += wagon_weight
         print('Total packed weight:', total_weight)
+        print('Total packed length:', total_length)
     else:
         print('The problem does not have an optimal solution.')
 
