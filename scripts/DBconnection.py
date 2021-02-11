@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 import pymysql
 import pandas as pd
-from Container import Container
+from ./model/Container import Container
 
 
 #Database credentials

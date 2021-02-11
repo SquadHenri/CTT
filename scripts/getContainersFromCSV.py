@@ -4,7 +4,7 @@ from functions import getTravelDistance
 
 def get_containers():
     container_dict = {}
-    with open("currentContainers.csv", encoding="utf-8-sig") as containers:
+    with open("../data/currentContainers.csv", encoding="utf-8-sig") as containers:
         data = csv.reader(containers, delimiter=",")
         next(data)
         for row in data:
