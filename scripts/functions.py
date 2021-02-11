@@ -16,7 +16,7 @@ def getAllDistances():
 def getTravelDistance(c_cord, w_cord):
 
     # factorize the difference in length of x and y
-    x_fact = 7
+    x_fact = 6.5
     y_fact = 3
 
     # calculate the distance over the x-axis between a container and a wagon
