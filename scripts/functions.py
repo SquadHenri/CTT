@@ -13,7 +13,6 @@ def getAllDistances():
             dist_dict[(i, j)] = dist
     return dist_dict
 
-
 def getTravelDistance(c_cord, w_cord):
 
     # factorize the difference in length of x and y
