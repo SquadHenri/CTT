@@ -1,6 +1,8 @@
 import csv as csv
+from functions import getTravelDistance
 
-def get_data():
+
+def get_containers():
     container_dict = {}
     with open("currentContainers.csv", encoding="utf-8-sig") as containers:
         data = csv.reader(containers, delimiter=",")
@@ -11,4 +13,21 @@ def get_data():
             position = [int(x) for x in position]
             container_dict[row[1]] = position
     return container_dict
-print(get_data())
+
+# data not available yet
+def get_wagons():
+    return {"a": [10,0], "b": [20,0], "c": [30,0], "d": [40,0]}
+
+def calculate_distances():
+    distances = {}
+    for key in containers.keys():
+        position = containers[key]
+        dist_list = []
+        for wagon in wagons.keys():
+            dist_list.append((wagon, getTravelDistance(position, wagons[wagon])))
+        distances[key] = min(dist_list, key= lambda t: t[1])
+    return distances
+
+containers = get_containers()
+wagons = get_wagons()
+print(calculate_distances())
