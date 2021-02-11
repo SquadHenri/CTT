@@ -18,7 +18,7 @@ def get_containers():
 def get_wagons():
     return {"a": [10,0], "b": [20,0], "c": [30,0], "d": [40,0]}
 
-def calculate_distances():
+def calculate_distances(containers, wagons):
     distances = {}
     for key in containers.keys():
         position = containers[key]
@@ -28,6 +28,6 @@ def calculate_distances():
         distances[key] = min(dist_list, key= lambda t: t[1])
     return distances
 
-containers = get_containers()
-wagons = get_wagons()
-print(calculate_distances())
+containers_data = get_containers()
+wagons_data = get_wagons()
+print(calculate_distances(containers_data, wagons_data))
