@@ -108,8 +108,8 @@ def main():
             print()
             total_length += wagon_length
             total_weight += wagon_weight
-        print('Total packed weight:', total_weight)
-        print('Total packed length:', total_length)
+        print('Total packed weight:', total_weight, '(',round(total_weight / sum(data['wagon_weight_capacities']) * 100,1),'%)')
+        print('Total packed length:', total_length, '(',round(total_length / sum(data['wagon_length_capacities']) * 100,1),'%)')
     else:
         print('The problem does not have an optimal solution.')
 
