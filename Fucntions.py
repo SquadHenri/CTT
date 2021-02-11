@@ -1,24 +1,30 @@
 import math
 
 def main():
-    print('test')
+    dist = get_distance(containers[0], wagon[0])
+    print(dist)
+
+containers = [[1, 1, 1], [2, 1, 1], [6, 2, 1]]
+wagon = [[0, 2], [0, 3], [0, 1]]
 
 
 
 def get_distance(container_lcoation, wagon_location):
-    Xdist = 3
-    Ydist = 7
+    Xdist = 7
+    Ydist = 3
 
-    xContainer = container_lcoation[1]
-    yContainer = container_lcoation[2]
+    xContainer = container_lcoation[0]
+    yContainer = container_lcoation[1]
 
-    xWagon = wagon_location[1]
-    yWagon = wagon_location[2]
+    xWagon = wagon_location[0]
+    yWagon = wagon_location[1]
 
-    xdiff = xContainer - xWagon
-    ydiff = yContainer - yWagon
+    xdiff = (xContainer - xWagon) * Xdist
+    ydiff = (yContainer - yWagon) * Ydist
 
     x = math.sqrt(math.pow(xdiff, 2) + math.pow(ydiff, 2))
 
     return x
 
+if __name__ == '__main__':
+    main()
