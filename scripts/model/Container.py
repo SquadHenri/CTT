@@ -1,6 +1,6 @@
 class Container():
-    def __init__(self, unitnr, weight, length, contents, position):
-        self.unitnr = unitnr
+    def __init__(self, containerID, weight, length, contents, position):
+        self.containerID = containerID
         self.weight = weight
         self.length = length
         self.contents = contents
