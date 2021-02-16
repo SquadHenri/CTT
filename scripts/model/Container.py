@@ -24,6 +24,7 @@ class Container():
         return self.gross_weight    
 
     # The Length of the container in Foot, This is done in foot since some containers have a length that is different from 1 or 1,5
+
     def get_length(self):
         return self.foot
 
