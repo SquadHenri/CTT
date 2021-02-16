@@ -15,6 +15,7 @@ class Container():
     def get_containerID(self):
         return self.containerID
 
+
     # The weight of the container excluding the contianer itself
     def get_net_weight(self):
         return self.net_weight
