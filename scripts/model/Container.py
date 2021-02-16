@@ -9,22 +9,21 @@ class Container():
         self.net_weight = net_weight
         self.typeid = typeid
 
-
-    #Getter for container position coordinates
-    # Container ID used to indentify the container at hand
+    # Getter for container position coordinates
+    # Container ID used to identify the container at hand
     def get_containerID(self):
         return self.containerID
 
-
-    # The weight of the container excluding the contianer itself
+    # The weight of the container excluding the container itself
     def get_net_weight(self):
         return self.net_weight
 
-    # The weight of the container including the contianer itself
+    # The weight of the container including the container itself
     def get_gross_weight(self):
         return self.gross_weight    
 
-    # The Length of the container in Foot, This is done in foot since some containers have a length that is different from 1 or 1,5
+    # The Length of the container in Foot,
+    # This is done in foot since some containers have a length that is different from 1 or 1,5
     def get_length(self):
         return self.foot
 
@@ -43,4 +42,3 @@ class Container():
     # The type of the container
     def get_type(self):
         return self.typeid
-    
