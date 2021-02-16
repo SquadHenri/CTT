@@ -6,7 +6,19 @@ class Wagon():
         self.contents = contents
         self.position = position
 
+    # Getter for container position coordinates
 
-#Getter for container position coordinates
+    def get_position(self):
+        return self.position
+
+    def get_weight(self):
+        return self.weight
+
+    def get_length(self):
+        return self.length
+
+    def get_contents(self):
+        return self.contents
+
     def get_position(self):
         return self.position
