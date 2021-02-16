@@ -52,13 +52,7 @@ def main():
     solver = pywraplp.Solver.CreateSolver('SCIP')
 
     # Variables
-    # x[i, j] = 1 if container i is packed in wagon j.
-    # OBSOLETE: This variable needs to be replaced by y[i,j,p]
-    x = {}
-    for i in data['containers']:
-        for j in data['wagons']:
-            x[(i, j)] = solver.IntVar(0, 1, 'x_%i_%i' % (i, j))
-    
+
     # y[i,j,p] = 1 if container is packed in slot p of wagon j
     y = {}
     for i in data['containers']:
@@ -70,7 +64,7 @@ def main():
 
     # Each container can be in at most one wagon.
     for i in data['containers']:
-        solver.Add(sum(x[(i, j)] for j in data['wagons']) <= 1)
+        solver.Add(sum(y[(i, j, p)] for j in data['wagons']) <= 1)
 
     # Each TEU of a container is in a single wagon
     for i in data['containers']:
