@@ -1,5 +1,4 @@
 from ortools.linear_solver import pywraplp
-import numpy as np
 
 # useful links for trying multiple objectives:
 # https://stackoverflow.com/questions/65515182/are-multiple-objectives-possible-or-tools-constraint-programming
