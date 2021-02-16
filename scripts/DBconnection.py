@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 import pymysql
 import pandas as pd
-import model.Container
+import model.Container as Container
 #Database credentials
 user="d0355a21"
 password="uYpeZEAqWz2xkod2"
@@ -19,7 +19,7 @@ df = pd.read_sql('SELECT moves.SEQ, moves.UNITNR, moves.UNITTYPE, moves.COMPOUND
 containerlist = []
 for index, row in df.iterrows():
     position = row['COMPOUNDPOS_TO']
-    containter_obj = Container(position)
+    containter_obj = Container()
     containerlist.append(containter_obj)
 
 
