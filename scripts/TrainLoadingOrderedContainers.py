@@ -23,13 +23,13 @@ def create_data_model():
 
     data['wagon_slots'] = []    # each slot represents 0.5 TEU's. The slot is occupied if it is non-zero
                                 # the number in the slot is the index of the container
-    data['wagon_slots'].append([0 for i in range(4)])
+    data['wagon_slots'].append([0 for i in range(8)])
     data['wagon_slots'].append([0 for i in range(9)])
     data['wagon_slots'].append([0 for i in range(12)])
     data['wagon_slots'].append([0 for i in range(4)])
     data['wagon_slots'].append([0 for i in range(16)])
     data['wagon_slots'].append([0 for i in range(6)])
-    data['wagon_slots'].append([0 for i in range(8)])
+    data['wagon_slots'].append([0 for i in range(16)])
     return data
 
 
@@ -67,9 +67,9 @@ def main():
         solver.Add(sum(y[(i, j, k)] for j in data['wagons']) <= 1)
 
     # Each TEU of a container is in a single wagon
-    for i in data['containers']:
-        for j in data['wagons']:
-            solver.Add(sum(y[(i, j, k)] for k in data['wagon_slots'][j]) <= data['container_lengths'][i] * 2)
+    # for i in data['containers']:
+    #     for j in data['wagons']:
+    #         solver.Add(sum(y[(i, j, k)] for k in data['wagon_slots'][j]) <= data['container_lengths'][i] * 2)
 
     # A container has to be put on a wagon as a whole
     for j in data['wagons']:
@@ -115,7 +115,7 @@ def main():
         for j in data['wagons']:
             for index, k in enumerate(data['wagon_slots'][j]):
                 objective.SetCoefficient(
-                    y[(i,j,k)], data['container_lengths'][i]
+                    y[(i,j,k)], data['container_weights'][i]
                 )
     objective.SetMaximization()
 
