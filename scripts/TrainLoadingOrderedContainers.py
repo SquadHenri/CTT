@@ -86,17 +86,16 @@ def main():
             # It might be cleaner to move these tests to a function of the wagon class. 
             
 
-    # Each container has to be placed in a wagon in order
     # The amount packed in each wagon cannot exceed its capacity.
     for j in data['wagons']:
         solver.Add(
-            sum(x[(i, j)] * data['container_weights'][i]
+            sum(y[(i, j, p)] * data['container_weights'][i]
                 for i in data['containers']) <= data['wagon_weight_capacities'][j]
                 )
     # The length of the containers cannot exceed the length of the wagon
     for j in data['wagons']:
         solver.Add(
-            sum(x[(i,j)] * data['container_lengths'][i]
+            sum(y[(i,j,p)] * data['container_lengths'][i]
             for i in data['containers']) <= data['wagon_length_capacities'][j]
         )
 
@@ -117,22 +116,6 @@ def main():
 
     objective.SetMaximization()
 
-    # objective = solver.Objective()
-    # for i in data['containers']:
-    #     for j in data['wagons']:
-    #         objective.SetCoefficient(
-    #             x[(i,j)], data['container_lengths'][i]
-    #         )
-    # objective.SetMaximization()
-
-    # Objective2: minimize movement for cranes
-    # To test whether two objectives work, this will try to minimize weight
-    # objective = solver.Objective()
-    # for i in data['containers']:
-    #      for j in data['wagons']:
-    #          objective.SetCoefficient(x[(i, j)], data['container_distances'][i])
-    # objective.SetMinimization()
-
 
     status = solver.Solve()
 
@@ -144,23 +127,26 @@ def main():
         for j in data['wagons']:
             wagon_weight = 0
             wagon_length = 0
-            print('Wagon ', j, '\n')
+            print('Wagon ', j)
             for i in data['containers']:
+                # Used to keep track of the containers in the wagon
+                containers = []
                 for p in data['wagon_slots'][j]:
                     if y[i,j,p].solution_value() > 0:
-                        print('Container', i, '- weight:', data['container_weights'][i],' - length: ', data['container_lengths'][i])
-                        wagon_weight += data['container_weights'][i]
-                        wagon_length += data['container_lengths'][i]
-                        container_count += 1
-                # if x[i,j].solution_value() > 0:
-                #     print('Container', i, '- weight:', data['container_weights'][i],' - length: ', data['container_lengths'][i])
-                #     wagon_weight += data['container_weights'][i]
-                #     wagon_length += data['container_lengths'][i]
-                #     container_count += 1
-            print('Packed wagon weight:', wagon_weight)
-            print('Packed wagon length:', wagon_length)
+                        # Only print data if the container is unique
+                        if i in containers:
+                            pass # The container is already in the solution
+                        else:
+                            containers.append(i)
+                            print('Container', i, '- weight:', data['container_weights'][i],' - length: ', data['container_lengths'][i])
+                            wagon_weight += data['container_weights'][i]
+                            wagon_length += data['container_lengths'][i]
+                            container_count += 1 
+            print('Packed wagon weight:', wagon_weight, ' Wagon weight capacity: ', data['wagon_weight_capacities'][j])
+            print('Packed wagon length:', wagon_length, ' Wagon length capacity: ', data['wagon_length_capacities'][j])
             total_length += wagon_length
             total_weight += wagon_weight
+            print()
         print()
         print('Total packed weight:', total_weight, '(',round(total_weight / sum(data['wagon_weight_capacities']) * 100,1),'%)')
         print('Total packed length:', total_length, '(',round(total_length / sum(data['wagon_length_capacities']) * 100,1),'%)')
