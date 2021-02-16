@@ -1,11 +1,52 @@
 import csv as csv
 from functions import getTravelDistance
 import math
+from model.Container import Container
+from model.Wagon import Wagon
 
+def get_containers_1():
+    containers = []
+    with open("data/trein1/loading_container.csv", encoding="utf-8-sig") as container_file:
+        data = csv.reader(container_file, delimiter=",")
+        for row in data:
+            c_id = row[0]
+            c_teu = int(row[1])
+            c_type = row[2]
+            gross_weight = row[3]
+            net_weight = row[4]
+            c_pos = get_pos(row[5])
+            c_good = row[7]
+            container = Container(c_id, gross_weight, net_weight, c_teu * 20, c_pos, c_good, 1, c_type)
+            containers.append(container)
+    return containers
+
+def get_wagons_1():
+    wagons = []
+    with open("data/trein1/wagonlijst.csv", encoding="utf-8-sig") as wagon_file:
+        data = csv.reader(wagon_file, delimiter=";")
+        for i in range(11):
+            next(data)
+        for row in data:
+            w_id = row[1]
+            w_type = row[2]
+            w_length = row[3]
+            w_axes = row[4]
+            wagon = Wagon(w_id, -1, w_length, -1, -1)
+            wagons.append(wagon)
+    return wagons
+
+def get_pos(position):
+    position = position.split(" ")
+    position = position[0].split(".")
+
+    try:
+        return [int(x) for x in position]
+    except ValueError:
+        return position
 
 def get_containers():
     container_dict = {}
-    with open("../data/currentContainers.csv", encoding="utf-8-sig") as containers:
+    with open("data/currentContainers.csv", encoding="utf-8-sig") as containers:
         data = csv.reader(containers, delimiter=",")
         next(data)
         for row in data:
@@ -46,3 +87,14 @@ def set_location(wagons):
             y_val = -1
             wagon.location = [math.ceil((len + 0.5 * wagon.length)/6/1), y_val]
             len += wagon.length
+
+
+print(get_wagons_1())
+
+#containers = get_containers_1()
+#for container in containers:
+#    print(container.get_position())
+
+#containers_data = get_containers()
+#wagons_data = get_wagons()
+#print(calculate_distances(containers_data, wagons_data))
