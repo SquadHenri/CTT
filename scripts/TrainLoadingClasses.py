@@ -1,8 +1,6 @@
 from ortools.linear_solver import pywraplp
 
-
-# useful links for trying multiple objectives:
-# https://stackoverflow.com/questions/65515182/are-multiple-objectives-possible-or-tools-constraint-programming
+# This TrainLoading variant will switch from the dictionairy data model to using classes
 
 def create_data_model():
     """Create the data for the example."""
@@ -110,6 +108,8 @@ def main():
 
     # objective.SetMaximization()
 
+    # This objective tries to maximize the weight of the containers
+    # For now this objective works, but we possibly need to change this later
     objective = solver.Objective()
     for i in data['containers']:
         for j in data['wagons']:
@@ -132,10 +132,10 @@ def main():
             print('Wagon ', j)
             for i in data['containers']:
                 # Used to keep track of the containers in the wagon
+                # so we print information for each container and not for each slot
                 containers = []
                 for k in data['wagon_slots'][j]:
                     if y[i,j,k].solution_value() > 0:
-                        # Only print data if the container is unique
                         if i in containers:
                             pass # The container is already in the solution
                         else:
