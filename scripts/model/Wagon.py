@@ -1,3 +1,5 @@
+import math
+
 class Wagon():
     def __init__(self, wagonID, weight, length, contents, position):
         self.wagonID = wagonID
@@ -5,6 +7,9 @@ class Wagon():
         self.length = length
         self.contents = contents
         self.position = position
+        self.location = [-2, -2]
+
+    # TODO call: "set the locations"  at appropriate time
 
     # Getter for container position coordinates
 
@@ -20,5 +25,6 @@ class Wagon():
     def get_contents(self):
         return self.contents
 
-    def get_position(self):
-        return self.position
+    def get_location(self):
+        return self.location
+

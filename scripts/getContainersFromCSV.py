@@ -1,5 +1,6 @@
 import csv as csv
 from functions import getTravelDistance
+import math
 
 
 def get_containers():
@@ -31,3 +32,17 @@ def calculate_distances(containers, wagons):
 containers_data = get_containers()
 wagons_data = get_wagons()
 print(calculate_distances(containers_data, wagons_data))
+
+# Sets the location of the wagon takes a list of all the containers in the train
+def set_location(wagons):
+    len = 0
+    y_val = 0
+    for wagon in wagons:
+        if len < 320:
+            wagon.location = [math.ceil((len + 0.5 * wagon.length)/6.1), y_val]
+            len += wagon.length
+        else:
+            len = 0
+            y_val = -1
+            wagon.location = [math.ceil((len + 0.5 * wagon.length)/6/1), y_val]
+            len += wagon.length
