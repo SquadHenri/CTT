@@ -53,43 +53,43 @@ def main():
 
     # Variables
 
-    # y[i,j,p] = 1 if container is packed in slot p of wagon j
+    # y[i,j,k] = 1 if container is packed in slot k of wagon j
     y = {}
     for i in data['containers']:
         for j in data['wagons']:
-            for p in data['wagon_slots'][j]:
-                y[(i,j,p)] = solver.IntVar(0, 1, 'cont:%i,wagon:%i,slot:%i' % (i,j,p))
+            for k in data['wagon_slots'][j]:
+                y[(i,j,k)] = solver.IntVar(0, 1, 'cont:%i,wagon:%i,slot:%i' % (i,j,k))
 
     # Constraints
 
     # Each container can be in at most one wagon.
     for i in data['containers']:
-        solver.Add(sum(y[(i, j, p)] for j in data['wagons']) <= 1)
+        solver.Add(sum(y[(i, j, k)] for j in data['wagons']) <= 1)
 
     # Each TEU of a container is in a single wagon
     for i in data['containers']:
         for j in data['wagons']:
-            solver.Add(sum(y[(i, j, p)] for p in data['wagon_slots'][j]) <= data['container_lengths'][i] * 2)
+            solver.Add(sum(y[(i, j, k)] for k in data['wagon_slots'][j]) <= data['container_lengths'][i] * 2)
 
     # A container has to be put on a wagon as a whole
     for j in data['wagons']:
-        for index, p in enumerate(data['wagon_slots'][j]):
-            # If p has been found before, but p is not the one before that, then there is a gap
-            # Or p has not occured yet, then there is no gap 
-            solver.Add(index == 0 or (p in data['wagon_slots'][j][0:index] and index - 1 >= 0 and data['wagon_slots'][j][index-1] == p) or p not in data['wagon_slots'][j][0:index])
+        for index, k in enumerate(data['wagon_slots'][j]):
+            # If k has been found before, but k is not the one before that, then there is a gap
+            # Or k has not occured yet, then there is no gap 
+            solver.Add(index == 0 or (k in data['wagon_slots'][j][0:index] and index - 1 >= 0 and data['wagon_slots'][j][index-1] == k) or k not in data['wagon_slots'][j][0:index])
             # It might be cleaner to move these tests to a function of the wagon class. 
             
 
     # The amount packed in each wagon cannot exceed its capacity.
     for j in data['wagons']:
         solver.Add(
-            sum(y[(i, j, p)] * data['container_weights'][i]
+            sum(y[(i, j, k)] * data['container_weights'][i]
                 for i in data['containers']) <= data['wagon_weight_capacities'][j]
                 )
     # The length of the containers cannot exceed the length of the wagon
     for j in data['wagons']:
         solver.Add(
-            sum(y[(i,j,p)] * data['container_lengths'][i]
+            sum(y[(i,j,k)] * data['container_lengths'][i]
             for i in data['containers']) <= data['wagon_length_capacities'][j]
         )
 
@@ -98,18 +98,26 @@ def main():
     # Objective minimize left over space on wagons
     # Maximize container_lengths, this is possible because there is a contraint that
     # length cant be exceeded
+    # objective = solver.Objective()
+    # for i in data['containers']:
+    #     for j in data['wagons']:
+    #         for index, k in enumerate(data['wagon_slots'][j]):
+    #             # Test if k is the first occurance of k in the wagon_slots
+    #             if k not in data['wagon_slots'][0:index]:
+    #                 objective.SetCoefficient(
+    #                     y[(i,j,k)], 1 #data['container_lengths'][i]
+    #                 )
+
+    # objective.SetMaximization()
+
     objective = solver.Objective()
     for i in data['containers']:
         for j in data['wagons']:
-            for index, p in enumerate(data['wagon_slots'][j]):
-                # Test if p is the first occurance of p in the wagon_slots
-                if p not in data['wagon_slots'][0:index]:
-                    objective.SetCoefficient(
-                        y[(i,j,p)], 1 #data['container_lengths'][i]
-                    )
-
+            for index, k in enumerate(data['wagon_slots'][j]):
+                objective.SetCoefficient(
+                    y[(i,j,k)], data['container_lengths'][i]
+                )
     objective.SetMaximization()
-
 
     status = solver.Solve()
 
@@ -125,8 +133,8 @@ def main():
             for i in data['containers']:
                 # Used to keep track of the containers in the wagon
                 containers = []
-                for p in data['wagon_slots'][j]:
-                    if y[i,j,p].solution_value() > 0:
+                for k in data['wagon_slots'][j]:
+                    if y[i,j,k].solution_value() > 0:
                         # Only print data if the container is unique
                         if i in containers:
                             pass # The container is already in the solution
