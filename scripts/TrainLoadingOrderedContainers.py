@@ -1,5 +1,5 @@
 from ortools.linear_solver import pywraplp
-import numpy as np
+
 
 # useful links for trying multiple objectives:
 # https://stackoverflow.com/questions/65515182/are-multiple-objectives-possible-or-tools-constraint-programming
@@ -53,6 +53,7 @@ def main():
 
     # Variables
     # x[i, j] = 1 if container i is packed in wagon j.
+    # OBSOLETE: This variable needs to be replaced by y[i,j,p]
     x = {}
     for i in data['containers']:
         for j in data['wagons']:
@@ -66,6 +67,7 @@ def main():
                 y[(i,j,p)] = solver.IntVar(0, 1, 'cont:%i,wagon:%i,slot:%i' % (i,j,p))
 
     # Constraints
+
     # Each container can be in at most one wagon.
     for i in data['containers']:
         solver.Add(sum(x[(i, j)] for j in data['wagons']) <= 1)
@@ -74,6 +76,16 @@ def main():
     for i in data['containers']:
         for j in data['wagons']:
             solver.Add(sum(y[(i, j, p)] for p in data['wagon_slots'][j]) <= data['container_lengths'][i] * 2)
+
+    # A container has to be put on a wagon as a whole
+    for j in data['wagons']:
+        for index, p in enumerate(data['wagon_slots'][j]):
+            # If p has been found before, but p is not the one before that, then there is a gap
+            # Or p has not occured yet, then there is no gap 
+            solver.Add(index == 0 or (p in data['wagon_slots'][j][0:index] and index - 1 >= 0 and data['wagon_slots'][j][index-1] == p) or p not in data['wagon_slots'][j][0:index])
+            # It might be cleaner to move these tests to a function of the wagon class. 
+            
+
     # Each container has to be placed in a wagon in order
     # The amount packed in each wagon cannot exceed its capacity.
     for j in data['wagons']:
@@ -93,22 +105,25 @@ def main():
     # Objective minimize left over space on wagons
     # Maximize container_lengths, this is possible because there is a contraint that
     # length cant be exceeded
-    # objective = solver.Objective()
-    # for i in data['containers']:
-    #     for j in data['wagons']:
-    #         for p in data['wagon_slots'][j]:
-    #             objective.SetCoefficient(
-    #                 y[(i,j,p)], data['container_lengths'][i]
-    #             )
-    # objective.SetMinimization()
-
     objective = solver.Objective()
     for i in data['containers']:
         for j in data['wagons']:
-            objective.SetCoefficient(
-                x[(i,j)], data['container_lengths'][i]
-            )
+            for index, p in enumerate(data['wagon_slots'][j]):
+                # Test if p is the first occurance of p in the wagon_slots
+                if p not in data['wagon_slots'][0:index]:
+                    objective.SetCoefficient(
+                        y[(i,j,p)], 1 #data['container_lengths'][i]
+                    )
+
     objective.SetMaximization()
+
+    # objective = solver.Objective()
+    # for i in data['containers']:
+    #     for j in data['wagons']:
+    #         objective.SetCoefficient(
+    #             x[(i,j)], data['container_lengths'][i]
+    #         )
+    # objective.SetMaximization()
 
     # Objective2: minimize movement for cranes
     # To test whether two objectives work, this will try to minimize weight
@@ -131,11 +146,17 @@ def main():
             wagon_length = 0
             print('Wagon ', j, '\n')
             for i in data['containers']:
-                if x[i, j].solution_value() > 0:
-                    print('Container', i, '- weight:', data['container_weights'][i],' - length: ', data['container_lengths'][i])
-                    wagon_weight += data['container_weights'][i]
-                    wagon_length += data['container_lengths'][i]
-                    container_count += 1
+                for p in data['wagon_slots'][j]:
+                    if y[i,j,p].solution_value() > 0:
+                        print('Container', i, '- weight:', data['container_weights'][i],' - length: ', data['container_lengths'][i])
+                        wagon_weight += data['container_weights'][i]
+                        wagon_length += data['container_lengths'][i]
+                        container_count += 1
+                # if x[i,j].solution_value() > 0:
+                #     print('Container', i, '- weight:', data['container_weights'][i],' - length: ', data['container_lengths'][i])
+                #     wagon_weight += data['container_weights'][i]
+                #     wagon_length += data['container_lengths'][i]
+                #     container_count += 1
             print('Packed wagon weight:', wagon_weight)
             print('Packed wagon length:', wagon_length)
             total_length += wagon_length
