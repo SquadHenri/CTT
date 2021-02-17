@@ -1,6 +1,8 @@
 import csv as csv
-from functions import getTravelDistance
 import math
+
+from functions import getTravelDistance
+from model.Train import Train
 from model.Container import Container
 from model.Wagon import Wagon
 
@@ -61,6 +63,15 @@ def get_pos(position):
     except ValueError:
         return position
 
+# functions that creates fictional wagons
+def get_wagons():
+    return {"a": [10,0], "b": [20,0], "c": [30,0], "d": [40,0]}
+
+# uses get_wagons_1() to create a train object
+def create_train():
+    return Train(get_wagons_1())
+
+
 # function that gets all containers that are currently on the terminal (not on a loading list or something)
 def get_containers():
     container_dict = {}
@@ -73,9 +84,7 @@ def get_containers():
             container_dict[row[1]] = position
     return container_dict
 
-# functions that creates fictional wagons
-def get_wagons():
-    return {"a": [10,0], "b": [20,0], "c": [30,0], "d": [40,0]}
+
 
 # calculates the distance to the closest wagon for every container
 def calculate_distances(containers, wagons):
@@ -98,24 +107,28 @@ def set_location(wagons):
     y_val = 0
     result = []
     for wagon in wagons:
-        if (len + wagon.length) < 320:
-            wagon.position = [math.ceil((len + 0.5 * wagon.length)/6.1), y_val]
-            len += wagon.length
+        if (len + wagon.length_capacity) < 320:
+            wagon.position = [math.ceil((len + 0.5 * wagon.length_capacity)/6.1), y_val]
+            len += wagon.length_capacity
         else:
             len = 0
             y_val = -1
-            wagon.position = [math.ceil((len + 0.5 * wagon.length)/6/1), y_val]
-            len += wagon.length
+            wagon.position = [math.ceil((len + 0.5 * wagon.length_capacity)/6/1), y_val]
+            len += wagon.length_capacity
         result.append(wagon)
     return result
 
-containers_data = get_containers()
-wagons_data = get_wagons()
-print(calculate_distances(containers_data, wagons_data))
 
-# create a list of all containers
-containers = get_containers_1()
 
-# create a list of all wagons
-wagons = get_wagons_1()
+# This only gets executed if you run python getContainersFromCSV.py
+# So if you run a file that uses this file, then it won't get executed
+if __name__ == '__main__':
+    containers_data = get_containers()
+    wagons_data = get_wagons()
+    print(calculate_distances(containers_data, wagons_data))
 
+    # create a list of all containers
+    containers = get_containers_1()
+
+    # create a list of all wagons
+    wagons = get_wagons_1()
