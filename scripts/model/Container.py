@@ -9,6 +9,18 @@ class Container():
         self.net_weight = net_weight
         self.typeid = typeid
 
+
+    def __str__(self):
+        return f'Container {self.containerID},'\
+             f'priority: {self.priority}, gross_weight: {self.gross_weight}, foot: {self.foot}'
+
+    def __repr__(self):
+        return f'Container {self.containerID}, '\
+                f'priority: {self.priority}, gross_weight: {self.gross_weight}, '\
+                f'foot: {self.foot}, position: {self.position}, goods: {self.goods},'\
+                f'net_weight: {self.net_weight}, typeid: {self.typeid}'
+
+
     # Getter for container position coordinates
     # Container ID used to identify the container at hand
     def get_containerID(self):
