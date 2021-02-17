@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 import pymysql
 import pandas as pd
-import model.Container as Container
+from model.Container import Container
 #Database credentials
 user="d0355a21"
 password="uYpeZEAqWz2xkod2"
@@ -13,7 +13,7 @@ db_connection_str = 'mysql+pymysql://d0355a21:uYpeZEAqWz2xkod2@w01b9024.kasserve
 db_connection = create_engine(db_connection_str)
 
 #Database output of given query to Pandas dataframe
-df = pd.read_sql('SELECT moves.SEQ, moves.UNITNR, moves.UNITTYPE, moves.COMPOUNDPOS_TO, moves.MOVEDATE, moves.ADDRESS_CLIENT FROM (SELECT SEQ, MAX(Q) as mQ FROM internalMovesSQL GROUP BY SEQ) as maxQ, `internalMovesSQL` as moves WHERE moves.SEQ = maxQ.SEQ AND moves.Q = maxQ.mQ AND moves.COMPOUNDPOS_TO LIKE "%.%.%" ORDER BY moves.SEQ;', con=db_connection)    
+df = pd.read_sql('SELECT moves.SEQ, moves.UNITNR, moves.UNITTYPE, moves.COMPOUNDPOS_TO, moves.MOVEDATE, moves.ADDRESS_CLIENT FROM (SELECT SEQ, MAX(Q) as mQ FROM internalMovesSQL GROUP BY SEQ) as maxQ, `internalMovesSQL` as moves WHERE moves.SEQ = maxQ.SEQ AND moves.Q = maxQ.mQ AND moves.COMPOUNDPOS_TO LIKE "%%.%%.%%" ORDER BY moves.SEQ;', con=db_connection)    
 
     
 containerlist = []
