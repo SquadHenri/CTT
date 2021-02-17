@@ -2,13 +2,7 @@ import random
 
 from model.Wagon import Wagon
 
-def get_random_value(min, max):
-    if min == max:
-        return min
-    elif min > max:
-        return random.randint(max * 2, min * 2) / 2
-    elif max > min:
-        return random.randint(min * 2, max * 2) / 2
+
 
 class Train():
 
@@ -34,12 +28,28 @@ class Train():
     def __repr__(self):
         return "Train with wagon: \n" + '\n'.join(list(map(repr,self.wagons)))
 
+    # Maybe split this up, but for now this is fine
+    def get_total_capacity(self):
+        total_length = 0
+        total_weight = 0
+        for wagon in self.wagons:
+            total_length += wagon.length_capacity
+            total_weight += wagon.weight_capacity
+        return total_length, total_weight
+
+
     # Set the weight capacities of the wagons to a value between min and max
     def set_random_weight_capacities(self, min, max):
         for wagon in self.wagons:
             wagon.weight_capacity = get_random_value(min, max)
 
-    
+def get_random_value(min, max):
+    if min == max:
+        return min
+    elif min > max:
+        return random.randint(max * 2, min * 2) / 2
+    elif max > min:
+        return random.randint(min * 2, max * 2) / 2 
 
 
     
