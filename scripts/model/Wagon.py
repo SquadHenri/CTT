@@ -31,10 +31,10 @@ class Wagon():
         return self.position
 
     def get_weight(self):
-        return self.weight
+        return self.weight_capacity
 
     def get_length(self):
-        return self.length
+        return self.length_capacity
 
     def get_contents(self):
         return self.contents

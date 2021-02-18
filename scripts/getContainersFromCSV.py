@@ -40,14 +40,45 @@ def get_wagons_1():
             next(data)
         for row in data:
             # initialize variables
+            w_pos = int(row[0])
             w_id = row[1]
             w_type = row[2]
             w_length = float(row[3].replace(",", "."))
             w_axes = int(row[4])
             # create object
-            wagon = Wagon(w_id, -1, w_length, -1, -1)
+            wagon = Wagon(w_id, -1, w_length, -1, w_pos)
             # add object to wagon list
             wagons.append(wagon)
+    # set the proper location for every wagon
+    wagons = set_location(wagons)
+    return wagons
+
+def get_reversed_wagons_1():
+    wagons = []
+    
+    # open file
+    with open("data/trein1/wagonlijst.csv", encoding="utf-8-sig") as wagon_file:
+        data = csv.reader(wagon_file, delimiter=";")
+        #skip first 10 rows, because they contain different data
+        for i in range(11):
+            next(data)
+        for row in data:
+            # initialize variables
+            w_pos = int(row[0])
+            w_id = row[1]
+            w_type = row[2]
+            w_length = float(row[3].replace(",", "."))
+            w_axes = int(row[4])
+            # create object
+            wagon = Wagon(w_id, -1, w_length, -1, w_pos)
+            # add object to wagon list
+            wagons.append(wagon)
+    # reverse the list
+    wagons.reverse()
+    i = 1
+    for wagon in wagons:
+        wagon.position = i
+        i += 1
     # set the proper location for every wagon
     wagons = set_location(wagons)
     return wagons
@@ -62,6 +93,21 @@ def get_pos(position):
         return [int(x) for x in position]
     except ValueError:
         return position
+
+# does almost the same as calculate_distances, but this time it works for the real data.
+def calculate_distances_1(containers, wagons):
+    distances = {}
+    for container in containers:
+        c_location = container.get_position()
+        if (len(c_location) == 3) and (c_location[0] <= 52) and (c_location[1] <= 7):
+            dist_list = []
+            for wagon in wagons:
+                w_location = wagon.get_location()
+                dist_list.append((wagon.wagonID, getTravelDistance(c_location, w_location)))
+            distances[container.get_containerID()] = min(dist_list, key= lambda t: t[1])
+        else:
+            distances[container.get_containerID()] = "Container not located at track"
+    return distances
 
 # functions that creates fictional wagons
 def get_wagons():
@@ -103,19 +149,33 @@ def calculate_distances(containers, wagons):
 
 # Sets the location of the wagon takes a list of all the containers in the train
 def set_location(wagons):
-    len = 0
+    xlen = 0
     y_val = 0
     result = []
     for wagon in wagons:
-        if (len + wagon.length_capacity) < 320:
-            wagon.position = [math.ceil((len + 0.5 * wagon.length_capacity)/6.1), y_val]
-            len += wagon.length_capacity
+
+        if (xlen + wagon.length_capacity) < 320:
+            wagon.location = [math.ceil((xlen + 0.5 * wagon.length_capacity)/6.1), y_val]
+            xlen += wagon.length_capacity
+
         else:
-            len = 0
+            xlen = 0
             y_val = -1
-            wagon.position = [math.ceil((len + 0.5 * wagon.length_capacity)/6/1), y_val]
-            len += wagon.length_capacity
+            wagon.location = [math.ceil((xlen + 0.5 * wagon.length_capacity)/6/1), y_val]
+            xlen += wagon.length_capacity
+
         result.append(wagon)
+    
+    shift_wagon = wagons[len(wagons)-1]
+    shift_wagon_xloc = shift_wagon.location[0]
+    shift_wagon_length = shift_wagon.length_capacity
+    x_shift = (52 - math.ceil(shift_wagon_length / 2 / 6.1)) - shift_wagon_xloc
+
+    for wagon in wagons:
+        if wagon.location[1] == -1:
+            wagon.location[0] += x_shift
+
+
     return result
 
 
@@ -124,11 +184,15 @@ def set_location(wagons):
 # So if you run a file that uses this file, then it won't get executed
 if __name__ == '__main__':
     containers_data = get_containers()
-    wagons_data = get_wagons()
-    print(calculate_distances(containers_data, wagons_data))
+    wagons_data = get_wagons_1()
+    reversd_wagons_data = get_reversed_wagons_1()
+    print(wagons_data)
+    print(reversd_wagons_data)
+
 
     # create a list of all containers
     containers = get_containers_1()
 
     # create a list of all wagons
-    wagons = get_wagons_1()
+    # agons = get_wagons_1()
+    # print(calculate_distances_1(containers, wagons))
