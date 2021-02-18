@@ -1,7 +1,7 @@
 import csv as csv
 import math
 import tkinter as tk
-
+import pandas as pd
 from tkinter import filedialog
 from functions import getTravelDistance
 from model.Train import Train
@@ -55,37 +55,54 @@ def get_wagons_1():
     wagons = set_location(wagons)
     return wagons
 
-def get_wagons_prompt():
-    wagons = []
-    file_path = filedialog.askopenfilename()
-    print(file_path)
+# get all the wagons based on a file uploaded by the user
+def get_containers_prompt():
+    containers = []
+
+    # get the desired file
+    path = filedialog.askopenfilename()
+    tk.Tk().withdraw()
+
+    print("Chosen container file: ", path)
+
+    # if the file is an excel file, we will convert it to .csv and save it.
+    if path.endswith(".xls") or path.endswith(".xlsx") or path.endswith(".xlsm") or path.endswith(".xlsb"):
+        path = convert_csv(path)
 
     # open file
-    with open(file_path, encoding="utf-8") as wagon_file:
-        data = csv.reader(wagon_file, delimiter=";")
-        #skip first 10 rows, because they contain different data
-        for i in range(11):
-            next(data)
+    with open(path, encoding="utf-8-sig") as container_file:
+        data = csv.reader(container_file, delimiter=",")
         for row in data:
             # initialize variables
-            w_pos = int(row[0])
-            w_id = row[1]
-            w_type = row[2]
-            w_length = float(row[3].replace(",", "."))
-            w_axes = int(row[4])
+            c_id = row[0]
+            c_teu = int(row[1])
+            c_type = row[2]
+            gross_weight = float(row[3].replace(".", "").replace(",", "."))
+            net_weight = float(row[4])
+            c_pos = get_pos(row[5])
+            c_good = row[7]
             # create object
-            wagon = Wagon(w_id, -1, w_length, -1, w_pos)
-            # add object to wagon list
-            wagons.append(wagon)
-    # set the proper location for every wagon
-    wagons = set_location(wagons)
-    return wagons    
+            container = Container(c_id, gross_weight, net_weight, c_teu * 20, c_pos, c_good, 1, c_type)
+            # add object to container list
+            containers.append(container)
+    return containers
 
-def get_reversed_wagons_1():
+# get all the wagons based on a file uploaded by the user
+def get_wagons_prompt(reverse):
     wagons = []
     
+    # get the desired file
+    path = filedialog.askopenfilename()
+    tk.Tk().withdraw()
+
+    print("Chosen wagon file: ", path)
+    
+    # if the file is an excel file, we will convert it to .csv and save it.
+    if path.endswith(".xls") or path.endswith(".xlsx") or path.endswith(".xlsm") or path.endswith(".xlsb"):
+        path = convert_csv(path)
+
     # open file
-    with open("data/trein1/wagonlijst.csv", encoding="utf-8-sig") as wagon_file:
+    with open(path, encoding="utf-8") as wagon_file:
         data = csv.reader(wagon_file, delimiter=";")
         #skip first 10 rows, because they contain different data
         for i in range(11):
@@ -101,14 +118,15 @@ def get_reversed_wagons_1():
             wagon = Wagon(w_id, -1, w_length, -1, w_pos)
             # add object to wagon list
             wagons.append(wagon)
-    # reverse the list
-    wagons.reverse()
-    i = 1
-    for wagon in wagons:
-        wagon.position = i
-        i += 1
+    
+    if reverse:
+        wagons.reverse()
+        for i, wagon in enumerate(wagons):
+            wagon.position = i + 1
+
     # set the proper location for every wagon
     wagons = set_location(wagons)
+
     return wagons
 
 # creates a list that represents the coordinates of a container.
@@ -206,21 +224,49 @@ def set_location(wagons):
 
     return result
 
+# converts the file located at 'path' to a csv file.
+# === REQUIRES pip install openpyxl ===
+def convert_csv(path):
+    xls_file = pd.read_excel(path)
+    path = filedialog.asksaveasfilename(defaultextension='.csv')
+    xls_file.to_csv(path, index = None, header=True, sep=";")
+    return path
 
+# asks the user if the wagon set is reversed.
+def is_reversed():
+    while True:
+        reverse = input("Is the wagonset reversed? (y/n): ")
+        if reverse.lower() == "y" or reverse.lower == "yes":
+            return True
+        elif reverse.lower() == "n" or reverse.lower == "no":
+            return False
+        else:
+            print("Wrong argument, type \"y\" or \"n\".")
 
 # This only gets executed if you run python getContainersFromCSV.py
 # So if you run a file that uses this file, then it won't get executed
 if __name__ == '__main__':
-    containers_data = get_containers()
-    wagons_data = get_wagons_prompt()
-    # reversd_wagons_data = get_reversed_wagons_1()
-    print(wagons_data)
-    # print(reversd_wagons_data)
 
+    # checks if the wagon set is reversed
+    reverse = is_reversed()
 
-    # create a list of all containers
-    containers = get_containers_1()
+    # fake data
+    #containers = get_containers()
+    #wagons = get_wagons()
 
-    # create a list of all wagons
-    # agons = get_wagons_1()
-    # print(calculate_distances_1(containers, wagons))
+    # train 1 data
+    #containers = get_containers_1()
+    #wagons = get_wagons_1()
+
+    # data with prompt file
+    #containers = get_containers_prompt()
+
+    #for container in containers:
+    #    print(container.__repr__())
+
+    wagons = get_wagons_prompt(reverse)
+
+    for wagon in wagons:
+        print(wagon.__repr__())
+    
+    #print(calculate_distances_1(containers, wagons))
