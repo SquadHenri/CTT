@@ -1,6 +1,8 @@
 import csv as csv
 import math
+import tkinter as tk
 
+from tkinter import filedialog
 from functions import getTravelDistance
 from model.Train import Train
 from model.Container import Container
@@ -52,6 +54,32 @@ def get_wagons_1():
     # set the proper location for every wagon
     wagons = set_location(wagons)
     return wagons
+
+def get_wagons_prompt():
+    wagons = []
+    file_path = filedialog.askopenfilename()
+    print(file_path)
+
+    # open file
+    with open(file_path, encoding="utf-8") as wagon_file:
+        data = csv.reader(wagon_file, delimiter=";")
+        #skip first 10 rows, because they contain different data
+        for i in range(11):
+            next(data)
+        for row in data:
+            # initialize variables
+            w_pos = int(row[0])
+            w_id = row[1]
+            w_type = row[2]
+            w_length = float(row[3].replace(",", "."))
+            w_axes = int(row[4])
+            # create object
+            wagon = Wagon(w_id, -1, w_length, -1, w_pos)
+            # add object to wagon list
+            wagons.append(wagon)
+    # set the proper location for every wagon
+    wagons = set_location(wagons)
+    return wagons    
 
 def get_reversed_wagons_1():
     wagons = []
@@ -184,10 +212,10 @@ def set_location(wagons):
 # So if you run a file that uses this file, then it won't get executed
 if __name__ == '__main__':
     containers_data = get_containers()
-    wagons_data = get_wagons_1()
-    reversd_wagons_data = get_reversed_wagons_1()
+    wagons_data = get_wagons_prompt()
+    # reversd_wagons_data = get_reversed_wagons_1()
     print(wagons_data)
-    print(reversd_wagons_data)
+    # print(reversd_wagons_data)
 
 
     # create a list of all containers
