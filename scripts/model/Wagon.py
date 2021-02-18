@@ -23,17 +23,24 @@ class Wagon():
 
     # TODO call: "set the locations"  at appropriate time
 
+    # CONSTRAINTS
+
+    # A container has to be put on a wagon as a whole
+    # y is the variable used in TrainLoadingX.py
+    def c_container_is_whole(self, y):
+        for index, s_k in enumerate(self.slots):
+            
+
 
 
     # Getter for container position coordinates
-
     def get_position(self):
         return self.position
 
-    def get_weight(self):
+    def get_weight_capacity(self):
         return self.weight_capacity
 
-    def get_length(self):
+    def get_length_capacity(self):
         return self.length_capacity
 
     def get_contents(self):
@@ -41,4 +48,7 @@ class Wagon():
 
     def get_location(self):
         return self.location
+
+    def get_slots(self):
+        return self.slots
 
