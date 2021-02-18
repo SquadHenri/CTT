@@ -40,7 +40,7 @@ def get_wagons_1():
             next(data)
         for row in data:
             # initialize variables
-            w_pos = row[0]
+            w_pos = int(row[0])
             w_id = row[1]
             w_type = row[2]
             w_length = float(row[3].replace(",", "."))
@@ -63,6 +63,21 @@ def get_pos(position):
         return [int(x) for x in position]
     except ValueError:
         return position
+
+# does almost the same as calculate_distances, but this time it works for the real data.
+def calculate_distances_1(containers, wagons):
+    distances = {}
+    for container in containers:
+        c_location = container.get_position()
+        if (len(c_location) == 3) and (c_location[0] <= 52) and (c_location[1] <= 7):
+            dist_list = []
+            for wagon in wagons:
+                w_location = wagon.get_location()
+                dist_list.append((wagon.wagonID, getTravelDistance(c_location, w_location)))
+            distances[container.get_containerID()] = min(dist_list, key= lambda t: t[1])
+        else:
+            distances[container.get_containerID()] = "Container not located at track"
+    return distances
 
 # functions that creates fictional wagons
 def get_wagons():
@@ -108,14 +123,17 @@ def set_location(wagons):
     y_val = 0
     result = []
     for wagon in wagons:
+
         if (xlen + wagon.length_capacity) < 320:
             wagon.location = [math.ceil((xlen + 0.5 * wagon.length_capacity)/6.1), y_val]
             xlen += wagon.length_capacity
+
         else:
             xlen = 0
             y_val = -1
             wagon.location = [math.ceil((xlen + 0.5 * wagon.length_capacity)/6/1), y_val]
             xlen += wagon.length_capacity
+
         result.append(wagon)
     
     shift_wagon = wagons[len(wagons)-1]
@@ -139,8 +157,10 @@ if __name__ == '__main__':
     wagons_data = get_wagons_1()
     print(wagons_data)
 
+
     # create a list of all containers
     containers = get_containers_1()
 
     # create a list of all wagons
     wagons = get_wagons_1()
+    print(calculate_distances_1(containers, wagons))

@@ -12,7 +12,7 @@ class Container():
 
     def __str__(self):
         return f'Container {self.containerID},'\
-             f'priority: {self.priority}, gross_weight: {self.gross_weight}, foot: {self.foot}'
+             f' priority: {self.priority}, gross_weight: {self.gross_weight}, foot: {self.foot}'
 
     def __repr__(self):
         return f'Container {self.containerID}, '\
