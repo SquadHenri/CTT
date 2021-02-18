@@ -40,12 +40,13 @@ def get_wagons_1():
             next(data)
         for row in data:
             # initialize variables
+            w_pos = int(row[0])
             w_id = row[1]
             w_type = row[2]
             w_length = float(row[3].replace(",", "."))
             w_axes = int(row[4])
             # create object
-            wagon = Wagon(w_id, -1, w_length, -1, -1)
+            wagon = Wagon(w_id, -1, w_length, -1, w_pos)
             # add object to wagon list
             wagons.append(wagon)
     # set the proper location for every wagon
@@ -62,6 +63,21 @@ def get_pos(position):
         return [int(x) for x in position]
     except ValueError:
         return position
+
+# does almost the same as calculate_distances, but this time it works for the real data.
+def calculate_distances_1(containers, wagons):
+    distances = {}
+    for container in containers:
+        c_location = container.get_position()
+        if (len(c_location) == 3) and (c_location[0] <= 52) and (c_location[1] <= 7):
+            dist_list = []
+            for wagon in wagons:
+                w_location = wagon.get_location()
+                dist_list.append((wagon.wagonID, getTravelDistance(c_location, w_location)))
+            distances[container.get_containerID()] = min(dist_list, key= lambda t: t[1])
+        else:
+            distances[container.get_containerID()] = "Container not located at track"
+    return distances
 
 # functions that creates fictional wagons
 def get_wagons():
@@ -108,12 +124,12 @@ def set_location(wagons):
     result = []
     for wagon in wagons:
         if (len + wagon.length_capacity) < 320:
-            wagon.position = [math.ceil((len + 0.5 * wagon.length_capacity)/6.1), y_val]
+            wagon.location = [math.ceil((len + 0.5 * wagon.length_capacity)/6.1), y_val]
             len += wagon.length_capacity
         else:
             len = 0
             y_val = -1
-            wagon.position = [math.ceil((len + 0.5 * wagon.length_capacity)/6/1), y_val]
+            wagon.location = [math.ceil((len + 0.5 * wagon.length_capacity)/6/1), y_val]
             len += wagon.length_capacity
         result.append(wagon)
     return result
@@ -123,12 +139,13 @@ def set_location(wagons):
 # This only gets executed if you run python getContainersFromCSV.py
 # So if you run a file that uses this file, then it won't get executed
 if __name__ == '__main__':
-    containers_data = get_containers()
-    wagons_data = get_wagons()
-    print(calculate_distances(containers_data, wagons_data))
+    #containers_data = get_containers()
+    #wagons_data = get_wagons()
+    #print(calculate_distances(containers_data, wagons_data))
 
     # create a list of all containers
     containers = get_containers_1()
 
     # create a list of all wagons
     wagons = get_wagons_1()
+    print(calculate_distances_1(containers, wagons))
