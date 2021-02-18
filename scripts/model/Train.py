@@ -36,12 +36,40 @@ class Train():
             total_length += wagon.length_capacity
             total_weight += wagon.weight_capacity
         return total_length, total_weight
+    
+    def get_total_weight_capacity(self):
+        total_weight = 0
+        for wagon in self.wagons:
+            total_weight += wagon.weight_capacity
+        return total_weight
 
+    def get_total_length_capacity(self):
+        total_length = 0
+        for wagon in self.wagons:
+            total_length += wagon.length_capacity
+        return total_length
 
+        
     # Set the weight capacities of the wagons to a value between min and max
     def set_random_weight_capacities(self, min, max):
         for wagon in self.wagons:
             wagon.weight_capacity = get_random_value(min, max)
+
+
+    # CONSTRAINTS
+
+    # Each container can be in at most one wagon
+    # y is the variable used in TrainLoadingX.py
+    # c_i is the key of the container in the dictionairy: y[(c_i, , )]
+    def c_container_on_wagon(self, y, c_i):
+        counter = 0
+        for w_j, wagon in enumerate(self.wagons):
+            for s_k, _ in enumerate(wagon.get_slots()): # check all slots
+                if(y[(c_i, w_j,s_k)] == 1): # container c_i is on wagon w_j
+                    counter+=1 
+            continue
+        return counter <= 1
+
 
 def get_random_value(min, max):
     if min == max:
@@ -49,7 +77,8 @@ def get_random_value(min, max):
     elif min > max:
         return random.randint(max * 2, min * 2) / 2
     elif max > min:
-        return random.randint(min * 2, max * 2) / 2 
+        return random.randint(min * 2, max * 2) / 2
+
 
 
     
