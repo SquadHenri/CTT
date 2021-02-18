@@ -1,5 +1,9 @@
 from ortools.linear_solver import pywraplp
 
+from model.Wagon import Wagon
+from model.Train import Train
+from getContainersFromCSV import *
+
 # This TrainLoading variant will switch from the dictionairy data model to using classes
 
 def create_data_model():
@@ -30,11 +34,18 @@ def create_data_model():
     data['wagon_slots'].append([0 for i in range(16)])
     return data
 
+def create_train_and_containers():
+    train = create_train()
+    train.set_random_weight_capacities(30, 50)
+    #print(train)
+    containers = list(get_containers_1())
+    print(containers[0])
 
+    return train, containers
 
 def main():
     data = create_data_model()
-
+    train, containers = create_train_and_containers()
     # 1 means there is a container, 0 means there is none
     # Possibly add classes of the containers here so we can get more information
     # Note: this 
@@ -133,13 +144,13 @@ def main():
             for i in data['containers']:
                 # Used to keep track of the containers in the wagon
                 # so we print information for each container and not for each slot
-                containers = []
+                containers_ = []
                 for k in data['wagon_slots'][j]:
                     if y[i,j,k].solution_value() > 0:
-                        if i in containers:
+                        if i in containers_:
                             pass # The container is already in the solution
                         else:
-                            containers.append(i)
+                            containers_.append(i)
                             print('Container', i, '- weight:', data['container_weights'][i],' - length: ', data['container_lengths'][i])
                             wagon_weight += data['container_weights'][i]
                             wagon_length += data['container_lengths'][i]
