@@ -40,12 +40,13 @@ def get_wagons_1():
             next(data)
         for row in data:
             # initialize variables
+            w_pos = row[0]
             w_id = row[1]
             w_type = row[2]
             w_length = float(row[3].replace(",", "."))
             w_axes = int(row[4])
             # create object
-            wagon = Wagon(w_id, -1, w_length, -1, -1)
+            wagon = Wagon(w_id, -1, w_length, -1, w_pos)
             # add object to wagon list
             wagons.append(wagon)
     # set the proper location for every wagon
@@ -103,19 +104,30 @@ def calculate_distances(containers, wagons):
 
 # Sets the location of the wagon takes a list of all the containers in the train
 def set_location(wagons):
-    len = 0
+    xlen = 0
     y_val = 0
     result = []
     for wagon in wagons:
-        if (len + wagon.length_capacity) < 320:
-            wagon.position = [math.ceil((len + 0.5 * wagon.length_capacity)/6.1), y_val]
-            len += wagon.length_capacity
+        if (xlen + wagon.length_capacity) < 320:
+            wagon.location = [math.ceil((xlen + 0.5 * wagon.length_capacity)/6.1), y_val]
+            xlen += wagon.length_capacity
         else:
-            len = 0
+            xlen = 0
             y_val = -1
-            wagon.position = [math.ceil((len + 0.5 * wagon.length_capacity)/6/1), y_val]
-            len += wagon.length_capacity
+            wagon.location = [math.ceil((xlen + 0.5 * wagon.length_capacity)/6/1), y_val]
+            xlen += wagon.length_capacity
         result.append(wagon)
+    
+    shift_wagon = wagons[len(wagons)-1]
+    shift_wagon_xloc = shift_wagon.location[0]
+    shift_wagon_length = shift_wagon.length_capacity
+    x_shift = (52 - math.ceil(shift_wagon_length / 2 / 6.1)) - shift_wagon_xloc
+
+    for wagon in wagons:
+        if wagon.location[1] == -1:
+            wagon.location[0] += x_shift
+
+
     return result
 
 
@@ -124,8 +136,8 @@ def set_location(wagons):
 # So if you run a file that uses this file, then it won't get executed
 if __name__ == '__main__':
     containers_data = get_containers()
-    wagons_data = get_wagons()
-    print(calculate_distances(containers_data, wagons_data))
+    wagons_data = get_wagons_1()
+    print(wagons_data)
 
     # create a list of all containers
     containers = get_containers_1()
