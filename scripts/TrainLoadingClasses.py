@@ -9,7 +9,8 @@ from getContainersFromCSV import *
 def create_train_and_containers():
     train = create_train()
 
-    train.set_random_weight_capacities(30, 50)
+    train.set_random_weight_capacities(300000, 5000000)
+    train.set_random_length_capacities(100, 150)
     #print(train)
     containers = list(get_containers_1())
     print(train)
@@ -38,6 +39,7 @@ def main():
 
     # Each slot can only have one container?
     # This constraint might still be necessary
+    
 
     # Each container can be in at most one wagon.
     for c_i, _ in enumerate(containers):
@@ -55,6 +57,8 @@ def main():
     for w_j, wagon in enumerate(train.wagons):
         solver.Add(wagon.c_length_capacity(y, containers, w_j))
 
+        
+
     # Objectives
 
     # This objective tries to maximize the weight of the containers
@@ -64,7 +68,7 @@ def main():
         for w_j, wagon in enumerate(train.wagons):
             for s_k, _ in enumerate(wagon.get_slots()):
                 objective.SetCoefficient(
-                    y[(c_i,w_j,s_k)], container.get_priority()
+                    y[(c_i,w_j,s_k)], (container.get_priority() * 0.1 - container.get_length() * 0.9)
                 )
     objective.SetMaximization()
 

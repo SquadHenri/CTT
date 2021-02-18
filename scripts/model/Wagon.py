@@ -8,7 +8,7 @@ class Wagon():
         self.slots = [[0 for i in range(int(length_capacity * 2))]] # Each slot is 0.5 TEU (for now)
         self.contents = contents
         self.position = position
-        self.location = [-2, -2]
+        self.location = None
 
     # Convert Wagon to string
     # Print relevant information only, __repr__ is used to print every detail
@@ -16,6 +16,7 @@ class Wagon():
         return f'Wagon {self.wagonID}, weight capacity: {self.weight_capacity}, '\
              f'length capacity: {self.length_capacity}'
 
+    # prints all values from the wagon
     def __repr__(self):
         return f'Wagon {self.wagonID}, weight capacity: {self.weight_capacity}, '\
              f'length_capacity: {self.length_capacity}, contents: {self.contents}, '\
