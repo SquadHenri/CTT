@@ -53,6 +53,36 @@ def get_wagons_1():
     wagons = set_location(wagons)
     return wagons
 
+def get_reversed_wagons_1():
+    wagons = []
+    
+    # open file
+    with open("data/trein1/wagonlijst.csv", encoding="utf-8-sig") as wagon_file:
+        data = csv.reader(wagon_file, delimiter=";")
+        #skip first 10 rows, because they contain different data
+        for i in range(11):
+            next(data)
+        for row in data:
+            # initialize variables
+            w_pos = int(row[0])
+            w_id = row[1]
+            w_type = row[2]
+            w_length = float(row[3].replace(",", "."))
+            w_axes = int(row[4])
+            # create object
+            wagon = Wagon(w_id, -1, w_length, -1, w_pos)
+            # add object to wagon list
+            wagons.append(wagon)
+    # reverse the list
+    wagons.reverse()
+    i = 1
+    for wagon in wagons:
+        wagon.position = i
+        i += 1
+    # set the proper location for every wagon
+    wagons = set_location(wagons)
+    return wagons
+
 # creates a list that represents the coordinates of a container.
 # it takes "##.##.##" as an input and returns [##, ##, ##]
 def get_pos(position):
@@ -155,12 +185,14 @@ def set_location(wagons):
 if __name__ == '__main__':
     containers_data = get_containers()
     wagons_data = get_wagons_1()
+    reversd_wagons_data = get_reversed_wagons_1()
     print(wagons_data)
+    print(reversd_wagons_data)
 
 
     # create a list of all containers
     containers = get_containers_1()
 
     # create a list of all wagons
-    wagons = get_wagons_1()
-    print(calculate_distances_1(containers, wagons))
+    # agons = get_wagons_1()
+    # print(calculate_distances_1(containers, wagons))
