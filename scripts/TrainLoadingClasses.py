@@ -6,55 +6,21 @@ from getContainersFromCSV import *
 
 # This TrainLoading variant will switch from the dictionairy data model to using classes
 
-def create_data_model():
-    """Create the data for the example."""
-    data = {}
-    container_distances = [48, 30, 42, 36, 36, 48, 42, 42, 36, 24, 30, 30, 42, 36, 36]
-    container_distances *= 10
-    container_weights = [48, 30, 42, 36, 36, 48, 42, 42, 36, 24, 30, 30, 42, 36, 36]
-    container_lengths = [1.0, 3.0, 2.5, 5.0, 3.5, 3.0, 1.5, 4.0, 3.0, 3.5, 4.5, 1.0, 2.0, 3.0, 2.5] # In TEU's
-    data['container_weights'] = container_weights
-    data['container_lengths'] = container_lengths
-    data['container_distances'] = container_distances
-    data['containers'] = list(range(len(container_weights)))
-    data['num_containers'] = len(container_weights)
-    num_wagons = 7
-    data['wagons'] = list(range(num_wagons))
-    data['wagon_weight_capacities'] = [150, 90, 130, 110, 115, 110, 140]
-    data['wagon_length_capacities'] = [4, 4.5, 6, 2, 8, 6, 8] # in TEU's
-
-    data['wagon_slots'] = []    # each slot represents 0.5 TEU's. The slot is occupied if it is non-zero
-                                # the number in the slot is the index of the container
-    data['wagon_slots'].append([0 for i in range(8)])
-    data['wagon_slots'].append([0 for i in range(9)])
-    data['wagon_slots'].append([0 for i in range(12)])
-    data['wagon_slots'].append([0 for i in range(4)])
-    data['wagon_slots'].append([0 for i in range(16)])
-    data['wagon_slots'].append([0 for i in range(6)])
-    data['wagon_slots'].append([0 for i in range(16)])
-    return data
-
 def create_train_and_containers():
     train = create_train()
+
     train.set_random_weight_capacities(30, 50)
     #print(train)
     containers = list(get_containers_1())
-
+    print(train)
+    print(containers[0])
+    print(containers[1])
+    print(containers[2])
     return train, containers
 
 def main():
     # data = create_data_model()
     train, containers = create_train_and_containers()
-    # 1 means there is a container, 0 means there is none
-    # Possibly add classes of the containers here so we can get more information
-    # Note: this 
-    # container_grid = np.asarray(
-    #     [
-    #     [[1,1],[1,0]],
-    #     [[1,0],[0,0]],
-    #     [[0,1],[0,0]]
-    #     ]) 
-    
 
     # Create the mip solver with the SCIP backend.
     solver = pywraplp.Solver.CreateSolver('SCIP')
@@ -65,61 +31,40 @@ def main():
     y = {}
     for c_i, _ in enumerate(containers):
         for w_j, wagon in enumerate(train.wagons):
-            for index, s_k in enumerate(wagon.get_slots()):
-                y[(c_i,w_j,index)] = solver.IntVar(0, 1, 'cont:%i,wagon:%i,slot:%i' % (c_i,w_j,index))
+            for s_k, _ in enumerate(wagon.get_slots()):
+                y[(c_i,w_j,s_k)] = solver.IntVar(0, 1, 'cont:%i,wagon:%i,slot:%i' % (c_i,w_j,s_k))
 
     # Constraints
+
+    # Each slot can only have one container?
+    # This constraint might still be necessary
 
     # Each container can be in at most one wagon.
     for c_i, _ in enumerate(containers):
         solver.Add(train.c_container_on_wagon(y,c_i))
 
     # A container has to be put on a wagon as a whole
-    for wagon in train.wagons:
-        for index, s_k in enumerate(wagon.get_slots()):
-            # If s_k has been found before, but s_k is not the one before that, then there is a gap
-            # Or s_k has not occured yet, then there is no gap 
-            solver.Add(index == 0 or (s_k in wagon.get_slots()[0:index] and index - 1 >= 0 and wagon.get_slots()[index-1] == s_k) or s_k not in wagon.get_slots()[0:index])
-            # It might be cleaner to move these tests to a function of the wagon class.
-
-    # The amount packed in each wagon cannot exceed its capacity.
     for w_j, wagon in enumerate(train.wagons):
-        solver.Add(
-            sum(y[(c_i, w_j, s_k)] * containers[c_i].get_net_weight() # Net weight or gross weight?
-                for c_i, _ in enumerate(containers)) <= wagon.get_weight_capacity()
-                )
+        solver.Add(wagon.c_container_is_whole(y, len(containers), w_j))
+
+    # The amount packed in each wagon cannot exceed its weight capacity.
+    for w_j, wagon in enumerate(train.wagons):
+        solver.Add(wagon.c_weight_capacity(y, containers, w_j))
+    
     # The length of the containers cannot exceed the length of the wagon
     for w_j, wagon in enumerate(train.wagons):
-        solver.Add(
-            sum(y[(c_i,w_j,s_k)] * container.get_length()
-            for c_i, container in enumerate(containers)) <= wagon.get_length_capacity()
-        )
+        solver.Add(wagon.c_length_capacity(y, containers, w_j))
 
     # Objectives
-
-    # Objective minimize left over space on wagons
-    # Maximize container_lengths, this is possible because there is a contraint that
-    # length cant be exceeded
-    # objective = solver.Objective()
-    # for c_i in data['containers']:
-    #     for w_j in data['wagons']:
-    #         for index, s_k in enumerate(data['wagon_slots'][w_j]):
-    #             # Test if s_k is the first occurance of s_k in the wagon_slots
-    #             if s_k not in data['wagon_slots'][0:index]:
-    #                 objective.SetCoefficient(
-    #                     y[(c_i,w_j,s_k)], 1 #data['container_lengths'][c_i]
-    #                 )
-
-    # objective.SetMaximization()
 
     # This objective tries to maximize the weight of the containers
     # For now this objective works, but we possibly need to change this later
     objective = solver.Objective()
     for c_i, container in enumerate(containers):
-        for w_j, wagon in train.wagons:
-            for index, s_k in enumerate(wagon.get_slots()):
+        for w_j, wagon in enumerate(train.wagons):
+            for s_k, _ in enumerate(wagon.get_slots()):
                 objective.SetCoefficient(
-                    y[(c_i,w_j,s_k)], container.get_net_weight()
+                    y[(c_i,w_j,s_k)], container.get_priority()
                 )
     objective.SetMaximization()
 

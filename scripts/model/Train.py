@@ -67,6 +67,7 @@ class Train():
             for s_k, _ in enumerate(wagon.get_slots()): # check all slots
                 if(y[(c_i, w_j,s_k)] == 1): # container c_i is on wagon w_j
                     counter+=1 
+                    break
             continue
         return counter <= 1
 
