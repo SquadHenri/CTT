@@ -25,14 +25,15 @@ class Wagon():
 
     # CONSTRAINTS
 
-    # A container has to be put on a wagon as a whole
+    # Constraint that a container has to be put on the wagon as a whole
     # y is the variable used in TrainLoadingX.py
-    def c_container_is_whole(self, y):
-        for index, s_k in enumerate(self.slots):
+    def c_container_is_whole(self, y, num_containers):
+        for s_k, _ in enumerate(self.slots):
+            if s_k == 0:
+                return True # The first one is always fine
             
-
-
-
+            
+        
     # Getter for container position coordinates
     def get_position(self):
         return self.position
