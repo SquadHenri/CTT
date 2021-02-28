@@ -8,6 +8,7 @@ class Container():
         self.priority = priority
         self.net_weight = net_weight
         self.typeid = typeid
+        self.hazard_class = None # None means it is not hazardous, 1,2,3 means it is
 
 
     def __str__(self):
