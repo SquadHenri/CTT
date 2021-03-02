@@ -9,7 +9,7 @@ from getContainersFromCSV import *
 def create_train_and_containers():
     train = create_train()
 
-    train.set_random_weight_capacities(300000, 5000000) 
+    train.set_random_weight_capacities(30000, 50000) 
     train.set_random_length_capacities(100, 150)
 
     containers = list(get_containers_1())
@@ -42,7 +42,7 @@ def main():
 
     # Each container can be in at most one wagon.
     for c_i, _ in enumerate(containers):
-        solver.Add(train.c_container_on_wagon(y,c_i))
+        solver.Add(train.c_container_on_wagon(y, c_i, s_k))
 
     # A container has to be put on a wagon as a whole
     for w_j, wagon in enumerate(train.wagons):
@@ -126,6 +126,8 @@ def main():
         print('The problem does have a feasible solution')
     else:
         print('The problem does not have an optimal solution.')
+
+
 
 
 

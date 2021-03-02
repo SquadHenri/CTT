@@ -65,7 +65,7 @@ class Train():
     # Each container can be in at most one wagon
     # y is the variable used in TrainLoadingX.py
     # c_i is the key of the container in the dictionairy: y[(c_i, , )]
-    def c_container_on_wagon(self, y, c_i):
+    def c_container_on_wagon_old(self, y, c_i):
         counter = 0
         for w_j, wagon in enumerate(self.wagons):
             for s_k, _ in enumerate(wagon.get_slots()): # check all slots
@@ -75,6 +75,7 @@ class Train():
             continue
         return counter <= 1
     
+
     # Contents constraint
     def c_container_location_valid(self, y, c1_i, c2_i, container_1, container_2):
         for w_j, wagon in enumerate(self.wagons):
@@ -95,6 +96,10 @@ class Train():
                 if y[(c_i, w_j, s_k)] == 1:
                     # The difference in position between the container and the wagon may not be larger than 50 metres.
                     return functions.getTravelDistance(container.get_position(), wagon.get_location()) < 50
+
+    def c_container_on_wagon(self, y, c_i, s_k):
+        return sum(y[(c_i, w_j, s_k)] for w_j, _ in enumerate(self.wagons)) <= 1
+
 
 
 def get_random_value(min, max):
