@@ -1,14 +1,16 @@
 import math
 
 class Wagon():
-    def __init__(self, wagonID, weight_capacity, length_capacity, contents, position):
+    def __init__(self, wagonID, weight_capacity, length_capacity, contents, position, number_of_axles, total_length):
         self.wagonID = wagonID # number of the wagon
         self.weight_capacity = weight_capacity # Weight capacity
-        self.length_capacity = length_capacity # Length capacity in TEU (for now)
-        self.slots = [[0 for i in range(int(length_capacity * 2))]] # Each slot is 0.5 TEU (for now)
+        self.length_capacity = length_capacity # The capacity of a wagon set in Feet
+        self.total_length = total_length # The total length of the wagon
+        self.slots = [[0 for i in range(int(length_capacity * 2))]] # Each slot is 0.5 TEU (for now) TODO get rid of this and work in feet
         self.contents = contents # are there dangerous goods in the wagon
         self.position = position # the placement in the train
         self.location = None # The location where the wagon in placed in the loading bay
+        self.number_of_axles = number_of_axles
 
     # Convert Wagon to string
     # Print relevant information only, __repr__ is used to print every detail
@@ -56,7 +58,6 @@ class Wagon():
         return sum(y[(c_i, w_j, s_k)] * container.get_length()
                 for c_i, container in enumerate(containers)) <= self.get_length_capacity()
     
-
         
     # Getter for container position coordinates
     def get_position(self):
