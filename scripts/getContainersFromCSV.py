@@ -201,21 +201,21 @@ def set_location(wagons):
     result = []
     for wagon in wagons:
 
-        if (xlen + wagon.length_capacity) < 320:
-            wagon.location = [math.ceil((xlen + 0.5 * wagon.length_capacity)/6.1), y_val]
-            xlen += wagon.length_capacity
+        if (xlen + wagon.total_length) < 320:
+            wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6.1), y_val]
+            xlen += wagon.total_length
 
         else:
             xlen = 0
             y_val = -1
-            wagon.location = [math.ceil((xlen + 0.5 * wagon.length_capacity)/6/1), y_val]
-            xlen += wagon.length_capacity
+            wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6/1), y_val]
+            xlen += wagon.total_length
 
         result.append(wagon)
 # See where the last wagon in located to calculate the shift the 2nd row of wagons hast to make
     shift_wagon = wagons[len(wagons)-1]
     shift_wagon_xloc = shift_wagon.location[0]
-    shift_wagon_length = shift_wagon.length_capacity
+    shift_wagon_length = shift_wagon.total_length
     x_shift = (52 - math.ceil(shift_wagon_length / 2 / 6.1)) - shift_wagon_xloc
 
     for wagon in wagons:
