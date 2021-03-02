@@ -91,7 +91,7 @@ class Wagon():
     def get_weight_capacity(self):
         return self.weight_capacity
         
-def set_weight_capacity(self, weight_capacity):
+    def set_weight_capacity(self, weight_capacity):
         self.weight_capacity = weight_capacity
 
     def get_length_capacity(self):
