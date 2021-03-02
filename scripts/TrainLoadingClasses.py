@@ -9,14 +9,13 @@ from getContainersFromCSV import *
 def create_train_and_containers():
     train = create_train()
 
-    train.set_random_weight_capacities(300000, 5000000)
+    train.set_random_weight_capacities(30000, 50000) 
     train.set_random_length_capacities(100, 150)
-    #print(train)
+
     containers = list(get_containers_1())
+
     print(train)
-    print(containers[0])
-    print(containers[1])
-    print(containers[2])
+    print("Container[0]: ", containers[1])
     return train, containers
 
 def main():
@@ -26,7 +25,7 @@ def main():
     # Create the mip solver with the SCIP backend.
     solver = pywraplp.Solver.CreateSolver('SCIP')
 
-    # Variables
+    # VARIABLES
 
     # y[c_i,w_j,s_k] = 1 if container c_i is packed in slot s_k of wagon w_j
     y = {}
@@ -35,7 +34,7 @@ def main():
             for s_k, _ in enumerate(wagon.get_slots()):
                 y[(c_i,w_j,s_k)] = solver.IntVar(0, 1, 'cont:%i,wagon:%i,slot:%i' % (c_i,w_j,s_k))
 
-    # Constraints
+    # CONSTRAINTS
 
     # Each slot can only have one container?
     # This constraint might still be necessary
@@ -43,7 +42,7 @@ def main():
 
     # Each container can be in at most one wagon.
     for c_i, _ in enumerate(containers):
-        solver.Add(train.c_container_on_wagon(y,c_i))
+        solver.Add(train.c_container_on_wagon(y, c_i, s_k))
 
     # A container has to be put on a wagon as a whole
     for w_j, wagon in enumerate(train.wagons):
@@ -57,9 +56,25 @@ def main():
     for w_j, wagon in enumerate(train.wagons):
         solver.Add(wagon.c_length_capacity(y, containers, w_j))
 
-        
+    # Contents constraint
+    for c1_i, container1 in enumerate(containers):
+        for c2_i, container2 in enumerate(containers):
+            # Check we are not working with the same containers
+            if c1_i != c2_i:
+                # If both containers are in a hazard class, add the constraint
+                if container1.hazard_class != None and container2.hazard_class != None:
+                    solver.Add(train.c_container_location_valid(y, c1_i, c2_i, container1, container2))
+    
+    # Travel distance constraint
+    for c_i, container in enumerate(containers):
+        # For every container add the travel distance constraint.
+        solver.Add(train.c_container_travel_distance(y, c_i, container))
+
 
     # Objectives
+        
+
+    # OBJECTIVE
 
     # This objective tries to maximize the weight of the containers
     # For now this objective works, but we possibly need to change this later
@@ -68,7 +83,8 @@ def main():
         for w_j, wagon in enumerate(train.wagons):
             for s_k, _ in enumerate(wagon.get_slots()):
                 objective.SetCoefficient(
-                    y[(c_i,w_j,s_k)], (container.get_priority() * 0.1 - container.get_length() * 0.9)
+                    y[(c_i,w_j,s_k)], container.get_length() 
+                    #y[(c_i,w_j,s_k)], (container.get_priority() * 0.1 - container.get_length() * 0.9)
                 )
     objective.SetMaximization()
 
@@ -110,6 +126,8 @@ def main():
         print('The problem does have a feasible solution')
     else:
         print('The problem does not have an optimal solution.')
+
+
 
 
 

@@ -71,7 +71,7 @@ def get_containers_prompt():
 
     # open file
     with open(path, encoding="utf-8-sig") as container_file:
-        data = csv.reader(container_file, delimiter=",")
+        data = csv.reader(container_file, delimiter=";")
         for row in data:
             # initialize variables
             c_id = row[0]
@@ -151,6 +151,7 @@ def calculate_distances_1(containers, wagons):
                 w_location = wagon.get_location()
                 dist_list.append((wagon.wagonID, getTravelDistance(c_location, w_location)))
             distances[container.get_containerID()] = min(dist_list, key= lambda t: t[1])
+            #distances[container.get_containerID()] = dist_list
         else:
             distances[container.get_containerID()] = "Container not located at track"
     return distances
@@ -211,7 +212,7 @@ def set_location(wagons):
             xlen += wagon.length_capacity
 
         result.append(wagon)
-    
+# See where the last wagon in located to calculate the shift the 2nd row of wagons hast to make
     shift_wagon = wagons[len(wagons)-1]
     shift_wagon_xloc = shift_wagon.location[0]
     shift_wagon_length = shift_wagon.length_capacity
@@ -255,8 +256,8 @@ if __name__ == '__main__':
     #wagons = get_wagons()
 
     # train 1 data
-    #containers = get_containers_1()
-    #wagons = get_wagons_1()
+    containers = get_containers_1()
+    wagons = get_wagons_1()
 
     # data with prompt file
     #containers = get_containers_prompt()
@@ -264,9 +265,13 @@ if __name__ == '__main__':
     #for container in containers:
     #    print(container.__repr__())
 
-    wagons = get_wagons_prompt(reverse)
+    #wagons = get_wagons_prompt(reverse)
+    for container in containers:
+        print(container.__repr__())
 
     for wagon in wagons:
         print(wagon.__repr__())
+    
+    print(calculate_distances_1(containers, wagons))
     
     #print(calculate_distances_1(containers, wagons))

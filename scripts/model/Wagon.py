@@ -2,13 +2,13 @@ import math
 
 class Wagon():
     def __init__(self, wagonID, weight_capacity, length_capacity, contents, position):
-        self.wagonID = wagonID
+        self.wagonID = wagonID # number of the wagon
         self.weight_capacity = weight_capacity # Weight capacity
         self.length_capacity = length_capacity # Length capacity in TEU (for now)
         self.slots = [[0 for i in range(int(length_capacity * 2))]] # Each slot is 0.5 TEU (for now)
-        self.contents = contents
-        self.position = position
-        self.location = None
+        self.contents = contents # are there dangerous goods in the wagon
+        self.position = position # the placement in the train
+        self.location = None # The location where the wagon in placed in the loading bay
 
     # Convert Wagon to string
     # Print relevant information only, __repr__ is used to print every detail
@@ -22,14 +22,13 @@ class Wagon():
              f'length_capacity: {self.length_capacity}, contents: {self.contents}, '\
              f'position: {self.position}, location: {self.location}'
 
-    # TODO call: "set the locations"  at appropriate time
 
     # CONSTRAINTS
 
     # Constraint that a container has to be put on the wagon as a whole
     # y is the variable used in TrainLoadingX.py
     # w_j is the index of the wagon
-    # If people can optimize this, go ahead. This function will be called very often
+    # TODO If people can optimize this, go ahead. This function will be called very often
     def c_container_is_whole(self, y, num_containers, w_j):
         # Create a dictionairy of all containers c_i and the slots
         # They occupy in the wagon
@@ -91,9 +90,15 @@ class Wagon():
 
     def get_weight_capacity(self):
         return self.weight_capacity
+        
+    def set_weight_capacity(self, weight_capacity):
+        self.weight_capacity = weight_capacity
 
     def get_length_capacity(self):
         return self.length_capacity
+
+    def set_length_capacity(self, length_capacity):
+        self.length_capacity = length_capacity
 
     def get_contents(self):
         return self.contents
