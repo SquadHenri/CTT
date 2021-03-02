@@ -64,6 +64,11 @@ def main():
                 # If both containers are in a hazard class, add the constraint
                 if container1.hazard_class != None and container2.hazard_class != None:
                     solver.Add(train.c_container_location_valid(y, c1_i, c2_i, container1, container2))
+    
+    # Travel distance constraint
+    for c_i, container in enumerate(containers):
+        # For every container add the travel distance constraint.
+        solver.Add(train.c_container_travel_distance(y, c_i, container))
 
 
     # Objectives
