@@ -9,7 +9,7 @@ from getContainersFromCSV import *
 def create_train_and_containers():
     train = create_train()
 
-    train.set_random_weight_capacities(300000, 5000000) 
+    train.set_random_weight_capacities(30000, 50000) 
     train.set_random_length_capacities(100, 150)
 
     containers = list(get_containers_1())
@@ -42,7 +42,7 @@ def main():
 
     # Each container can be in at most one wagon.
     for c_i, _ in enumerate(containers):
-        solver.Add(train.c_container_on_wagon(y,c_i))
+        solver.Add(train.c_container_on_wagon(y, c_i, s_k))
 
     # A container has to be put on a wagon as a whole
     for w_j, wagon in enumerate(train.wagons):
@@ -56,6 +56,22 @@ def main():
     for w_j, wagon in enumerate(train.wagons):
         solver.Add(wagon.c_length_capacity(y, containers, w_j))
 
+    # Contents constraint
+    for c1_i, container1 in enumerate(containers):
+        for c2_i, container2 in enumerate(containers):
+            # Check we are not working with the same containers
+            if c1_i != c2_i:
+                # If both containers are in a hazard class, add the constraint
+                if container1.hazard_class != None and container2.hazard_class != None:
+                    solver.Add(train.c_container_location_valid(y, c1_i, c2_i, container1, container2))
+    
+    # Travel distance constraint
+    for c_i, container in enumerate(containers):
+        # For every container add the travel distance constraint.
+        solver.Add(train.c_container_travel_distance(y, c_i, container))
+
+
+    # Objectives
         
 
     # OBJECTIVE
@@ -110,6 +126,8 @@ def main():
         print('The problem does have a feasible solution')
     else:
         print('The problem does not have an optimal solution.')
+
+
 
 
 
