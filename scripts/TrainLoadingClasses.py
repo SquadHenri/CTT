@@ -70,6 +70,14 @@ def main():
         # For every container add the travel distance constraint.
         solver.Add(train.c_container_travel_distance(y, c_i, container))
 
+    # A train may not surpass a maximum weight, based on the destination of the train.
+    # solver.Add(train.c_max_train_weight(y, containers))
+
+    # Test constraint for the axle load
+    # Loop through wagons of the train
+    #for w_j, wagon in enumerate(train.wagons):
+    #   solver.Add(wagon.c_axle_load(y, containers_on_wagon)
+
 
     # Objectives
         

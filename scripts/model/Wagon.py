@@ -77,6 +77,19 @@ class Wagon():
         for container in containers:
             packed_length += container.get_length()
         return packed_length < self.get_length_capacity()
+    
+    # Possible constraint for the axle load
+    # The function self.calculateLoad calculcates the axle load based on a container list, we still need to make this.
+    # @TODO make calculateLoad function
+    # def c_axle_load(self, y, containers, w_j):
+    #     containers_on_wagon = []
+    #     for c_i, container in enumerate(containers):
+    #         for s_k in range(len(self.slots)):
+    #             if y[(c_i, w_j, s_k)] == 1:
+    #                 containers_on_wagon.append((container, s_k))
+    #     return self.calculateLoad(containers_on_wagon) < maxLoad
+
+
 
                 
 
