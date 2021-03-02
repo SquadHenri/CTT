@@ -55,6 +55,16 @@ def main():
     for w_j, wagon in enumerate(train.wagons):
         solver.Add(wagon.c_length_capacity(y, containers, w_j))
 
+    # Contents constraint
+    for c1_i, container1 in enumerate(containers):
+        for c2_i, container2 in enumerate(containers):
+            # Check we are not working with the same containers
+            if c1_i != c2_i:
+                # If both containers are in a hazard class, add the constraint
+                if container1.hazard_class != None and container2.hazard_class != None:
+                    solver.Add(train.c_container_location_valid(y, c1_i, c2_i, container1, container2))
+
+
     # Objectives
 
     # This objective tries to maximize the weight of the containers

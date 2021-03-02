@@ -1,6 +1,5 @@
 import random
-
-from model.Wagon import Wagon
+from Wagon import Wagon
 
 
 
@@ -70,6 +69,19 @@ class Train():
                     break
             continue
         return counter <= 1
+    
+    # Contents constraint
+    def c_container_location_valid(self, y, c1_i, c2_i, container_1, container_2):
+        for w_j, wagon in enumerate(self.wagons):
+            for s_k, _ in enumerate(wagon.get_slots()):
+                # get the positions of both wagons
+                if(y[(c1_i, w_j, s_k)] == 1):
+                    c1_pos = wagon.get_position()
+                if(y[(c2_i, w_j, s_k)] == 1):
+                    c2_pos = wagon.get_position()
+        # make sure that the wagon positions >= 2, so that there is 1 wagon in between.
+        return abs(c1_pos - c2_pos) >= 2
+
 
 
 def get_random_value(min, max):
