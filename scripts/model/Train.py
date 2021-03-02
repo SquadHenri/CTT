@@ -52,8 +52,12 @@ class Train():
     # Set the weight capacities of the wagons to a value between min and max
     def set_random_weight_capacities(self, min, max):
         for wagon in self.wagons:
-            wagon.weight_capacity = get_random_value(min, max)
+            wagon.set_weight_capacity(get_random_value(min, max))
 
+    # Set the weight capacities of the wagons to a value between min and max
+    def set_random_length_capacities(self, min, max):
+        for wagon in self.wagons:
+            wagon.set_length_capacity(get_random_value(min, max))
 
     # CONSTRAINTS
 
