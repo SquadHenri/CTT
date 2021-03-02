@@ -9,7 +9,7 @@ class Train():
     
     # wagons should be a list of wagons
     def __init__(self, wagons):
-        self.wagons = wagons
+        self.wagons = wagons # This is the list of all the wagons on the train
     
     # Create some wagons, to use for testing
     def test_train(self):

@@ -1,13 +1,13 @@
 class Container():
     def __init__(self, containerID, gross_weight, net_weight, foot, position, goods, priority, typeid):
-        self.containerID = containerID
-        self.gross_weight = gross_weight
-        self.foot = foot
-        self.position = position
-        self.goods = goods
-        self.priority = priority
-        self.net_weight = net_weight
-        self.typeid = typeid
+        self.containerID = containerID # name of the container
+        self.gross_weight = gross_weight # weight of the container and the goods in kg
+        self.foot = foot # length of the contianer in Foot
+        self.position = position # position of the container (on the dock or train)
+        self.goods = goods # What is in the container (used for dangerous goods)
+        self.priority = priority # ctt does not set a priority so this might be left unused
+        self.net_weight = net_weight # Weight of the goods without the container (do not use this)
+        self.typeid = typeid # Type of the container (len in feet and a letter combo)
         self.hazard_class = None # None means it is not hazardous, 1,2,3 means it is
 
 

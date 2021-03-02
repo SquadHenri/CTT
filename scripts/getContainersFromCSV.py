@@ -211,7 +211,7 @@ def set_location(wagons):
             xlen += wagon.length_capacity
 
         result.append(wagon)
-    
+# See where the last wagon in located to calculate the shift the 2nd row of wagons hast to make
     shift_wagon = wagons[len(wagons)-1]
     shift_wagon_xloc = shift_wagon.location[0]
     shift_wagon_length = shift_wagon.length_capacity
