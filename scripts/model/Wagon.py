@@ -1,14 +1,16 @@
 import math
 
 class Wagon():
-    def __init__(self, wagonID, weight_capacity, length_capacity, contents, position):
+    def __init__(self, wagonID, weight_capacity, length_capacity, contents, position, number_of_axles, total_length):
         self.wagonID = wagonID # number of the wagon
         self.weight_capacity = weight_capacity # Weight capacity
-        self.length_capacity = length_capacity # Length capacity in TEU (for now)
-        self.slots = [[0 for i in range(int(length_capacity * 2))]] # Each slot is 0.5 TEU (for now)
+        self.length_capacity = length_capacity # The capacity of a wagon set in Feet
+        self.total_length = total_length # The total length of the wagon
+        self.slots = [[0 for i in range(int(length_capacity * 2))]] # Each slot is 0.5 TEU (for now) TODO get rid of this and work in feet
         self.contents = contents # are there dangerous goods in the wagon
         self.position = position # the placement in the train
         self.location = None # The location where the wagon in placed in the loading bay
+        self.number_of_axles = number_of_axles
 
     # Convert Wagon to string
     # Print relevant information only, __repr__ is used to print every detail
@@ -46,43 +48,16 @@ class Wagon():
             # Since the list is ordered, the following means the container is ordered
             return containers[c_i][-1] - containers[c_i][0] == len(containers[c_i]) - 1
 
-    def c_weight_capacity(self, y, containers, w_j):
-        # Create dictionairy of all containers c_i and their respective slots
-        containers = {}
-        for c_i in range(len(containers)):
-            for s_k in range(len(self.slots)):
-                if(y[(c_i, w_j, s_k)] == 1):
-                    if(c_i in containers):
-                        containers[c_i].append(s_k)
-                    else:
-                        containers[c_i] = [s_k]
-        # Sum the weights of all containers
-        packed_weight = 0
-        for container in containers:
-            packed_weight += container.get_net_weight()
-        return packed_weight < self.get_weight_capacity()
+    # The weight of the containers cannot exceed the weight capacity of the wagon
+    def c_weight_capacity(self, containers, y, w_j, s_k):
+        return sum(y[(c_i, w_j, s_k)] * container.get_net_weight()
+                for c_i, container in enumerate(containers)) <= self.get_weight_capacity()
+
+    # The length of the containers cannot exceed the length capacity of the wagon
+    def c_length_capacity(self, containers, y, w_j, s_k):
+        return sum(y[(c_i, w_j, s_k)] * container.get_length()
+                for c_i, container in enumerate(containers)) <= self.get_length_capacity()
     
-    def c_length_capacity(self, y, containers, w_j):
-        # Create dictionairy of all containers c_i and their respective slots
-        containers = {}
-        for c_i in range(len(containers)):
-            for s_k in range(len(self.slots)):
-                if(y[(c_i, w_j, s_k)] == 1):
-                    if(c_i in containers):
-                        containers[c_i].append(s_k)
-                    else:
-                        containers[c_i] = [s_k]
-        # count
-        packed_length = 0
-        for container in containers:
-            packed_length += container.get_length()
-        return packed_length < self.get_length_capacity()
-
-                
-
-            
-            
-            
         
     # Getter for container position coordinates
     def get_position(self):
