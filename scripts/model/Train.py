@@ -10,7 +10,7 @@ class Train():
     # wagons should be a list of wagons
     def __init__(self, wagons):
         self.wagons = wagons # This is the list of all the wagons on the train
-        self.maxWeight = 1000000000
+        self.maxWeight = 1000
     
     # Create some wagons, to use for testing
     def test_train(self):
@@ -77,8 +77,8 @@ class Train():
     # Each container can be in at most one wagon
     # y is the variable used in TrainLoadingX.py
     # c_i is the key of the container in the dictionairy: y[(c_i, , )]
-    def c_container_on_wagon(self, y, c_i, s_k):
-        return sum(y[(c_i, w_j, s_k)] for w_j, _ in enumerate(self.wagons)) <= 16
+    def c_container_on_wagon(self, y, c_i, s_k, container):
+        return sum(y[(c_i, w_j, s_k)] for w_j, _ in enumerate(self.wagons)) <= container.get_length()
 
 
     # Contents constraint
@@ -104,16 +104,23 @@ class Train():
 
 
 
-    # Total weight of train may not surpass the maximum allowed weight on the track.
-    # Later on we need to replace 100000000 with the max weight of the location of the train.
-    # def c_max_train_weight(self, y, containers):
-    #     total_weight = 0
-    #     for c_i, container in enumerate(containers):
-    #         for w_j, wagon in enumerate(self.wagons):
-    #             for s_k, _ in enumerate(wagon.get_slots()):
-    #                 if y[(c_i, w_j, s_k)] == 1:
-    #                     total_weight += container.get_gross_weight()
-    #     return total_weight < self.maxWeight
+    #Total weight of train may not surpass the maximum allowed weight on the track.
+    #Later on we need to replace 100000000 with the max weight of the location of the train.
+    def c_max_train_weight(self, y, containers):
+        slot_found = False
+        total_weight = 0
+        for c_i, container in enumerate(containers):
+            for w_j, wagon in enumerate(self.wagons):
+                for s_k, _ in enumerate(wagon.get_slots()):
+                    if y[(c_i, w_j, s_k)] == 1:
+                        print(container.get_gross_weight())
+                        total_weight += container.get_gross_weight()
+                        slot_found = True
+                        break
+            if slot_found:
+                break
+        print(total_weight)
+        return total_weight < self.maxWeight
 
 
 def get_random_value(min, max):
