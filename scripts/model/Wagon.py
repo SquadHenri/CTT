@@ -5,8 +5,10 @@ class Wagon():
         self.wagonID = wagonID # number of the wagon
         self.weight_capacity = weight_capacity # Weight capacity
         self.length_capacity = length_capacity # The capacity of a wagon set in Feet
-        self.total_length = total_length # The total length of the wagon
-        self.slots = [[0 for i in range(int(length_capacity * 2))]] # Each slot is 0.5 TEU (for now) TODO get rid of this and work in feet
+        self.total_length = total_length # The total length of the wagon in TEU
+        self.slots = [[0 for i in range(total_length * 20)]] # Each slot is now one foot, slots might not be necessary anymore
+                                                             # TEU * 20 should give the amount of foot
+        #self.slots = [[0 for i in range(int(length_capacity * 2))]]
         self.contents = contents # are there dangerous goods in the wagon
         self.position = position # the placement in the train
         self.location = None # The location where the wagon in placed in the loading bay
@@ -84,6 +86,9 @@ class Wagon():
 
     def get_length_capacity(self):
         return self.length_capacity
+
+    def get_total_length(self):
+        return self.total_length
 
     def set_length_capacity(self, length_capacity):
         self.length_capacity = length_capacity
