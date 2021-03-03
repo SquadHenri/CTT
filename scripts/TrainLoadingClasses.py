@@ -78,7 +78,6 @@ def main():
     #for w_j, wagon in enumerate(train.wagons):
     #   solver.Add(wagon.c_axle_load(y, containers)
 
-
     # OBJECTIVE
 
     # This objective tries to maximize the weight of the containers
