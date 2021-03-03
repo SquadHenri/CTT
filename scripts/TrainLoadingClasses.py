@@ -37,10 +37,10 @@ def main():
     
     # x[c_i, w_j] = 1 if container c_i is packed in wagon w_j
     x = {}
-    # for c_i, _ in enumerate(containers):
-    #     for w_j, wagon in enumerate(train.wagons):
-    #         pass
-    x[(c_i,w_j)] = solver.IntVar(0, 1, 'cont:%i,wagon%i' % (c_i, w_j))
+    for c_i, _ in enumerate(containers):
+        for w_j, wagon in enumerate(train.wagons):
+            x[(c_i,w_j)] = solver.IntVar(0, 1, 'cont:%i,wagon%i' % (c_i, w_j))
+    #x[(c_i,w_j)] = solver.IntVar(0, 1, 'cont:%i,wagon%i' % (c_i, w_j))
 
     # CONSTRAINTS
 
@@ -87,7 +87,8 @@ def main():
     #     solver.Add(train.c_container_travel_distance(y, c_i, container))
 
     # A train may not surpass a maximum weight, based on the destination of the train.
-    # solver.Add(train.c_max_train_weight(y, containers))
+    #solver.Add(train.c_max_train_weight(y, containers))
+    solver.Add(sum(z[(c_i, w_j)] * container.get_gross_weight() for c_i, container in enumerate(containers) for w_j, wagon in enumerate(train.wagons)) <= train.maxWeight)
 
     # Test constraint for the axle load
     # Loop through wagons of the train

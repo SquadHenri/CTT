@@ -115,7 +115,7 @@ def get_wagons_prompt(reverse):
             w_length = float(row[3].replace(",", "."))
             w_axes = int(row[4])
             # create object
-            wagon = Wagon(w_id, -1, w_length, -1, w_pos)
+            wagon = Wagon(w_id, -1, w_length, -1, w_pos, 0, 0)
             # add object to wagon list
             wagons.append(wagon)
     
