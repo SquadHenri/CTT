@@ -41,7 +41,7 @@ class Wagon():
     # Print relevant information only, __repr__ is used to print every detail
     def __str__(self):
         return f'Wagon {self.wagonID}, weight capacity: {self.weight_capacity}, '\
-             f'length capacity: {self.length_capacity}'
+             f'length capacity: {self.length_capacity}, position: {self.position}'
 
     # prints all values from the wagon
     def __repr__(self):
@@ -87,13 +87,13 @@ class Wagon():
 
 
     # The weight of the containers cannot exceed the weight capacity of the wagon
-    def c_weight_capacity(self, containers, y, w_j, s_k):
-        return sum(y[(c_i, w_j, s_k)] * container.get_net_weight()
+    def c_weight_capacity(self, containers, x, w_j):
+        return sum(x[(c_i, w_j)] * container.get_net_weight()
                 for c_i, container in enumerate(containers)) <= self.get_weight_capacity()
 
     # The length of the containers cannot exceed the length capacity of the wagon
-    def c_length_capacity(self, containers, y, w_j, s_k):
-        return sum(y[(c_i, w_j, s_k)] * container.get_length()
+    def c_length_capacity(self, containers, x, w_j):
+        return sum(x[(c_i, w_j)] * container.get_length()
                 for c_i, container in enumerate(containers)) <= self.get_length_capacity()
 
 
