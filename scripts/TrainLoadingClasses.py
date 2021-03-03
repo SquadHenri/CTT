@@ -106,16 +106,19 @@ def main():
         total_weight = 0
         total_length = 0
         container_count = 0
+        filled_wagons = {}
         for w_j, wagon in enumerate(train.wagons):
             wagon_weight = 0
             wagon_length = 0
             print(wagon)
+            #filled_wagons[w_j] = []
             for c_i, container in enumerate(containers):
                 # Used to keep track of the containers in the wagon
                 # so we print information for each container and not for each slot
                 containers_ = []
-                for slot_index, _ in enumerate(wagon.get_slots()):
-                    if y[c_i,w_j,slot_index].solution_value() > 0:
+                for s_k, _ in enumerate(wagon.get_slots()):
+                    if y[c_i,w_j,s_k].solution_value() > 0:
+                        #filled_wagons[w_j].append(c_i)
                         if container in containers_:
                             pass # The container is already in the solution
                         else:
@@ -124,11 +127,13 @@ def main():
                             wagon_weight += container.get_net_weight()
                             wagon_length += container.get_length()
                             container_count += 1 
+                            
             print('Packed wagon weight:', wagon_weight, ' Wagon weight capacity: ', wagon.get_weight_capacity())
             print('Packed wagon length:', wagon_length, ' Wagon length capacity: ', wagon.get_length_capacity())
             total_length += wagon_length
             total_weight += wagon_weight
             print()
+        #print(filled_wagons)
         print()
         print('Total packed weight:', total_weight, '(',round(total_weight / train.get_total_weight_capacity() * 100,1),'%)')
         print('Total packed length:', total_length, '(',round(total_length / train.get_total_length_capacity() * 100,1),'%)')
