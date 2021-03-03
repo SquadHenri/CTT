@@ -13,6 +13,9 @@ def create_train_and_containers():
 
     containers = list(get_containers_1())
     print(train)
+    print(train.wagons[0].get_slots())
+    print(type(train.wagons[0].location))
+    print(train.wagons[0].location)
     print(containers[0])
     return train, containers
 
@@ -31,6 +34,13 @@ def main():
         for w_j, wagon in enumerate(train.wagons):
             for s_k, _ in enumerate(wagon.get_slots()):
                 y[(c_i,w_j,s_k)] = solver.IntVar(0, 1, 'cont:%i,wagon:%i,slot:%i' % (c_i,w_j,s_k))
+    
+    # x[c_i, w_j] = 1 if container c_i is packed in wagon w_j
+    x = {}
+    # for c_i, _ in enumerate(containers):
+    #     for w_j, wagon in enumerate(train.wagons):
+    #         pass
+    x[(c_i,w_j)] = solver.IntVar(0, 1, 'cont:%i,wagon%i' % (c_i, w_j))
 
     # CONSTRAINTS
 
@@ -39,9 +49,9 @@ def main():
     
 
     # Each container can be in at most one wagon.
-    for c_i, _ in enumerate(containers):
+    for c_i, container in enumerate(containers):
         solver.Add(
-            train.c_container_on_wagon(y, c_i, s_k)
+            train.c_container_on_wagon(y, c_i, s_k, container)
             )
 
     # A container has to be put on a wagon as a whole
@@ -102,7 +112,7 @@ def main():
     status = solver.Solve()
 
     if status == pywraplp.Solver.OPTIMAL:
-        print('Total space used:', objective.Value())
+        print('Objective Value:', objective.Value())
         total_weight = 0
         total_length = 0
         container_count = 0
@@ -111,19 +121,19 @@ def main():
             wagon_weight = 0
             wagon_length = 0
             print(wagon)
-            #filled_wagons[w_j] = []
+            filled_wagons[w_j] = []
             for c_i, container in enumerate(containers):
                 # Used to keep track of the containers in the wagon
                 # so we print information for each container and not for each slot
                 containers_ = []
                 for s_k, _ in enumerate(wagon.get_slots()):
                     if y[c_i,w_j,s_k].solution_value() > 0:
-                        #filled_wagons[w_j].append(c_i)
+                        filled_wagons[w_j].append(c_i)
                         if container in containers_:
                             pass # The container is already in the solution
                         else:
                             containers_.append(container)
-                            print("\tContainer: ", container)
+                            print("\tc_i:", c_i," \t", container)
                             wagon_weight += container.get_net_weight()
                             wagon_length += container.get_length()
                             container_count += 1 
@@ -133,7 +143,7 @@ def main():
             total_length += wagon_length
             total_weight += wagon_weight
             print()
-        #print(filled_wagons)
+        print(filled_wagons)
         print()
         print('Total packed weight:', total_weight, '(',round(total_weight / train.get_total_weight_capacity() * 100,1),'%)')
         print('Total packed length:', total_length, '(',round(total_length / train.get_total_length_capacity() * 100,1),'%)')
