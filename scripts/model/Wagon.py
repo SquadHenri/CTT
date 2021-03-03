@@ -48,6 +48,19 @@ class Wagon():
             # Since the list is ordered, the following means the container is ordered
             return containers[c_i][-1] - containers[c_i][0] == len(containers[c_i]) - 1
 
+   
+    # Possible constraint for the axle load
+    # The function self.calculateLoad calculcates the axle load based on a container list, we still need to make this.
+    # @TODO make calculateLoad function
+    # def c_axle_load(self, y, containers, w_j):
+    #     containers_on_wagon = []
+    #     for c_i, container in enumerate(containers):
+    #         for s_k in range(len(self.slots)):
+    #             if y[(c_i, w_j, s_k)] == 1:
+    #                 containers_on_wagon.append((container, s_k))
+    #     return self.calculateLoad(containers_on_wagon, maxLoad)
+
+
     # The weight of the containers cannot exceed the weight capacity of the wagon
     def c_weight_capacity(self, containers, y, w_j, s_k):
         return sum(y[(c_i, w_j, s_k)] * container.get_net_weight()
