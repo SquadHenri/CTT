@@ -3,15 +3,40 @@ from statistics import mean
 from model import container
 
 class Wagon():
-    def __init__(self, wagonID, weight_capacity, length_capacity, contents, position, number_of_axles, total_length, wagon_weight):
-        self.wagonID = wagonID # number of the wagon
-        self.weight_capacity = weight_capacity # Weight capacity
-        self.length_capacity = length_capacity # The capacity of a wagon set in Feet
-        self.total_length = total_length # The total length of the wagon
-        self.slots = [[0 for i in range(int(length_capacity * 2))]] # Each slot is 0.5 TEU (for now) TODO get rid of this and work in feet
-        self.contents = contents # are there dangerous goods in the wagon
-        self.position = position # the placement in the train
-        self.location = None # The location where the wagon in placed in the loading bay
+    """
+        A class used to represent a Wagon
+
+        Parameters
+        ----------
+        wagonID : str
+            The id of the wagon from the database
+        weight_capacity: int(Kilogram)
+            The total container weight the wagon can handle in KG
+        length_capacity: int(Feet)
+            The total length of containers that can fit on the wagon. in Feet. 
+        total_length: int(TEU?)
+            The total length of the wagon in TEU
+        contents: int(what represents what?)
+            The hazard class of the wagon. Is this even used?
+        position: int(?)
+            The placement in the train. Is this even used?
+        location: list of two ints. [x,y]. 
+            The location of the wagon in the loading bay. Should this not be a tuple?
+        number_of_axles: int
+            The number of axles on this train
+        
+    """
+
+    def __init__(self, wagonID, weight_capacity, length_capacity, contents, position, number_of_axles, total_length):
+        self.wagonID = wagonID 
+        self.weight_capacity = weight_capacity 
+        self.length_capacity = total_length * 20 
+        self.total_length = total_length 
+        self.slots = [[0 for i in range(0,int(total_length * 20))]] 
+        #self.slots = [[0 for i in range(int(length_capacity * 2))]]
+        self.contents = contents 
+        self.position = position 
+        self.location = None 
         self.number_of_axles = number_of_axles
         self.wagon_weight = wagon_weight
 
@@ -149,9 +174,7 @@ class Wagon():
     # The length of the containers cannot exceed the length capacity of the wagon
     def c_length_capacity(self, containers, y, w_j, s_k):
         return sum(y[(c_i, w_j, s_k)] * container.get_length()
-                for c_i, container in enumerate(containers)) <= self.get_length_capacity()
-  
-                
+                for c_i, container in enumerate(containers)) <= self.get_length_capacity()       
 
     def container_load(self, weight, dist, axledist):
         load = weight * dist / axledist
@@ -169,6 +192,9 @@ class Wagon():
 
     def get_length_capacity(self):
         return self.length_capacity
+
+    def get_total_length(self):
+        return self.total_length
 
     def set_length_capacity(self, length_capacity):
         self.length_capacity = length_capacity
