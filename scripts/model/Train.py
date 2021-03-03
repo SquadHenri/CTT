@@ -78,7 +78,7 @@ class Train():
     # y is the variable used in TrainLoadingX.py
     # c_i is the key of the container in the dictionairy: y[(c_i, , )]
     def c_container_on_wagon(self, y, c_i, s_k):
-        return sum(y[(c_i, w_j, s_k)] for w_j, _ in enumerate(self.wagons)) <= 1
+        return sum(y[(c_i, w_j, s_k)] for w_j, _ in enumerate(self.wagons)) <= 16
 
 
     # Contents constraint
