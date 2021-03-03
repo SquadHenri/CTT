@@ -55,3 +55,11 @@ class Container():
     # The type of the container
     def get_type(self):
         return self.typeid
+
+    # The hazard class of this container, an int that is of value
+    # 0,1,2,3
+    def get_hazard_class(self):
+        return self.hazard_class
+
+    def set_hazard_class(self, value):
+        self.hazard_class = value
