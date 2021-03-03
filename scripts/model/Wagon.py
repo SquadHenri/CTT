@@ -1,6 +1,6 @@
 import math
 from statistics import mean
-from model import container
+from model.Container import Container
 
 class Wagon():
     """
@@ -27,7 +27,7 @@ class Wagon():
         
     """
 
-    def __init__(self, wagonID, weight_capacity, length_capacity, contents, position, number_of_axles, total_length):
+    def __init__(self, wagonID, weight_capacity, length_capacity, contents, position, number_of_axles, total_length, wagon_weight):
         self.wagonID = wagonID 
         self.weight_capacity = weight_capacity 
         self.length_capacity = total_length * 20 
