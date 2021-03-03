@@ -12,6 +12,8 @@ def create_train_and_containers():
     train.set_random_length_capacities(100, 150)
 
     containers = list(get_containers_1())
+    print(train)
+    print(containers[0])
     return train, containers
 
 def main():
@@ -38,11 +40,15 @@ def main():
 
     # Each container can be in at most one wagon.
     for c_i, _ in enumerate(containers):
-        solver.Add(train.c_container_on_wagon(y, c_i, s_k))
+        solver.Add(
+            train.c_container_on_wagon(y, c_i, s_k)
+            )
 
     # A container has to be put on a wagon as a whole
     for w_j, wagon in enumerate(train.wagons):
-        solver.Add(wagon.c_container_is_whole(y, len(containers), w_j))
+        solver.Add(
+            wagon.c_container_is_whole(y, len(containers), w_j)
+            )
 
     # The amount packed in each wagon cannot exceed its weight capacity.
     for w_j, wagon in enumerate(train.wagons):
@@ -92,6 +98,7 @@ def main():
                 )
     objective.SetMaximization()
 
+    print('Starting solve...')
     status = solver.Solve()
 
     if status == pywraplp.Solver.OPTIMAL:
