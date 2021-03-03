@@ -1,5 +1,5 @@
 import random
-from Wagon import Wagon
+from model.Wagon import Wagon
 import functions
 
 
@@ -10,6 +10,7 @@ class Train():
     # wagons should be a list of wagons
     def __init__(self, wagons):
         self.wagons = wagons # This is the list of all the wagons on the train
+        self.maxWeight = 1000000000
     
     # Create some wagons, to use for testing
     def test_train(self):
@@ -27,6 +28,7 @@ class Train():
     # Show all informatoin
     def __repr__(self):
         return "Train with wagon: \n" + '\n'.join(list(map(repr,self.wagons)))
+    
 
     # Maybe split this up, but for now this is fine
     def get_total_capacity(self):
@@ -54,26 +56,30 @@ class Train():
         for wagon in self.wagons:
             wagon.set_weight_capacity(get_random_value(min, max))
 
+    # Same as the functions above, but for setting to 1 value
+    def set_weight_capacities(self, value):
+        for wagon in self.wagons:
+            wagon.set_weight_capacity(value)
+
     # Set the weight capacities of the wagons to a value between min and max
     def set_random_length_capacities(self, min, max):
         for wagon in self.wagons:
             wagon.set_length_capacity(get_random_value(min, max))
+
+    # Same as the functions above, but for setting to 1 value
+    def set_length_capacities(self, value):
+        for wagon in self.wagons:
+            wagon.set_weight_capacity(value)
+
 
     # CONSTRAINTS
 
     # Each container can be in at most one wagon
     # y is the variable used in TrainLoadingX.py
     # c_i is the key of the container in the dictionairy: y[(c_i, , )]
-    def c_container_on_wagon_old(self, y, c_i):
-        counter = 0
-        for w_j, wagon in enumerate(self.wagons):
-            for s_k, _ in enumerate(wagon.get_slots()): # check all slots
-                if(y[(c_i, w_j,s_k)] == 1): # container c_i is on wagon w_j
-                    counter+=1 
-                    break
-            continue
-        return counter <= 1
-    
+    def c_container_on_wagon(self, y, c_i, s_k):
+        return sum(y[(c_i, w_j, s_k)] for w_j, _ in enumerate(self.wagons)) <= 1
+
 
     # Contents constraint
     def c_container_location_valid(self, y, c1_i, c2_i, container_1, container_2):
@@ -96,8 +102,7 @@ class Train():
                     # The difference in position between the container and the wagon may not be larger than 50 metres.
                     return functions.getTravelDistance(container.get_position(), wagon.get_location()) < 50
 
-    def c_container_on_wagon(self, y, c_i, s_k):
-        return sum(y[(c_i, w_j, s_k)] for w_j, _ in enumerate(self.wagons)) <= 1
+
 
     # Total weight of train may not surpass the maximum allowed weight on the track.
     # Later on we need to replace 100000000 with the max weight of the location of the train.
@@ -108,7 +113,7 @@ class Train():
     #             for s_k, _ in enumerate(wagon.get_slots()):
     #                 if y[(c_i, w_j, s_k)] == 1:
     #                     total_weight += container.get_gross_weight()
-    #     return total_weight < 1000000000
+    #     return total_weight < self.maxWeight
 
 
 def get_random_value(min, max):

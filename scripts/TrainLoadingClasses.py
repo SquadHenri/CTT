@@ -8,14 +8,10 @@ from getContainersFromCSV import *
 
 def create_train_and_containers():
     train = create_train()
-
-    train.set_random_weight_capacities(30000, 50000) 
+    train.set_random_weight_capacities(10000, 25000) 
     train.set_random_length_capacities(100, 150)
 
     containers = list(get_containers_1())
-
-    print(train)
-    print("Container[0]: ", containers[1])
     return train, containers
 
 def main():
@@ -50,25 +46,29 @@ def main():
 
     # The amount packed in each wagon cannot exceed its weight capacity.
     for w_j, wagon in enumerate(train.wagons):
-        solver.Add(wagon.c_weight_capacity(y, containers, w_j))
-    
+        solver.Add(
+            wagon.c_weight_capacity(containers, y, w_j, s_k)
+        )
+
     # The length of the containers cannot exceed the length of the wagon
     for w_j, wagon in enumerate(train.wagons):
-        solver.Add(wagon.c_length_capacity(y, containers, w_j))
+        solver.Add(
+            wagon.c_length_capacity(containers, y, w_j, s_k)
+        )
 
     # Contents constraint
-    for c1_i, container1 in enumerate(containers):
-        for c2_i, container2 in enumerate(containers):
-            # Check we are not working with the same containers
-            if c1_i != c2_i:
-                # If both containers are in a hazard class, add the constraint
-                if container1.hazard_class != None and container2.hazard_class != None:
-                    solver.Add(train.c_container_location_valid(y, c1_i, c2_i, container1, container2))
+    # for c1_i, container1 in enumerate(containers):
+    #     for c2_i, container2 in enumerate(containers):
+    #         # Check we are not working with the same containers
+    #         if c1_i != c2_i:
+    #             # If both containers are in a hazard class, add the constraint
+    #             if container1.hazard_class != None and container2.hazard_class != None:
+    #                 solver.Add(train.c_container_location_valid(y, c1_i, c2_i, container1, container2))
     
-    # Travel distance constraint
-    for c_i, container in enumerate(containers):
-        # For every container add the travel distance constraint.
-        solver.Add(train.c_container_travel_distance(y, c_i, container))
+    # # Travel distance constraint
+    # for c_i, container in enumerate(containers):
+    #     # For every container add the travel distance constraint.
+    #     solver.Add(train.c_container_travel_distance(y, c_i, container))
 
     # A train may not surpass a maximum weight, based on the destination of the train.
     # solver.Add(train.c_max_train_weight(y, containers))
@@ -76,11 +76,8 @@ def main():
     # Test constraint for the axle load
     # Loop through wagons of the train
     #for w_j, wagon in enumerate(train.wagons):
-    #   solver.Add(wagon.c_axle_load(y, containers_on_wagon)
+    #   solver.Add(wagon.c_axle_load(y, containers)
 
-
-    # Objectives
-        
 
     # OBJECTIVE
 
@@ -91,8 +88,8 @@ def main():
         for w_j, wagon in enumerate(train.wagons):
             for s_k, _ in enumerate(wagon.get_slots()):
                 objective.SetCoefficient(
-                    y[(c_i,w_j,s_k)], container.get_length() 
-                    #y[(c_i,w_j,s_k)], (container.get_priority() * 0.1 - container.get_length() * 0.9)
+                    #y[(c_i,w_j,s_k)], container.get_length() 
+                    y[(c_i,w_j,s_k)], (container.get_priority() * 3 + container.get_length() * 4) # - container.traveldistance ofzo
                 )
     objective.SetMaximization()
 
@@ -117,7 +114,7 @@ def main():
                             pass # The container is already in the solution
                         else:
                             containers_.append(container)
-                            print(container)
+                            print("\tContainer: ", container)
                             wagon_weight += container.get_net_weight()
                             wagon_length += container.get_length()
                             container_count += 1 
@@ -134,10 +131,6 @@ def main():
         print('The problem does have a feasible solution')
     else:
         print('The problem does not have an optimal solution.')
-
-
-
-
 
 if __name__ == '__main__':
     main()
