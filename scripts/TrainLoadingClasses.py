@@ -18,7 +18,7 @@ def create_train_and_containers():
         print(container.position)
 
     # Make every sixth container hazardous
-    for i in range(0, len(containers), 20):
+    for i in range(0, len(containers), 10):
         print("Container ", i, "is hazardous.")
         containers[i].set_hazard_class(1)
 
@@ -79,24 +79,40 @@ def main():
     #Contents constraint
     # Example of GitHub Jobshop might not work since his locations of the machines are somewhat predefined
     # We only know the starting positions of the containers, but we need to know the positions of the containers on the train.
+    added = []
+    for c1_i, container1 in enumerate(containers):
+        for c2_i, container2 in enumerate(containers):
+            # Check we are not working with the same containers
+            if c1_i != c2_i:
+                # If both containers are in a hazard class, add the constraint
+                if (c1_i, c2_i) not in added and (c2_i, c1_i) not in added:
+                    if container1.hazard_class != None and container2.hazard_class != None:
+                        solver.Add(
+                           sum(x[(c1_i, w_j)] * wagon.get_position() - x[(c2_i, w_j)] * wagon.get_position() for w_j, wagon in enumerate(train.wagons)) >= 2
+                           )
 
-    # for c1_i, container1 in enumerate(containers):
-    #     for c2_i, container2 in enumerate(containers):
-    #         # Check we are not working with the same containers
-    #         if c1_i != c2_i:
-    #             # If both containers are in a hazard class, add the constraint
-    #             if container1.hazard_class != None and container2.hazard_class != None:
-    #                 c1_pos = sum(x[(c1_i, w_j)] * wagon.get_position() for w_j, wagon in enumerate(train.wagons))
-    #                 c2_pos = sum(x[(c2_i, w_j)] * wagon.get_position() for w_j, wagon in enumerate(train.wagons))
-    #                 solver.Add(abs(c1_pos - c2_pos) >= 2)
+                        # if sum(x[(c1_i, w_j)] * wagon.get_position() - x[(c2_i, w_j)] * wagon.get_position() for w_j, wagon in enumerate(train.wagons)) >= 0:
+                        #     solver.Add(sum(x[(c1_i, w_j)] * wagon.get_position() - x[(c2_i, w_j)] * wagon.get_position() for w_j, wagon in enumerate(train.wagons)) >= 2)
+                        # else:
+                        #     solver.Add(sum(x[(c1_i, w_j)] * wagon.get_position() - x[(c2_i, w_j)] * wagon.get_position() for w_j, wagon in enumerate(train.wagons)) <= -2)
+                        added.append((c1_i, c2_i))
+                        added.append((c2_i, c1_i))
+
                     
     
-    # Travel distance constraint
-    for c_i, container in enumerate(containers):
-        # For every container add the travel distance constraint.
-        c_location = container.get_position()
-        if (len(c_location) == 3) and (c_location[0] <= 52) and (c_location[1] <= 7):
-            solver.Add( sum(x[(c_i, w_j)] * functions.getTravelDistance(c_location, wagon.get_location()) for w_j, wagon in enumerate(train.wagons)) <= 100)
+
+    # Travel distance constraint per container
+    #
+    #     # Travel distance constraint
+    # for c_i, container in enumerate(containers):
+    #     # For every container add the travel distance constraint.
+    #     c_location = container.get_position()
+    #     if (len(c_location) == 3) and (c_location[0] <= 52) and (c_location[1] <= 7):
+    #         solver.Add( sum(x[(c_i, w_j)] * functions.getTravelDistance(c_location, wagon.get_location()) for w_j, wagon in enumerate(train.wagons)) <= 100)
+    
+    # Travel distance constraint for total distance.
+    # The total travel distance may not be higher than the specified value.
+    solver.Add(sum(x[(c_i, w_j)] * functions.getTravelDistance(container.get_position(), wagon.get_location()) for c_i, container in enumerate(containers) for w_j, wagon in enumerate(train.wagons) if (len(container.get_position()) == 3) and (container.get_position()[0] <= 52) and (container.get_position()[1] <= 7) ) <= 1000)
 
     # A train may not surpass a maximum weight, based on the destination of the train.
     solver.Add(sum(x[(c_i, w_j)] * container.get_gross_weight() for c_i, container in enumerate(containers) for w_j, wagon in enumerate(train.wagons)) <= train.maxWeight)
@@ -127,11 +143,13 @@ def main():
         print('Objective Value:', objective.Value())
         total_weight = 0
         total_length = 0
+        total_distance = 0
         container_count = 0
         filled_wagons = {}
         for w_j, wagon in enumerate(train.wagons):
             wagon_weight = 0
             wagon_length = 0
+            wagon_distance = 0
             print(wagon)
             filled_wagons[w_j] = []
             for c_i, container in enumerate(containers):
@@ -148,17 +166,21 @@ def main():
                         print(Color.GREEN, "\tc_i:", c_i, Color.END, " \t", container)
                         wagon_weight += container.get_gross_weight()
                         wagon_length += container.get_length()
+                        if (len(container.get_position()) == 3) and (container.get_position()[0] <= 52) and (container.get_position()[1] <= 7):
+                            wagon_distance += functions.getTravelDistance(container.get_position(), wagon.get_location())
                         container_count += 1 
                             
             print('Packed wagon weight:', Color.GREEN, wagon_weight, Color.END, ' Wagon weight capacity: ', wagon.get_weight_capacity())
             print('Packed wagon length:', Color.GREEN, wagon_length, Color.END, ' Wagon length capacity: ', wagon.get_length_capacity())
             total_length += wagon_length
             total_weight += wagon_weight
+            total_distance += wagon_distance
             print()
         #print(filled_wagons)
         print()
         print('Total packed weight:', total_weight, '(',round(total_weight / train.get_total_weight_capacity() * 100,1),'%)')
         print('Total packed length:', total_length, '(',round(total_length / train.get_total_length_capacity() * 100,1),'%)')
+        print('Total distance travelled:', total_distance)
         print('Containers packed: ', container_count,"/",len(containers))
     elif status == pywraplp.Solver.FEASIBLE:
         print('The problem does have a feasible solution')

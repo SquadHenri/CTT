@@ -168,7 +168,7 @@ class Wagon():
 
     # The weight of the containers cannot exceed the weight capacity of the wagon
     def c_weight_capacity(self, containers, x, w_j):
-        return sum(x[(c_i, w_j)] * container.get_net_weight()
+        return sum(x[(c_i, w_j)] * container.get_gross_weight()
                 for c_i, container in enumerate(containers)) <= self.get_weight_capacity()
 
     # The length of the containers cannot exceed the length capacity of the wagon
