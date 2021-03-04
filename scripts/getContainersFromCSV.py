@@ -3,11 +3,10 @@ import math
 import tkinter as tk
 import pandas as pd
 from tkinter import filedialog
-from scripts.functions import getTravelDistance
-from scripts.model.Train import Train
-from scripts.model.Container import Container
-from scripts.model.Wagon import Wagon
-
+from functions import getTravelDistance
+from model.Train import Train
+from model.Container import Container
+from model.Wagon import Wagon
 
 # creates a list of container objects. It contains all the containers of train 1.
 def get_containers_1():
@@ -49,7 +48,7 @@ def get_wagons_1():
             w_length = float(row[3].replace(",", "."))
             w_axes = int(row[4])
             # create object
-            wagon = Wagon(w_id, -1, w_length, -1, w_pos,0,w_length, 0)
+            wagon = Wagon(w_id, -1, w_length, -1, w_pos,0,w_length)
             # add object to wagon list
             wagons.append(wagon)
     # set the proper location for every wagon
@@ -116,7 +115,7 @@ def get_wagons_prompt(reverse):
             w_length = float(row[3].replace(",", "."))
             w_axes = int(row[4])
             # create object
-            wagon = Wagon(w_id, -1, w_length, -1, w_pos, 0, 0,0)
+            wagon = Wagon(w_id, -1, w_length, -1, w_pos, 0, 0)
             # add object to wagon list
             wagons.append(wagon)
     

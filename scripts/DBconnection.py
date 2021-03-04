@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 import pymysql
 import pandas as pd
-from scripts.model.Container import Container
+from model.Container import Container
 #Database credentials
 user="d0355a21"
 password="uYpeZEAqWz2xkod2"
