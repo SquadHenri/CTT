@@ -76,14 +76,19 @@ def main():
     #Contents constraint
     # Example of GitHub Jobshop might not work since his locations of the machines are somewhat predefined
     # We only know the starting positions of the containers, but we need to know the positions of the containers on the train.
+
+    # make list of pairs of containers that are allready added to the constraint.
     added = []
     for c1_i, container1 in enumerate(containers):
         for c2_i, container2 in enumerate(containers):
             # Check we are not working with the same containers
             if c1_i != c2_i:
-                # If both containers are in a hazard class, add the constraint
+                # If the pair of containers has not yet been added, we continue
                 if (c1_i, c2_i) not in added and (c2_i, c1_i) not in added:
+                    # If both containers are in a hazard class, add the constraint
                     if container1.hazard_class != None and container2.hazard_class != None:
+                        # The difference in position >= 2.
+                        # We need to fix something for -2.
                         solver.Add(
                            sum(x[(c1_i, w_j)] * wagon.get_position() - x[(c2_i, w_j)] * wagon.get_position() for w_j, wagon in enumerate(train.wagons)) >= 2
                            )
@@ -92,6 +97,8 @@ def main():
                         #     solver.Add(sum(x[(c1_i, w_j)] * wagon.get_position() - x[(c2_i, w_j)] * wagon.get_position() for w_j, wagon in enumerate(train.wagons)) >= 2)
                         # else:
                         #     solver.Add(sum(x[(c1_i, w_j)] * wagon.get_position() - x[(c2_i, w_j)] * wagon.get_position() for w_j, wagon in enumerate(train.wagons)) <= -2)
+                        
+                        # Add the pair of containers to the added list
                         added.append((c1_i, c2_i))
                         added.append((c2_i, c1_i))
 
