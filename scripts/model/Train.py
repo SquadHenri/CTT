@@ -10,7 +10,7 @@ class Train():
     # wagons should be a list of wagons
     def __init__(self, wagons):
         self.wagons = wagons # This is the list of all the wagons on the train
-        self.maxWeight = 10000000
+        self.maxWeight = 10000000000
     
     # Create some wagons, to use for testing
     def test_train(self):
@@ -85,16 +85,16 @@ class Train():
     def c_container_location_valid(self, x, c1_i, c2_i, container_1, container_2):
         c1_pos = 0
         c2_pos = 0
-        print(c1_i)
-        print(c2_i)
+        #print(c1_i)
+        #print(c2_i)
         for w_j, wagon in enumerate(self.wagons):
                 # get the positions of both wagons
                 if(x[(c1_i, w_j)] == 1):
                     c1_pos = wagon.get_position()
-                    print(c1_pos)
+                    #print(c1_pos)
                 if(x[(c2_i, w_j)] == 1):
                     c2_pos = wagon.get_position()
-                    print(c2_pos)
+                    #print(c2_pos)
         # make sure that the wagon positions >= 2, so that there is 1 wagon in between.
         return abs(c1_pos - c2_pos) >= 2
 

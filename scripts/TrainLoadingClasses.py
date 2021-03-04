@@ -3,6 +3,7 @@ from colors import Color
 from model.Wagon import Wagon
 from model.Train import Train
 from getContainersFromCSV import *
+import functions
 
 # This TrainLoading variant will switch from the dictionairy data model to using classes
 
@@ -13,8 +14,11 @@ def create_train_and_containers():
 
     containers = list(get_containers_1())
 
+    for container in containers:
+        print(container.position)
+
     # Make every sixth container hazardous
-    for i in range(0, len(containers), 40):
+    for i in range(0, len(containers), 20):
         print("Container ", i, "is hazardous.")
         containers[i].set_hazard_class(1)
 
@@ -72,19 +76,27 @@ def main():
             wagon.c_length_capacity(containers, x, w_j)
         )
 
-    # Contents constraint
-    for c1_i, container1 in enumerate(containers):
-        for c2_i, container2 in enumerate(containers):
-            # Check we are not working with the same containers
-            if c1_i != c2_i:
-                # If both containers are in a hazard class, add the constraint
-                if container1.hazard_class != None and container2.hazard_class != None:
-                    solver.Add(train.c_container_location_valid(x, c1_i, c2_i, container1, container2))
+    #Contents constraint
+    # Example of GitHub Jobshop might not work since his locations of the machines are somewhat predefined
+    # We only know the starting positions of the containers, but we need to know the positions of the containers on the train.
+
+    # for c1_i, container1 in enumerate(containers):
+    #     for c2_i, container2 in enumerate(containers):
+    #         # Check we are not working with the same containers
+    #         if c1_i != c2_i:
+    #             # If both containers are in a hazard class, add the constraint
+    #             if container1.hazard_class != None and container2.hazard_class != None:
+    #                 c1_pos = sum(x[(c1_i, w_j)] * wagon.get_position() for w_j, wagon in enumerate(train.wagons))
+    #                 c2_pos = sum(x[(c2_i, w_j)] * wagon.get_position() for w_j, wagon in enumerate(train.wagons))
+    #                 solver.Add(abs(c1_pos - c2_pos) >= 2)
+                    
     
-    # # Travel distance constraint
-    # for c_i, container in enumerate(containers):
-    #     # For every container add the travel distance constraint.
-    #     solver.Add(train.c_container_travel_distance(y, c_i, container))
+    # Travel distance constraint
+    for c_i, container in enumerate(containers):
+        # For every container add the travel distance constraint.
+        c_location = container.get_position()
+        if (len(c_location) == 3) and (c_location[0] <= 52) and (c_location[1] <= 7):
+            solver.Add( sum(x[(c_i, w_j)] * functions.getTravelDistance(c_location, wagon.get_location()) for w_j, wagon in enumerate(train.wagons)) <= 100)
 
     # A train may not surpass a maximum weight, based on the destination of the train.
     solver.Add(sum(x[(c_i, w_j)] * container.get_gross_weight() for c_i, container in enumerate(containers) for w_j, wagon in enumerate(train.wagons)) <= train.maxWeight)
