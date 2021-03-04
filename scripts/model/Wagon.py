@@ -1,6 +1,6 @@
 import math
 from statistics import mean
-from model.Container import Container
+from . import Container
 
 class Wagon():
     """
@@ -24,10 +24,13 @@ class Wagon():
             The location of the wagon in the loading bay. Should this not be a tuple?
         number_of_axles: int
             The number of axles on this train
+        containers: list of Containers
+            In order, each container is a container placed on the wagon. The solution of the train 
+            algorithm should return a train object where the wagon has a list of containers similar to the solution
         
     """
 
-    def __init__(self, wagonID, weight_capacity, length_capacity, contents, position, number_of_axles, total_length, wagon_weight):
+    def __init__(self, wagonID, weight_capacity, length_capacity, contents, position, number_of_axles, total_length, wagon_weight, containers = None):
         self.wagonID = wagonID 
         self.weight_capacity = weight_capacity 
         self.length_capacity = total_length * 20 
@@ -40,6 +43,9 @@ class Wagon():
         self.number_of_axles = number_of_axles
         self.wagon_weight = wagon_weight
 
+        # Can be None
+        self.containers = containers
+
     # Convert Wagon to string
     # Print relevant information only, __repr__ is used to print every detail
     def __str__(self):
@@ -51,6 +57,20 @@ class Wagon():
         return f'Wagon {self.wagonID}, weight capacity: {self.weight_capacity}, '\
              f'length_capacity: {self.length_capacity}, contents: {self.contents}, '\
              f'position: {self.position}, location: {self.location}'
+
+    # Prints relevant wagon information for the solution, expects self.containers to be filled
+    def print_solution(self):
+        if not self.containers:
+            print("There is no list of containers. Cannot print relevant information.")
+            return
+        # Print information on the wagon
+        print(self)
+        offset = 0
+        for container in self.containers:
+            print(offset, '-', offset+container.get_length(),':\t', container)
+            offset += container.get_length()
+
+
 
 
     # CONSTRAINTS
@@ -181,24 +201,18 @@ class Wagon():
         load = weight * dist / axledist
         return load            
         
-    # Getter for container position coordinates
+    # Getters
     def get_position(self):
         return self.position
 
     def get_weight_capacity(self):
         return self.weight_capacity
-        
-    def set_weight_capacity(self, weight_capacity):
-        self.weight_capacity = weight_capacity
 
     def get_length_capacity(self):
         return self.length_capacity
 
     def get_total_length(self):
         return self.total_length
-
-    def set_length_capacity(self, length_capacity):
-        self.length_capacity = length_capacity
 
     def get_contents(self):
         return self.contents
@@ -208,4 +222,26 @@ class Wagon():
 
     def get_slots(self):
         return self.slots
+
+    def get_containers(self):
+        return self.containers
+    
+    # Setters
+    
+    def set_length_capacity(self, length_capacity):
+        self.length_capacity = length_capacity
+
+    def set_weight_capacity(self, weight_capacity):
+        self.weight_capacity = weight_capacity
+    
+    def set_containers(self, containers):
+        self.containers = containers
+
+    # Used to add one or multiple containers
+    def add_container(self, container):
+        if self.containers:
+            self.containers.append(container)
+        else:
+            self.containers = []
+            self.containers.append(container)
 

@@ -1,18 +1,17 @@
 from ortools.linear_solver import pywraplp
 from colors import Color
-from model.Wagon import Wagon
-from model.Train import Train
-from getContainersFromCSV import *
+from model import *
+from data import getContainersFromCSV
 import functions
 
 # This TrainLoading variant will switch from the dictionairy data model to using classes
 
 def create_train_and_containers():
-    train = create_train()
+    train = getContainersFromCSV.create_train()
     train.set_random_weight_capacities(30000, 50000) 
     train.set_random_length_capacities(100, 150)
 
-    containers = list(get_containers_1())
+    containers = list(getContainersFromCSV.get_containers_1())
 
     for container in containers:
         print(container.position)
@@ -48,11 +47,9 @@ def main():
             x[(c_i,w_j)] = solver.IntVar(0, 1, 'cont:%i,wagon%i' % (c_i, w_j))
     #x[(c_i,w_j)] = solver.IntVar(0, 1, 'cont:%i,wagon%i' % (c_i, w_j))
 
+    
     # CONSTRAINTS
 
-    # Each slot can only have one container?
-    # This constraint might still be necessary
-    
 
     # Each container can be in at most one wagon.
     for c_i, _ in enumerate(containers):
@@ -139,6 +136,8 @@ def main():
     print('Starting solve...')
     status = solver.Solve()
 
+    # TODO: Cleanup the solution printing, move this functionality to the Container, Wagon and Train class
+    # See train.print_solution() and Wagon.print_solution()
     if status == pywraplp.Solver.OPTIMAL:
         print('Objective Value:', objective.Value())
         total_weight = 0
@@ -159,6 +158,7 @@ def main():
                 #for s_k, _ in enumerate(wagon.get_slots()):
                 if x[c_i,w_j].solution_value() > 0:
                     filled_wagons[w_j].append(c_i)
+                    train.wagons[w_j].add_container(container)
                     if container in containers_:
                         pass # The container is already in the solution
                     else:
@@ -169,7 +169,7 @@ def main():
                         if (len(container.get_position()) == 3) and (container.get_position()[0] <= 52) and (container.get_position()[1] <= 7):
                             wagon_distance += functions.getTravelDistance(container.get_position(), wagon.get_location())
                         container_count += 1 
-                            
+                          
             print('Packed wagon weight:', Color.GREEN, wagon_weight, Color.END, ' Wagon weight capacity: ', wagon.get_weight_capacity())
             print('Packed wagon length:', Color.GREEN, wagon_length, Color.END, ' Wagon length capacity: ', wagon.get_length_capacity())
             total_length += wagon_length
@@ -182,6 +182,9 @@ def main():
         print('Total packed length:', total_length, '(',round(total_length / train.get_total_length_capacity() * 100,1),'%)')
         print('Total distance travelled:', total_distance)
         print('Containers packed: ', container_count,"/",len(containers))
+
+        # This is another way of printing solution values
+        # train.print_solution()
     elif status == pywraplp.Solver.FEASIBLE:
         print('The problem does have a feasible solution')
     else:

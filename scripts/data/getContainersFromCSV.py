@@ -4,9 +4,11 @@ import tkinter as tk
 import pandas as pd
 from tkinter import filedialog
 from functions import getTravelDistance
+from model.Wagon import Wagon
 from model.Train import Train
 from model.Container import Container
-from model.Wagon import Wagon
+# from model.Container import Container
+# from model.Wagon import Wagon
 
 # creates a list of container objects. It contains all the containers of train 1.
 def get_containers_1():

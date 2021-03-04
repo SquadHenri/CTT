@@ -29,6 +29,10 @@ class Train():
     def __repr__(self):
         return "Train with wagon: \n" + '\n'.join(list(map(repr,self.wagons)))
     
+    # Print the wagon values with the containers that filled them
+    def print_solution(self):
+        for wagon in self.wagons:
+            wagon.print_solution()
 
     # Maybe split this up, but for now this is fine
     def get_total_capacity(self):
