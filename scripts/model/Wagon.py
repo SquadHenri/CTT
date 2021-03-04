@@ -41,7 +41,7 @@ class Wagon():
     # Print relevant information only, __repr__ is used to print every detail
     def __str__(self):
         return f'Wagon {self.wagonID}, weight capacity: {self.weight_capacity}, '\
-             f'length capacity: {self.length_capacity}, position: {self.position}'
+             f'length capacity: {self.length_capacity}, position: {self.position}, location: {self.location}'
 
     # prints all values from the wagon
     def __repr__(self):
