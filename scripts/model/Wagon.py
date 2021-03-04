@@ -1,6 +1,6 @@
 import math
 from statistics import mean
-from model.Container import Container
+from scripts.model.Container import Container
 
 class Wagon():
     """

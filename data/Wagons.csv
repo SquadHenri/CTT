@@ -1,0 +1,8 @@
+Wagon type(combination of lenght and number of axles(bogies));Wagon lenght;amount of bogies;Distance between middle of bogie and end loading platform;Distance between bogies
+404;40;4;2.15;8.07
+474;47;4;2.1;10.2
+604;60;4;2.1;14.2
+804;80;4;2.7;19.3
+806;80;6;2.18;10.395
+906;90;6;2.18;11.995
+1046;104;6;2.28;14.2
