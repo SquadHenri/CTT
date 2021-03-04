@@ -1,18 +1,17 @@
 from ortools.linear_solver import pywraplp
 from colors import Color
-from model.Wagon import Wagon
-from model.Train import Train
-from getContainersFromCSV import *
+from model import *
+from data import getContainersFromCSV
 import functions
 
 # This TrainLoading variant will switch from the dictionairy data model to using classes
 
 def create_train_and_containers():
-    train = create_train()
+    train = getContainersFromCSV.create_train()
     train.set_random_weight_capacities(30000, 50000) 
     train.set_random_length_capacities(100, 150)
 
-    containers = list(get_containers_1())
+    containers = list(getContainersFromCSV.get_containers_1())
 
     for container in containers:
         print(container.position)
@@ -47,6 +46,16 @@ def main():
         for w_j, wagon in enumerate(train.wagons):
             x[(c_i,w_j)] = solver.IntVar(0, 1, 'cont:%i,wagon%i' % (c_i, w_j))
     #x[(c_i,w_j)] = solver.IntVar(0, 1, 'cont:%i,wagon%i' % (c_i, w_j))
+
+    # For each wagon add an interval variable
+    # The interval starts at 0, ends at length in foot
+    # Each feet in the interval can be seen as one slot
+    wagon_slots = {}
+
+    # for w_j, wagon in enumerate(train.wagons):
+    #     interval_var = solver.IntervalVar(0, wagon.get_length_capacity(), wagon.get_length_capacity())
+    #     wagon_slots[w_j] = interval_var
+    
 
     # CONSTRAINTS
 
