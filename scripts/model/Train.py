@@ -10,7 +10,7 @@ class Train():
     # wagons should be a list of wagons
     def __init__(self, wagons):
         self.wagons = wagons # This is the list of all the wagons on the train
-        self.maxWeight = 10000000000
+        self.maxWeight = 1000000000
     
     # Create some wagons, to use for testing
     def test_train(self):
@@ -29,6 +29,10 @@ class Train():
     def __repr__(self):
         return "Train with wagon: \n" + '\n'.join(list(map(repr,self.wagons)))
     
+    # Print the wagon values with the containers that filled them
+    def print_solution(self):
+        for wagon in self.wagons:
+            wagon.print_solution()
 
     # Maybe split this up, but for now this is fine
     def get_total_capacity(self):
