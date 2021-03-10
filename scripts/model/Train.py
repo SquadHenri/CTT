@@ -1,11 +1,8 @@
 import random
 from model.Wagon import Wagon
 import functions
-<<<<<<< HEAD
 from colors import Color
-=======
 import json
->>>>>>> 51e6ad3dfa39c112245d3625775bc33bf23c7cae
 
 
 class Train():
@@ -38,13 +35,11 @@ class Train():
         for wagon in self.wagons:
             wagon.print_solution()
 
-<<<<<<< HEAD
     # Maybe check for success, but this is fine for now
     def set_optimal_axle_load(self):
         for wagon in self.wagons:
             wagon.set_optimal_axle_load()
             
-=======
     def to_JSON(self, **kwargs):
         result = {}
         result["train"] = kwargs
@@ -75,7 +70,6 @@ class Train():
             json.dump(result, output)
 
 
->>>>>>> 51e6ad3dfa39c112245d3625775bc33bf23c7cae
 
     # Maybe split this up, but for now this is fine
     def get_total_capacity(self):

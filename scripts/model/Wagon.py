@@ -184,7 +184,7 @@ class Wagon():
         if(self.get_length_capacity > total_length_containers):
 
             # a container with all blank values except the leftover length
-            container = Container(0, 0, 0, self.get_length_capacity - total_length_containers, 0,0,0,0)
+            container = Container.Container(0, 0, 0, self.get_length_capacity - total_length_containers, 0,0,0,0)
             containers_on_wagon.append(container)       
 
         for combination in it.permutations(containers_on_wagon):
