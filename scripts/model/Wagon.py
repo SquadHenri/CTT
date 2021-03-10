@@ -1,8 +1,7 @@
 import math
 from statistics import mean
-import Container
+from . import Container
 from data.getWagonsFromCSV import get_wagons
-from data.getContainersFromCSV import get_wagons, get_containers
 
 class Wagon():
     """
