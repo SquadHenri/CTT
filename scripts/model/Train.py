@@ -10,7 +10,7 @@ class Train():
     # wagons should be a list of wagons
     def __init__(self, wagons):
         self.wagons = wagons # This is the list of all the wagons on the train
-        self.maxWeight = 1000000000
+        self.maxWeight = 1600000
     
     # Create some wagons, to use for testing
     def test_train(self):
@@ -78,58 +78,53 @@ class Train():
 
     # CONSTRAINTS
 
-    # Each container can be in at most one wagon
-    # y is the variable used in TrainLoadingX.py
-    # c_i is the key of the container in the dictionairy: y[(c_i, , )]
-    def c_container_on_wagon(self, x, c_i):
-        return sum(x[(c_i, w_j)] for w_j, _ in enumerate(self.wagons)) <= 1
-
-
-    # Contents constraint
-    def c_container_location_valid(self, x, c1_i, c2_i, container_1, container_2):
-        c1_pos = 0
-        c2_pos = 0
-        #print(c1_i)
-        #print(c2_i)
-        for w_j, wagon in enumerate(self.wagons):
-                # get the positions of both wagons
-                if(x[(c1_i, w_j)] == 1):
-                    c1_pos = wagon.get_position()
-                    #print(c1_pos)
-                if(x[(c2_i, w_j)] == 1):
-                    c2_pos = wagon.get_position()
-                    #print(c2_pos)
-        # make sure that the wagon positions >= 2, so that there is 1 wagon in between.
-        return abs(c1_pos - c2_pos) >= 2
+    # UNUSED/UNFINISHED CONSTRAINTS
 
     # Travel distance constraint
-    def c_container_travel_distance(self, y, c_i, container):
-        for w_j, wagon in enumerate(self.wagons):
-            for s_k, _ in enumerate(wagon.get_slots()):
-                # If the container is on the wagon, add the constraint.
-                if y[(c_i, w_j, s_k)] == 1:
-                    # The difference in position between the container and the wagon may not be larger than 50 metres.
-                    return functions.getTravelDistance(container.get_position(), wagon.get_location()) < 50
+    # def c_container_travel_distance(self, y, c_i, container):
+    #     for w_j, wagon in enumerate(self.wagons):
+    #         for s_k, _ in enumerate(wagon.get_slots()):
+    #             # If the container is on the wagon, add the constraint.
+    #             if y[(c_i, w_j, s_k)] == 1:
+    #                 # The difference in position between the container and the wagon may not be larger than 50 metres.
+    #                 return functions.getTravelDistance(container.get_position(), wagon.get_location()) < 50
 
 
 
     #Total weight of train may not surpass the maximum allowed weight on the track.
     #Later on we need to replace 100000000 with the max weight of the location of the train.
-    def c_max_train_weight(self, y, containers):
-        slot_found = False
-        total_weight = 0
-        for c_i, container in enumerate(containers):
-            for w_j, wagon in enumerate(self.wagons):
-                for s_k, _ in enumerate(wagon.get_slots()):
-                    if y[(c_i, w_j, s_k)] == 1:
-                        print(container.get_gross_weight())
-                        total_weight += container.get_gross_weight()
-                        slot_found = True
-                        break
-            if slot_found:
-                break
-        print(total_weight)
-        return total_weight < self.maxWeight
+    # def c_max_train_weight(self, y, containers):
+    #     slot_found = False
+    #     total_weight = 0
+    #     for c_i, container in enumerate(containers):
+    #         for w_j, wagon in enumerate(self.wagons):
+    #             for s_k, _ in enumerate(wagon.get_slots()):
+    #                 if y[(c_i, w_j, s_k)] == 1:
+    #                     print(container.get_gross_weight())
+    #                     total_weight += container.get_gross_weight()
+    #                     slot_found = True
+    #                     break
+    #         if slot_found:
+    #             break
+    #     print(total_weight)
+    #     return total_weight < self.maxWeight
+
+    # # Contents constraint
+    # def c_container_location_valid(self, x, c1_i, c2_i, container_1, container_2):
+    #     c1_pos = 0
+    #     c2_pos = 0
+    #     #print(c1_i)
+    #     #print(c2_i)
+    #     for w_j, wagon in enumerate(self.wagons):
+    #             # get the positions of both wagons
+    #             if(x[(c1_i, w_j)] == 1):
+    #                 c1_pos = wagon.get_position()
+    #                 #print(c1_pos)
+    #             if(x[(c2_i, w_j)] == 1):
+    #                 c2_pos = wagon.get_position()
+    #                 #print(c2_pos)
+    #     # make sure that the wagon positions >= 2, so that there is 1 wagon in between.
+    #     return abs(c1_pos - c2_pos) >= 2
 
 
 def get_random_value(min, max):
