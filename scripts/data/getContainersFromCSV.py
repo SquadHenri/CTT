@@ -24,7 +24,7 @@ def get_containers_1():
             c_type = row[2]
             gross_weight = float(row[3].replace(".", "").replace(",", "."))
             net_weight = float(row[4])
-            c_pos = get_pos(row[5])
+            c_pos = row[5]
             c_good = row[7]
             # create object
             container = Container(c_id, gross_weight, net_weight, c_teu * 20, c_pos, c_good, 1, c_type)
@@ -268,11 +268,11 @@ if __name__ == '__main__':
     #    print(container.__repr__())
 
     #wagons = get_wagons_prompt(reverse)
-    for container in containers:
-        print(container.__repr__())
+    # for container in containers:
+    #     print(container.__repr__())
 
-    for wagon in wagons:
-        print(wagon.__repr__())
+    # for wagon in wagons:
+    #     print(wagon.__repr__())
     
     print(calculate_distances_1(containers, wagons))
     

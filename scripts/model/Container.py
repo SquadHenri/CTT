@@ -3,7 +3,7 @@ class Container():
         self.containerID = containerID # name of the container
         self.gross_weight = gross_weight # weight of the container and the goods in kg
         self.foot = foot # length of the contianer in Foot
-        self.position = position # position of the container (on the dock or train)
+        self.position = self.calc_pos(position) # position of the container (on the dock or train)
         self.goods = goods # What is in the container (used for dangerous goods)
         self.priority = priority # ctt does not set a priority so this might be left unused
         self.net_weight = net_weight # Weight of the goods without the container (do not use this)
@@ -21,6 +21,16 @@ class Container():
                 f'foot: {self.foot}, position: {self.position}, goods: {self.goods},'\
                 f'net_weight: {self.net_weight}, typeid: {self.typeid}'
 
+
+    # Transform the position of the container into a list with coordinates.
+    def calc_pos(self, position):
+        position = position.split(" ")
+        position = position[0].split(".")
+
+        try:
+            return [int(x) for x in position]
+        except ValueError:
+            return position
 
     # Getter for container position coordinates
     # Container ID used to identify the container at hand
