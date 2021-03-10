@@ -4,7 +4,7 @@ from data import getContainersFromCSV
 
 import pandas
 
-dataset = pandas.read_csv('input_df_868d36fb-a796-4d1d-99e8-e8fdb766e526.csv')
+dataset = pandas.read_csv('input_df_026798a1-811d-446d-a3d3-5a655d6fa538.csv')
 
 def setup(dataset):
     containerlist = []
@@ -56,8 +56,8 @@ def setup(dataset):
             position = wagon['wagonPosition'] 
             number_of_axles = wagon['wagonPosition']
             wagon_weight = wagon['wagonTare']
-            
-            wagonObj = Wagon.Wagon(wagonID, weight_capacity, length_capacity, 0, position, number_of_axles, total_length, wagon_weight)
+            call = wagon['wagonCall']
+            wagonObj = Wagon.Wagon(wagonID, weight_capacity, length_capacity, 0, position, number_of_axles, total_length, wagon_weight, call)
             wagons.append(wagonObj)
         else:
             print("Wagon", index, "contained null values.")
