@@ -1,7 +1,11 @@
 import random
 from model.Wagon import Wagon
 import functions
+<<<<<<< HEAD
 from colors import Color
+=======
+import json
+>>>>>>> 51e6ad3dfa39c112245d3625775bc33bf23c7cae
 
 
 class Train():
@@ -10,7 +14,7 @@ class Train():
     # wagons should be a list of wagons
     def __init__(self, wagons):
         self.wagons = wagons # This is the list of all the wagons on the train
-        self.maxWeight = 1600000
+        self.maxWeight = 1000000000
     
     # Create some wagons, to use for testing
     def test_train(self):
@@ -34,11 +38,44 @@ class Train():
         for wagon in self.wagons:
             wagon.print_solution()
 
+<<<<<<< HEAD
     # Maybe check for success, but this is fine for now
     def set_optimal_axle_load(self):
         for wagon in self.wagons:
             wagon.set_optimal_axle_load()
             
+=======
+    def to_JSON(self, **kwargs):
+        result = {}
+        result["train"] = kwargs
+        for wagon in self.wagons:
+
+            wagon_json = wagon.to_JSON()
+            result["train"]["wagons"].append(wagon_json)
+
+            # wagon_dict = {}
+            # wagon_dict["wagon_id"] = wagon.wagonID
+            # wagon_dict["weight_capacity"] = wagon.get_weight_capacity()
+            # wagon_dict["length_capacity"] = wagon.get_length_capacity()
+            # wagon_dict["position"] = wagon.get_position()
+            # wagon_dict["containers"] = []
+            # if not wagon.containers:
+            #     continue
+            # for container in wagon.get_containers():
+            #     container_dict = {}
+            #     container_dict["container_id"] = container.get_containerID()
+            #     container_dict["gross_weight"] = container.get_gross_weight()
+            #     container_dict["length"] = container.get_length()
+            #     container_dict["hazard_class"] = container.get_hazard_class()
+            #     wagon_dict["containers"].append(container_dict)
+
+            # result["train"]["wagons"].append(wagon_dict)
+
+        with open('train.json', 'w') as output:
+            json.dump(result, output)
+
+
+>>>>>>> 51e6ad3dfa39c112245d3625775bc33bf23c7cae
 
     # Maybe split this up, but for now this is fine
     def get_total_capacity(self):
@@ -115,7 +152,7 @@ class Train():
     #     print(total_weight)
     #     return total_weight < self.maxWeight
 
-    # # Contents constraint
+    # Contents constraint
     # def c_container_location_valid(self, x, c1_i, c2_i, container_1, container_2):
     #     c1_pos = 0
     #     c2_pos = 0
@@ -125,10 +162,10 @@ class Train():
     #             # get the positions of both wagons
     #             if(x[(c1_i, w_j)] == 1):
     #                 c1_pos = wagon.get_position()
-    #                 #print(c1_pos)
-    #             if(x[(c2_i, w_j)] == 1):
+    #                 print(c1_pos)
+    #             elif(x[(c2_i, w_j)] == 1):
     #                 c2_pos = wagon.get_position()
-    #                 #print(c2_pos)
+    #                 print(c2_pos)
     #     # make sure that the wagon positions >= 2, so that there is 1 wagon in between.
     #     return abs(c1_pos - c2_pos) >= 2
 
