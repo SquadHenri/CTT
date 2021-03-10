@@ -1,7 +1,7 @@
 import random
 from model.Wagon import Wagon
 import functions
-
+from colors import Color
 
 
 class Train():
@@ -33,6 +33,12 @@ class Train():
     def print_solution(self):
         for wagon in self.wagons:
             wagon.print_solution()
+
+    # Maybe check for success, but this is fine for now
+    def set_optimal_axle_load(self):
+        for wagon in self.wagons:
+            wagon.set_optimal_axle_load()
+            
 
     # Maybe split this up, but for now this is fine
     def get_total_capacity(self):
