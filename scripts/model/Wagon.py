@@ -30,7 +30,7 @@ class Wagon():
         
     """
 
-    def __init__(self, wagonID, weight_capacity, length_capacity, contents, position, number_of_axles, total_length, wagon_weight, containers = None):
+    def __init__(self, wagonID, weight_capacity, length_capacity, contents, position, number_of_axles, total_length, wagon_weight, call, containers = None):
         self.wagonID = wagonID 
         self.weight_capacity = weight_capacity 
         self.length_capacity = length_capacity
@@ -38,7 +38,8 @@ class Wagon():
         self.slots = [[0 for i in range(0,int(total_length * 20))]] 
         #self.slots = [[0 for i in range(int(length_capacity * 2))]]
         self.contents = contents 
-        self.position = position 
+        self.position = position
+        self.call = call  
         self.location = None 
         self.number_of_axles = number_of_axles
         self.wagon_weight = wagon_weight

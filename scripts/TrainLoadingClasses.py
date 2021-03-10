@@ -170,6 +170,75 @@ def main(containers, train):
     print('Starting solve...')
     status = solver.Solve()
 
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    def get_tableplot(train):
+            
+            maxContainers = 0
+            columns = []
+
+            wagons = train.wagons
+            #Sort wagons on their position
+            l = len(wagons)
+            for i in range(0, l): 
+                for j in range(0, l-i-1): 
+                    if (wagons[j].position > wagons[j + 1].position): 
+                        tempo = wagons[j] 
+                        wagons[j]= wagons[j + 1] 
+                        wagons[j + 1]= tempo 
+            
+        
+            #Set max number of containers on wagon, needed for amount of table rows 
+            for wagon in wagons:
+                if len(wagon.containers) > maxContainers:
+                    maxContainers = len(wagon.containers)
+            title = ''
+            data = []
+            for wagon in wagons:
+                #Add wagonID to column list
+                columns.append(str(int(wagon.position))+ ". " + wagon.wagonID)
+                datarow = [] 
+                #Title of table
+                title = wagon.call
+                if 0 < maxContainers: 
+                    datarow.extend('empty' for x in range(0, maxContainers)) 
+                    #datarow.append(maxContainers) 
+
+                for i, container in enumerate(wagon.containers):
+                    datarow[i] = container.containerID
+
+                data.append(datarow)
+            print(data)
+            n_rows = len(data)
+            rows = ['slot %d' % (x+1) for x in range(len(data))]
+            print(rows)
+            colors = plt.cm.BuPu(np.linspace(0, 0.5, len(rows)))
+
+            cell_text = []
+            for row in range(n_rows):
+                cell_text.append(['%s' % (x) for x in data[row]])
+            # Reverse colors and text labels to display the last value at the top.
+            colors = colors[::-1]
+            cell_text.reverse()
+            
+            the_table = plt.table(cellText=data,
+                      rowLabels=columns,
+                      rowColours=colors,
+                      colLabels=rows,
+                      loc='center')
+            plt.subplots_adjust(left=0.230, bottom=0, right=0.965, top=0.938)
+            plt.axis('off')
+            #plt.title(title, fontsize=8, pad=None, )
+
+            fig = plt.gcf()
+            fig.suptitle(title, fontsize=10)
+            plt.savefig(title + '-planning', bbox_inches='tight', dpi=150)
+            plt.show()
+            
+
+
+
     # TODO: Cleanup the solution printing, move this functionality to the Container, Wagon and Train class
     # See train.print_solution() and Wagon.print_solution()
     if status == pywraplp.Solver.OPTIMAL:
@@ -210,7 +279,7 @@ def main(containers, train):
             total_length += wagon_length
             total_weight += wagon_weight
             total_distance += wagon_distance
-            print()
+            
         #print(filled_wagons)
         print()
         print('Total packed weight:', total_weight, '(',round(total_weight / train.get_total_weight_capacity() * 100,1),'%)')
@@ -228,10 +297,22 @@ def main(containers, train):
         with open('result.json', 'w') as fp:
             json.dump(filled_wagons, fp)
 
+        get_tableplot(train)
+
     elif status == pywraplp.Solver.FEASIBLE:
         print('The problem does have a feasible solution')
     else:
         print('The problem does not have an optimal solution.')
+
+       
+
+        
+    
+    
+    
+   
+
+
 
 # if __name__ == '__main__':
 #     main()
