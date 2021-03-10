@@ -21,6 +21,13 @@ class Container():
                 f'foot: {self.foot}, position: {self.position}, goods: {self.goods},'\
                 f'net_weight: {self.net_weight}, typeid: {self.typeid}'
 
+    def to_JSON(self):
+        container_dict = {}
+        container_dict["container_id"] = self.get_containerID()
+        container_dict["gross_weight"] = self.get_gross_weight()
+        container_dict["length"] = self.get_length()
+        container_dict["hazard_class"] = self.get_hazard_class()
+        return container_dict
 
     # Transform the position of the container into a list with coordinates.
     def calc_pos(self, position):

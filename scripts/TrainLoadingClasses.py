@@ -36,6 +36,11 @@ def main(containers, train):
         print("Container ", i, "Must be loaded")
         priority_list.append(i)
 
+    # # Make every sixth container hazardous
+    # for i in range(0, len(containers), 10):
+    #     print("Container ", i, "is hazardous")
+    #     containers[i].set_hazard_class(1)
+
     # Create the mip solver with the SCIP backend.
     solver = pywraplp.Solver.CreateSolver('SCIP')
 
@@ -79,20 +84,20 @@ def main(containers, train):
             wagon.c_length_capacity(containers, x, w_j)
         )
     
-    # Travel distance constraint for total distance.
-    # solver.Add(sum(x[(c_i, w_j)] * functions.getTravelDistance(container.get_position(), wagon.get_location()) 
-    #     for c_i, container in enumerate(containers) 
-    #     for w_j, wagon in enumerate(train.wagons) 
-    #     if (len(container.get_position()) == 3) and 
-    #     (container.get_position()[0] <= 52) and 
-    #     (container.get_position()[1] <= 7) ) <= 500)
+    #Travel distance constraint for total distance.
+    solver.Add(sum(x[(c_i, w_j)] * functions.getTravelDistance(container.get_position(), wagon.get_location()) 
+        for c_i, container in enumerate(containers) 
+        for w_j, wagon in enumerate(train.wagons) 
+        if (len(container.get_position()) == 3) and 
+        (container.get_position()[0] <= 52) and 
+        (container.get_position()[1] <= 7) ) <= 500)
 
-    #Travel distance constraint per container
-    for c_i, container in enumerate(containers):
-        # For every container add the travel distance constraint.
-        c_location = container.get_position()
-        if (len(c_location) == 3) and (c_location[0] <= 52) and (c_location[1] <= 7):
-            solver.Add( sum(x[(c_i, w_j)] * functions.getTravelDistance(c_location, wagon.get_location()) for w_j, wagon in enumerate(train.wagons)) <= 10000)
+    # #Travel distance constraint per container
+    # for c_i, container in enumerate(containers):
+    #     # For every container add the travel distance constraint.
+    #     c_location = container.get_position()
+    #     if (len(c_location) == 3) and (c_location[0] <= 52) and (c_location[1] <= 7):
+    #         solver.Add( sum(x[(c_i, w_j)] * functions.getTravelDistance(c_location, wagon.get_location()) for w_j, wagon in enumerate(train.wagons)) <= 10000)
 
 
     # A train may not surpass a maximum weight, based on the destination of the train.
@@ -102,6 +107,12 @@ def main(containers, train):
 
 
     # UNUSED/UNFINISHED CONSTRAINTS
+
+    # Loop through the container list of the wagon
+    # find all possible order (shuffles) of the list
+    # Make sure that there is at least one shuffle that does not exceed the axle load
+
+
 
     # A container has to be put on a wagon as a whole
     # for w_j, wagon in enumerate(train.wagons):
@@ -134,9 +145,9 @@ def main(containers, train):
 
     #                     # The difference in position >= 2.
     #                     # We need to fix something for -2.
-    #                     solver.Add(
-    #                         sum(x[(c1_i, w_j)] * wagon.get_position() - x[(c2_i, w_j)] * wagon.get_position() for w_j, wagon in enumerate(train.wagons)) >= 2
-    #                         )
+    #                     # solver.Add(
+    #                     #     sum((x[(c1_i, w_j)] * wagon.get_position()) - (x[(c2_i, w_j)] * wagon.get_position()) for w_j, wagon in enumerate(train.wagons)) >= 2
+    #                     #     )
     #                     # if sum(x[(c1_i, w_j)] * wagon.get_position() - x[(c2_i, w_j)] * wagon.get_position() for w_j, wagon in enumerate(train.wagons)) >= 0:
     #                     #     solver.Add(sum(x[(c1_i, w_j)] * wagon.get_position() - x[(c2_i, w_j)] * wagon.get_position() for w_j, wagon in enumerate(train.wagons)) >= 2)
     #                     # else:
@@ -224,6 +235,7 @@ def main(containers, train):
 
         # This is another way of printing solution values
         #train.print_solution()
+        train.to_JSON(callcode="BASEL12345", weight=total_weight, length=total_length, distance=total_distance, amount=container_count, wagons=[])
 
         with open('result.json', 'w') as fp:
             json.dump(filled_wagons, fp)

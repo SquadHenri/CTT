@@ -70,7 +70,20 @@ class Wagon():
             print(offset, '-', offset+container.get_length(),':\t', container)
             offset += container.get_length()
 
-
+    def to_JSON(self):
+        wagon_dict = {}
+        wagon_dict["wagon_id"] = self.wagonID
+        wagon_dict["weight_capacity"] = self.get_weight_capacity()
+        wagon_dict["length_capacity"] = self.get_length_capacity()
+        wagon_dict["position"] = self.get_position()
+        wagon_dict["containers"] = []
+        if not self.containers:
+            return wagon_dict
+        else:
+            for container in self.get_containers():
+                container_json = container.to_JSON()
+                wagon_dict["containers"].append(container_json)
+            return wagon_dict
 
 
     # CONSTRAINTS
