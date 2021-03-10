@@ -26,13 +26,16 @@ class Wagon():
             The location of the wagon in the loading bay. Should this not be a tuple?
         number_of_axles: int
             The number of axles on this train
+        containers: list of Containers
+            In order, each container is a container placed on the wagon. The solution of the train 
+            algorithm should return a train object where the wagon has a list of containers similar to the solution
         
     """
 
-    def __init__(self, wagonID, weight_capacity, length_capacity, contents, position, number_of_axles, total_length, wagon_weight):
+    def __init__(self, wagonID, weight_capacity, length_capacity, contents, position, number_of_axles, total_length, wagon_weight, containers = None):
         self.wagonID = wagonID 
         self.weight_capacity = weight_capacity 
-        self.length_capacity = total_length * 20 
+        self.length_capacity = length_capacity
         self.total_length = total_length 
         self.slots = [[0 for i in range(0,int(total_length * 20))]] 
         #self.slots = [[0 for i in range(int(length_capacity * 2))]]
@@ -41,6 +44,9 @@ class Wagon():
         self.location = None 
         self.number_of_axles = number_of_axles
         self.wagon_weight = wagon_weight
+
+        # Can be None
+        self.containers = containers
 
     # Convert Wagon to string
     # Print relevant information only, __repr__ is used to print every detail
@@ -54,41 +60,32 @@ class Wagon():
              f'length_capacity: {self.length_capacity}, contents: {self.contents}, '\
              f'position: {self.position}, location: {self.location}'
 
+    # Prints relevant wagon information for the solution, expects self.containers to be filled
+    def print_solution(self):
+        if not self.containers:
+            print("There is no list of containers. Cannot print relevant information.")
+            return
+        # Print information on the wagon
+        print(self)
+        offset = 0
+        for container in self.containers:
+            print(offset, '-', offset+container.get_length(),':\t', container)
+            offset += container.get_length()
+
+
+
 
     # CONSTRAINTS
 
-    # Constraint that a container has to be put on the wagon as a whole
-    # y is the variable used in TrainLoadingX.py
-    # w_j is the index of the wagon
-    # TODO If people can optimize this, go ahead. This function will be called very often
-    def c_container_is_whole(self, y, num_containers, w_j):
-        # Create a dictionairy of all containers c_i and the slots
-        # They occupy in the wagon
-        containers = {}
-        for c_i in range(num_containers):
-            for s_k in range(len(self.slots)):
-                if(y[(c_i, w_j, s_k)] == 1):
-                    if(c_i in containers):
-                        containers[c_i].append(s_k)
-                    else:
-                        containers[c_i] = [s_k]
-        # Now check for each container if the slots they occupy are in order
-        for c_i in containers:
-            containers[c_i].sort()
-            # Since the list is ordered, the following means the container is ordered
-            return containers[c_i][-1] - containers[c_i][0] == len(containers[c_i]) - 1
+    # The weight of the containers cannot exceed the weight capacity of the wagon
+    def c_weight_capacity(self, containers, x, w_j):
+        return sum(x[(c_i, w_j)] * container.get_gross_weight()
+                for c_i, container in enumerate(containers)) <= self.get_weight_capacity()
 
-   
-    # Possible constraint for the axle load
-    # The function self.calculateLoad calculcates the axle load based on a container list, we still need to make this.
-    # @TODO make calculateLoad function
-    # def c_axle_load(self, y, containers, w_j):
-    #     containers_on_wagon = []
-    #     for c_i, container in enumerate(containers):
-    #         for s_k in range(len(self.slots)):
-    #             if y[(c_i, w_j, s_k)] == 1:
-    #                 containers_on_wagon.append((container, s_k))
-    #     return self.calculateLoad(containers_on_wagon, maxLoad)   
+    # The length of the containers cannot exceed the length capacity of the wagon
+    def c_length_capacity(self, containers, x, w_j):
+        return sum(x[(c_i, w_j)] * container.get_length()
+                for c_i, container in enumerate(containers)) <= self.get_length_capacity()  
 
 
     # Input for this funciton is the wagon and a list with the containers. The list of containers contains the container and the spots it takes in the wagon
@@ -148,40 +145,59 @@ class Wagon():
         else:
             print('the 4 bogies wagons have not been configured yet')
 
-
-    # The weight of the containers cannot exceed the weight capacity of the wagon
-    def c_weight_capacity(self, containers, x, w_j):
-        return sum(x[(c_i, w_j)] * container.get_net_weight()
-                for c_i, container in enumerate(containers)) <= self.get_weight_capacity()
-
-    # The length of the containers cannot exceed the length capacity of the wagon
-    def c_length_capacity(self, containers, x, w_j):
-        return sum(x[(c_i, w_j)] * container.get_length()
-                for c_i, container in enumerate(containers)) <= self.get_length_capacity()
-
-
     def container_load(self, weight, dist, axledist):
         load = weight * dist / axledist
         return load            
         
-    # Getter for container position coordinates
+    
+    # UNUSED/UNFINISHED CONSTRAINTS
+    
+    # # Constraint that a container has to be put on the wagon as a whole
+    # # y is the variable used in TrainLoadingX.py
+    # # w_j is the index of the wagon
+    # # TODO If people can optimize this, go ahead. This function will be called very often
+    # def c_container_is_whole(self, y, num_containers, w_j):
+    #     # Create a dictionairy of all containers c_i and the slots
+    #     # They occupy in the wagon
+    #     containers = {}
+    #     for c_i in range(num_containers):
+    #         for s_k in range(len(self.slots)):
+    #             if(y[(c_i, w_j, s_k)] == 1):
+    #                 if(c_i in containers):
+    #                     containers[c_i].append(s_k)
+    #                 else:
+    #                     containers[c_i] = [s_k]
+    #     # Now check for each container if the slots they occupy are in order
+    #     for c_i in containers:
+    #         containers[c_i].sort()
+    #         # Since the list is ordered, the following means the container is ordered
+    #         return containers[c_i][-1] - containers[c_i][0] == len(containers[c_i]) - 1
+
+   
+    # Possible constraint for the axle load
+    # The function self.calculateLoad calculcates the axle load based on a container list, we still need to make this.
+    # @TODO make calculateLoad function
+    # def c_axle_load(self, y, containers, w_j):
+    #     containers_on_wagon = []
+    #     for c_i, container in enumerate(containers):
+    #         for s_k in range(len(self.slots)):
+    #             if y[(c_i, w_j, s_k)] == 1:
+    #                 containers_on_wagon.append((container, s_k))
+    #     return self.calculateLoad(containers_on_wagon, maxLoad) 
+
+
+    # Getters
     def get_position(self):
         return self.position
 
     def get_weight_capacity(self):
         return self.weight_capacity
-        
-    def set_weight_capacity(self, weight_capacity):
-        self.weight_capacity = weight_capacity
 
     def get_length_capacity(self):
         return self.length_capacity
 
     def get_total_length(self):
         return self.total_length
-
-    def set_length_capacity(self, length_capacity):
-        self.length_capacity = length_capacity
 
     def get_contents(self):
         return self.contents
@@ -192,12 +208,25 @@ class Wagon():
     def get_slots(self):
         return self.slots
 
-if __name__ == '__main__':
-    containers = get_containers()
-    wagon1 = Wagon(0, 100, 5, None, [0,0],0,0,0)
-    wagon2 = Wagon(1, 110, 7, None, [0,1],0,0,0)
-    wagon3 = Wagon(2, 130, 6, None, [1,0],0,0,0)
-    wagon4 = Wagon(3, 150, 9, None, [1,0],0,0,0)
-    wagon5 = Wagon(4, 140, 8, None, [0,2],0,0,0)
-    load = wagon1.get_axle_load(containers[1])
-    print(load)
+    def get_containers(self):
+        return self.containers
+    
+    # Setters
+    
+    def set_length_capacity(self, length_capacity):
+        self.length_capacity = length_capacity
+
+    def set_weight_capacity(self, weight_capacity):
+        self.weight_capacity = weight_capacity
+    
+    def set_containers(self, containers):
+        self.containers = containers
+
+    # Used to add one or multiple containers
+    def add_container(self, container):
+        if self.containers:
+            self.containers.append(container)
+        else:
+            self.containers = []
+            self.containers.append(container)
+
