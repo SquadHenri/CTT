@@ -25,8 +25,8 @@ def create_train_and_containers():
     print(train)
     return train, containers
 
-def main():
-    train, containers = create_train_and_containers()
+def main(containers, train):
+    #train, containers = create_train_and_containers()
 
     priority_list = []
 
@@ -322,6 +322,3 @@ def main():
     else:
         print('The problem does not have an optimal solution.')
 
-
-if __name__ == '__main__':
-    main()
