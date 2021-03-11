@@ -107,10 +107,10 @@ def main(containers, train):
                     for c_i, container in enumerate(containers) 
                     for w_j, wagon in enumerate(train.wagons)) <= train.maxWeight)
 
-    # for w_j, wagon in enumerate(train.wagons):
-    #     solver.Add(
-    #         wagon.c_has_acceptable_axle_load(x, w_j, containers)
-    #     )
+    for w_j, wagon in enumerate(train.wagons):
+        solver.Add(
+            wagon.c_has_acceptable_axle_load(x, w_j, containers)
+        )
 
     # UNUSED/UNFINISHED CONSTRAINTS
 
