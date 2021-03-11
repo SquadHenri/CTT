@@ -25,8 +25,8 @@ def create_train_and_containers():
     print(train)
     return train, containers
 
-def main():
-    train, containers = create_train_and_containers()
+def main(containers, train):
+    #train, containers = create_train_and_containers()
 
     priority_list = []
 
@@ -104,10 +104,10 @@ def main():
                     for c_i, container in enumerate(containers) 
                     for w_j, wagon in enumerate(train.wagons)) <= train.maxWeight)
 
-    # for w_j, wagon in enumerate(train.wagons):
-    #     solver.Add(
-    #         wagon.c_has_acceptable_axle_load(x, w_j, containers)
-    #     )
+    for w_j, wagon in enumerate(train.wagons):
+        solver.Add(
+            wagon.c_has_acceptable_axle_load(x, w_j, containers)
+        )
 
     # UNUSED/UNFINISHED CONSTRAINTS
 

@@ -10,12 +10,13 @@ def get_wagons(fileloc):
         data = csv.reader(wagontypes, delimiter=";")
         w_idList = []
         values = []
+        next(data)
         for row in data:
             w_id = row[0]
-            wlen = row[1]
-            axles = row[2]
-            axleshift = row[3]
-            axledist = row[4]
+            wlen = float(row[1])
+            axles = float(row[2])
+            axleshift = float(row[3])
+            axledist = float(row[4])
             w_idList.append(w_id)
             values.append([wlen, axles, axleshift, axledist])
         for i, wid in enumerate(w_idList):
