@@ -4,6 +4,7 @@ from model import *
 from data import getContainersFromCSV
 import functions
 import json
+import pandas as pd
 #For showing the train planning table we use numpy and matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
@@ -246,9 +247,7 @@ def main(containers, train):
         # print("Axle Load success: ", train.set_optimal_axle_load())
         #train.print_solution()
         train.to_JSON(callcode="BASEL12345", weight=total_weight, length=total_length, distance=total_distance, amount=container_count, wagons=[])
-
-        # with open('result.json', 'w') as fp:
-        #     json.dump(filled_wagons, fp)
+        train.to_CSV(total_weight, total_length)
 
         trainplanning_plot = train.get_tableplot()
         trainplanning_plot.show()
