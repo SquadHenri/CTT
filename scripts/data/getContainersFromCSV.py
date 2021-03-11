@@ -50,7 +50,7 @@ def get_wagons_1():
             w_length = float(row[3].replace(",", "."))
             w_axes = int(row[4])
             # create object
-            wagon = Wagon(w_id, -1, w_length, -1, w_pos,0,w_length, 0)
+            wagon = Wagon(w_id, -1, w_length, -1, w_pos,0,w_length, 0, 'callofzo')
             # add object to wagon list
             wagons.append(wagon)
     # set the proper location for every wagon
