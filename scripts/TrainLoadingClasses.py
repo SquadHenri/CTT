@@ -4,6 +4,7 @@ from model import *
 from data import getContainersFromCSV
 import functions
 import json
+import pandas as pd
 
 # This TrainLoading variant will switch from the dictionairy data model to using classes
 
@@ -311,9 +312,7 @@ def main(containers, train):
         # print("Axle Load success: ", train.set_optimal_axle_load())
         #train.print_solution()
         train.to_JSON(callcode="BASEL12345", weight=total_weight, length=total_length, distance=total_distance, amount=container_count, wagons=[])
-
-        # with open('result.json', 'w') as fp:
-        #     json.dump(filled_wagons, fp)
+        train.to_CSV(total_weight, total_length)
 
         #get_tableplot(train)
 

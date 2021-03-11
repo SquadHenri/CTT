@@ -191,6 +191,7 @@ class Wagon():
 
         for combination in it.permutations(containers_on_wagon):
             print("COMBINATION: combination[0]:",  combination[0])
+            print(combination)
             axle_load = self.get_axle_load(combination)
             
 
