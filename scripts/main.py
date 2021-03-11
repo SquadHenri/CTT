@@ -4,7 +4,7 @@ from data import getContainersFromCSV
 
 import pandas
 
-dataset = pandas.read_csv('scripts\input_df_868d36fb-a796-4d1d-99e8-e8fdb766e526.csv')
+dataset = pandas.read_csv('data/input_df_026798a1-811d-446d-a3d3-5a655d6fa538.csv')
 
 def setup(dataset):
     containerlist = []
@@ -50,13 +50,13 @@ def setup(dataset):
     containers = []
 
     for index, wagon in wagondf.iterrows():
-        if pandas.notna(wagon['wagonSizeft']) and pandas.notna(wagon['wagonLength']) and pandas.notna(wagon['wagonPosition']) and pandas.notna(wagon['wagonPayload']) and pandas.notna(wagon['wagonTare']): 
+        if pandas.notna(wagon['wagonSizeft']) and pandas.notna(wagon['wagonLength']) and pandas.notna(wagon['wagonPosition']) and pandas.notna(wagon['wagonPayload']) and pandas.notna(wagon['wagonTare']) and pandas.notna(wagon['wagonNoAxes']): 
             wagonID = wagon['wagonID']
             weight_capacity = wagon['wagonPayload']
             length_capacity = wagon['wagonSizeft']
             total_length = wagon['wagonLength']
             position = wagon['wagonPosition'] 
-            number_of_axles = wagon['wagonPosition']
+            number_of_axles = wagon['wagonNoAxes']
             wagon_weight = wagon['wagonTare']
             call = wagon['wagonCall']
             wagonObj = Wagon.Wagon(wagonID, weight_capacity, length_capacity, 0, position, number_of_axles, total_length, wagon_weight, call)

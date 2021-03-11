@@ -5,6 +5,9 @@ from data import getContainersFromCSV
 import functions
 import json
 import pandas as pd
+#For showing the train planning table we use numpy and matplotlib
+import numpy as np
+import matplotlib.pyplot as plt
 
 # This TrainLoading variant will switch from the dictionairy data model to using classes
 
@@ -105,10 +108,10 @@ def main(containers, train):
                     for c_i, container in enumerate(containers) 
                     for w_j, wagon in enumerate(train.wagons)) <= train.maxWeight)
 
-    # for w_j, wagon in enumerate(train.wagons):
-    #     solver.Add(
-    #         wagon.c_has_acceptable_axle_load(x, w_j, containers)
-    #     )
+    for w_j, wagon in enumerate(train.wagons):
+        solver.Add(
+            wagon.c_has_acceptable_axle_load(x, w_j, containers)
+        )
 
     # UNUSED/UNFINISHED CONSTRAINTS
 
@@ -186,74 +189,6 @@ def main(containers, train):
     # solver.EnableOutput()
     status = solver.Solve()
 
-    import numpy as np
-    import matplotlib.pyplot as plt
-
-    def get_tableplot(train):
-            
-            maxContainers = 0
-            columns = []
-
-            wagons = train.wagons
-            #Sort wagons on their position
-            l = len(wagons)
-            for i in range(0, l): 
-                for j in range(0, l-i-1): 
-                    if (wagons[j].position > wagons[j + 1].position): 
-                        tempo = wagons[j] 
-                        wagons[j]= wagons[j + 1] 
-                        wagons[j + 1]= tempo 
-            
-        
-            #Set max number of containers on wagon, needed for amount of table rows 
-            for wagon in wagons:
-                if len(wagon.containers) > maxContainers:
-                    maxContainers = len(wagon.containers)
-            title = ''
-            data = []
-            for wagon in wagons:
-                #Add wagonID to column list
-                columns.append(str(int(wagon.position))+ ". " + wagon.wagonID)
-                datarow = [] 
-                #Title of table
-                title = wagon.call
-                if 0 < maxContainers: 
-                    datarow.extend('empty' for x in range(0, maxContainers)) 
-                    #datarow.append(maxContainers) 
-
-                for i, container in enumerate(wagon.containers):
-                    datarow[i] = container.containerID
-
-                data.append(datarow)
-            print(data)
-            n_rows = len(data)
-            rows = ['slot %d' % (x+1) for x in range(len(data))]
-            print(rows)
-            colors = plt.cm.BuPu(np.linspace(0, 0.5, len(rows)))
-
-            cell_text = []
-            for row in range(n_rows):
-                cell_text.append(['%s' % (x) for x in data[row]])
-            # Reverse colors and text labels to display the last value at the top.
-            colors = colors[::-1]
-            cell_text.reverse()
-            
-            the_table = plt.table(cellText=data,
-                      rowLabels=columns,
-                      rowColours=colors,
-                      colLabels=rows,
-                      loc='center')
-            plt.subplots_adjust(left=0.230, bottom=0, right=0.965, top=0.938)
-            plt.axis('off')
-            #plt.title(title, fontsize=8, pad=None, )
-
-            fig = plt.gcf()
-            fig.suptitle(title, fontsize=10)
-            plt.savefig(title + '-planning', bbox_inches='tight', dpi=150)
-            plt.show()
-            
-
-
 
     # TODO: Cleanup the solution printing, move this functionality to the Container, Wagon and Train class
     # See train.print_solution() and Wagon.print_solution()
@@ -314,7 +249,8 @@ def main(containers, train):
         train.to_JSON(callcode="BASEL12345", weight=total_weight, length=total_length, distance=total_distance, amount=container_count, wagons=[])
         train.to_CSV(total_weight, total_length)
 
-        #get_tableplot(train)
+        trainplanning_plot = train.get_tableplot()
+        trainplanning_plot.show()
 
     elif status == pywraplp.Solver.FEASIBLE:
         print('The problem does have a feasible solution')
