@@ -1,6 +1,8 @@
-import math
+import itertools as it
+
 from statistics import mean
 from . import Container
+from data.getWagonsFromCSV import get_wagons
 
 class Wagon():
     """
@@ -30,7 +32,7 @@ class Wagon():
         
     """
 
-    def __init__(self, wagonID, weight_capacity, length_capacity, contents, position, number_of_axles, total_length, wagon_weight, containers = None):
+    def __init__(self, wagonID, weight_capacity, length_capacity, contents, position, number_of_axles, total_length, wagon_weight, call, containers = None, max_axle_load = None):
         self.wagonID = wagonID 
         self.weight_capacity = weight_capacity 
         self.length_capacity = length_capacity
@@ -38,13 +40,19 @@ class Wagon():
         self.slots = [[0 for i in range(0,int(total_length * 20))]] 
         #self.slots = [[0 for i in range(int(length_capacity * 2))]]
         self.contents = contents 
-        self.position = position 
+        self.position = position
+        self.call = call  
         self.location = None 
         self.number_of_axles = number_of_axles
         self.wagon_weight = wagon_weight
 
         # Can be None
         self.containers = containers
+        # Maximum aslast
+        if max_axle_load:
+            self.max_axle_load = max_axle_load
+        else:
+            self.max_axle_load = 22000
 
     # Convert Wagon to string
     # Print relevant information only, __repr__ is used to print every detail
@@ -61,7 +69,8 @@ class Wagon():
     # Prints relevant wagon information for the solution, expects self.containers to be filled
     def print_solution(self):
         if not self.containers:
-            print("There is no list of containers. Cannot print relevant information.")
+            print(self)
+            print("\t\tWagon does not have containers")
             return
         # Print information on the wagon
         print(self)
@@ -70,7 +79,20 @@ class Wagon():
             print(offset, '-', offset+container.get_length(),':\t', container)
             offset += container.get_length()
 
-
+    def to_JSON(self):
+        wagon_dict = {}
+        wagon_dict["wagon_id"] = self.wagonID
+        wagon_dict["weight_capacity"] = self.get_weight_capacity()
+        wagon_dict["length_capacity"] = self.get_length_capacity()
+        wagon_dict["position"] = self.get_position()
+        wagon_dict["containers"] = []
+        if not self.containers:
+            return wagon_dict
+        else:
+            for container in self.get_containers():
+                container_json = container.to_JSON()
+                wagon_dict["containers"].append(container_json)
+            return wagon_dict
 
 
     # CONSTRAINTS
@@ -88,85 +110,125 @@ class Wagon():
 
     # Input for this funciton is the wagon and a list with the containers. The list of containers contains the container and the spots it takes in the wagon
     def get_axle_load(self, containers):
-        #firstly give all the right numbers to the respective wagons (due to minor differences the numbers may vary but they are likely very close to each other)
-        # 40 feet 4 axles
-        axle_shift_40 = 2.15 # The length between the middle of the bogie en the end of the loading platform
-        axle_dist_40 = 8.07 # The length between 2 bogies of the wagon
-        # 47 feet 4 axles
-        axle_shift_47 = 2.1
-        axle_dist_47 = 10.2
-        # 60 feet (4 axles)
-        axle_shift_60 = 2.10 
-        axle_dist_60 = 14.200 
-        # 80 feet 4 axles
-        axle_shift_80_2 = 2.70 
-        axle_dist_80_2 = 19.300 
-        # 80 feet 6 axles
-        axle_shift_80_3 = 2.18
-        axle_dist_80_3 = 10.395
-        # 90 feet 6 axles
-        axle_shift_90 = 2.18
-        axle_dist_90 = 11.995
-        # 104 feet 6 axles
-        axle_shift_104 = 2.28
-        axle_dist_104 = 14.2
+        print(self.number_of_axles)
+
         # Set the weight of the wagon to wagon only to add the weight of the containers later
         total_load = self.wagon_weight
         # Refining the list of containers so it contains the container and the mean of the slots it stands on ordered from left to right (not that that stil matters).
+        fillrate = 0
+        containerList = []
         for container in containers:
-            container[1] = mean(container[1])
-            total_load += container[0].gross_weight
-        containers = sorted(containers, key=lambda container: containers[1])
+            containerList.append([container, container.get_length() / 2 + fillrate])
+            fillrate += container.get_length()
+            total_load += container.get_length()
+        key = str(self.length_capacity).split('.')[0] + str(self.number_of_axles).split('.')[0]
+        dictionairy = get_wagons("data/Wagons.csv")
         # Starting with all the Wagons that have 2 bogies and so have 4 axles
         if self.number_of_axles == 4:
-            # Setting the right data in the 'distances' varable to work with in the calculation to prevent repeating code
-            if self.length_capacity == 40:
-                distances = [axle_shift_40, axle_dist_40]
-            elif self.length_capacity == 47:
-                distances = [axle_shift_47, axle_dist_47]
-            elif self.length_capacity == 60:
-                distances = [axle_shift_60, axle_dist_60]
-            elif self.length_capacity == 80:
-                distances = [axle_shift_80_2, axle_dist_80_2]
-            # Setting half the load of the wagon on one bogie
             right_axle_load = 0.5 * self.wagon_weight
             # Adding the containers to the load on the Right bogie
-            for container in containers:
-                dist = container[1] * 0.3048 - distances[0]
-                right_axle_load += self.container_load(container[0].gross_weight, dist, distances[1])
+            for container in containerList:
+                dist = container[1] * 0.3048 - float(dictionairy[key][2])
+                right_axle_load += self.container_load(container[0].gross_weight, dist, dictionairy[key][3])
             # calculating the left axle by taking the total and subtracting the load on the right axle
             left_axle_load = total_load - right_axle_load
             # Returning the data: left axle, right axle, total load
             return [left_axle_load, right_axle_load, total_load]
         # Setting The right numbers for the wagons with 3 bogies
         elif self.number_of_axles == 6:
-            if self.length_capacity == 80:
-                distances = [axle_shift_80_3, axle_dist_80_3]
-            elif self.length_capacity == 90:
-                distances = [axle_shift_90, axle_dist_90]
-            elif self.length_capacity == 104:
-                distances = [axle_shift_104, axle_dist_104]
-            middle = distances[0] + distances[1]
+            middle = dictionairy[key][2] + dictionairy[key][3]
             # Setting the basic load on the axles to add the containers later, given the load is equal on all bogies
             left_axle_load = right_axle_load = self.wagon_weight / 3
             # Adding the weight of the containers
-            for container in containers:
+            for container in containerList: # splitting the train to calculate load on different parts
                 if container[1] < self.length_capacity / 2:
-                    dist = middle - containers[1] * 0.3048
-                    left_axle_load += self.container_load(container[0].gross_weigth, dist, distances[1])
+                    dist = middle - container[1] * 0.3048
+                    left_axle_load += self.container_load(container[0].gross_weight, dist, dictionairy[key][3])
                 else:
                     dist = container[1] * 0.3048 - middle
-                    right_axle_load += self.container_load(container[0].gross_weight, dist, distances[1])
+                    right_axle_load += self.container_load(container[0].gross_weight, dist, dictionairy[key][3])
                 middle_axle_load = total_load - right_axle_load - left_axle_load
                 return [left_axle_load, middle_axle_load, right_axle_load, total_load]
+        elif self.number_of_axles == 8:
+            # define middle
+            middle = dictionairy[key][2] + dictionairy[key][3]
+            # setting the basic load over the axles (assumption: all load is devided equally)
+            right_axle_load = right_axle1_load = self.wagon_weight / 4
+            for container in containerList: # splitting front and back to find relative load
+                if container[1] < self.length_capacity / 2:
+                    dist = container[1] * 0.3048 - dictionairy[key][2]
+                    right_axle_load += self.container_load(container[0].gross_weight, dist, dictionairy[key][3])
+                else:
+                    dist = container[1] * 0.3048 - (dictionairy[key][2] + middle)
+                    right_axle1_load += self.container_load(container[0].gross_weight, dist, dictionairy[key][3])
+                axle_1 = total_load / 2 - right_axle_load
+                axle_3 = total_load / 2 - right_axle1_load
+                return [axle_1, right_axle_load, axle_3, right_axle1_load, total_load]
         else:
             print('the 4 bogies wagons have not been configured yet')
+            return []
 
     def container_load(self, weight, dist, axledist):
         load = weight * dist / axledist
         return load            
         
+    # Returns True for the first acceptable axle load found
+    # If an acceptable axle load is found, it will reorder self.containers to reflect that
+    def c_has_acceptable_axle_load(self, x, w_j, containers):
+
+        # Get all containers on wagon and the length they occupy
+        containers_on_wagon = []
+        total_length_containers = 0
+        for c_i, container in enumerate(containers):
+            if(x[c_i, w_j] == 1):
+                containers_on_wagon.append(container)
+                total_length_containers += container.get_length()
+
+        if(self.get_length_capacity() > total_length_containers):
+
+            # a container with all blank values except the leftover length
+            container = Container.Container(0, 0, 0, self.get_length_capacity() - total_length_containers, 0,0,0,0)
+            containers_on_wagon.append(container)       
+
+        for combination in it.permutations(containers_on_wagon):
+            print("COMBINATION: combination[0]:",  combination[0])
+            axle_load = self.get_axle_load(combination)
+            
+            if(not bool(axle_load)):
+                continue
+
+            # 22000 should be max_axle_load
+            
+            if max(axle_load) < 220000000:
+                return True
+
+            # Is axle load fine?
+            # If axle load fine:
+                # return true
+
+        # Return False if no correct axle load if found
+        return False
+
+    # Sets the optimal axle load by reordering self.containers
+    # Returns False if it does not find one. Which should not happen if
+    # the constraint c_has_acceptable_axle_load is active and working correctly
+    def set_optimal_axle_load(self):
+        axle_load_score = 0
+        axle_best_found_permutation = []
+        if(self.containers is None):
+            print("The Wagon should have a list of containers.")
+            return False
+        for combination in it.permutations(self.containers):
+            print("COMBINATION: combination[0]:",  combination[0])
+            print(self.get_axle_load(combination))
+            
+            # Get score and update best_found if better
+            
+        # Return False if no correct axle load if found, so the list is empty
+        return bool(axle_best_found_permutation)
     
+    
+
     # UNUSED/UNFINISHED CONSTRAINTS
     
     # # Constraint that a container has to be put on the wagon as a whole

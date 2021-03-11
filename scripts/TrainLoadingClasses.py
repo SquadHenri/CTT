@@ -14,8 +14,8 @@ def create_train_and_containers():
 
     containers = list(getContainersFromCSV.get_containers_1())
 
-    for container in containers:
-        print(container.position)
+    # for container in containers:
+    #     print(container.position)
 
     # Make every sixth container hazardous
     for i in range(0, len(containers), 10):
@@ -26,7 +26,6 @@ def create_train_and_containers():
     return train, containers
 
 def main(containers, train):
-    # data = create_data_model()
     #train, containers = create_train_and_containers()
 
     priority_list = []
@@ -35,6 +34,11 @@ def main(containers, train):
     for i in range(0, len(containers), 10):
         print("Container ", i, "Must be loaded")
         priority_list.append(i)
+
+    # # Make every sixth container hazardous
+    # for i in range(0, len(containers), 10):
+    #     print("Container ", i, "is hazardous")
+    #     containers[i].set_hazard_class(1)
 
     # Create the mip solver with the SCIP backend.
     solver = pywraplp.Solver.CreateSolver('SCIP')
@@ -79,29 +83,39 @@ def main(containers, train):
             wagon.c_length_capacity(containers, x, w_j)
         )
     
-    # Travel distance constraint for total distance.
-    # solver.Add(sum(x[(c_i, w_j)] * functions.getTravelDistance(container.get_position(), wagon.get_location()) 
-    #     for c_i, container in enumerate(containers) 
-    #     for w_j, wagon in enumerate(train.wagons) 
-    #     if (len(container.get_position()) == 3) and 
-    #     (container.get_position()[0] <= 52) and 
-    #     (container.get_position()[1] <= 7) ) <= 500)
+    #Travel distance constraint for total distance.
+    solver.Add(sum(x[(c_i, w_j)] * functions.getTravelDistance(container.get_position(), wagon.get_location()) 
+                    for c_i, container in enumerate(containers) 
+                    for w_j, wagon in enumerate(train.wagons) 
+                    if (len(container.get_position()) == 3) and 
+                    (container.get_position()[0] <= 52) and 
+                    (container.get_position()[1] <= 7) ) <= 500)
 
-    #Travel distance constraint per container
-    for c_i, container in enumerate(containers):
-        # For every container add the travel distance constraint.
-        c_location = container.get_position()
-        if (len(c_location) == 3) and (c_location[0] <= 52) and (c_location[1] <= 7):
-            solver.Add( sum(x[(c_i, w_j)] * functions.getTravelDistance(c_location, wagon.get_location()) for w_j, wagon in enumerate(train.wagons)) <= 10000)
+    # #Travel distance constraint per container
+    # for c_i, container in enumerate(containers):
+    #     # For every container add the travel distance constraint.
+    #     c_location = container.get_position()
+    #     if (len(c_location) == 3) and (c_location[0] <= 52) and (c_location[1] <= 7):
+    #         solver.Add( sum(x[(c_i, w_j)] * functions.getTravelDistance(c_location, wagon.get_location()) for w_j, wagon in enumerate(train.wagons)) <= 10000)
 
 
     # A train may not surpass a maximum weight, based on the destination of the train.
     solver.Add(sum(x[(c_i, w_j)] * container.get_gross_weight() 
-    for c_i, container in enumerate(containers) 
-    for w_j, wagon in enumerate(train.wagons)) <= train.maxWeight)
+                    for c_i, container in enumerate(containers) 
+                    for w_j, wagon in enumerate(train.wagons)) <= train.maxWeight)
 
+    for w_j, wagon in enumerate(train.wagons):
+        solver.Add(
+            wagon.c_has_acceptable_axle_load(x, w_j, containers)
+        )
 
     # UNUSED/UNFINISHED CONSTRAINTS
+
+    # Loop through the container list of the wagon
+    # find all possible order (shuffles) of the list
+    # Make sure that there is at least one shuffle that does not exceed the axle load
+
+
 
     # A container has to be put on a wagon as a whole
     # for w_j, wagon in enumerate(train.wagons):
@@ -134,9 +148,9 @@ def main(containers, train):
 
     #                     # The difference in position >= 2.
     #                     # We need to fix something for -2.
-    #                     solver.Add(
-    #                         sum(x[(c1_i, w_j)] * wagon.get_position() - x[(c2_i, w_j)] * wagon.get_position() for w_j, wagon in enumerate(train.wagons)) >= 2
-    #                         )
+    #                     # solver.Add(
+    #                     #     sum((x[(c1_i, w_j)] * wagon.get_position()) - (x[(c2_i, w_j)] * wagon.get_position()) for w_j, wagon in enumerate(train.wagons)) >= 2
+    #                     #     )
     #                     # if sum(x[(c1_i, w_j)] * wagon.get_position() - x[(c2_i, w_j)] * wagon.get_position() for w_j, wagon in enumerate(train.wagons)) >= 0:
     #                     #     solver.Add(sum(x[(c1_i, w_j)] * wagon.get_position() - x[(c2_i, w_j)] * wagon.get_position() for w_j, wagon in enumerate(train.wagons)) >= 2)
     #                     # else:
@@ -168,7 +182,77 @@ def main(containers, train):
     objective.SetMaximization()
 
     print('Starting solve...')
+    # solver.EnableOutput()
     status = solver.Solve()
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    def get_tableplot(train):
+            
+            maxContainers = 0
+            columns = []
+
+            wagons = train.wagons
+            #Sort wagons on their position
+            l = len(wagons)
+            for i in range(0, l): 
+                for j in range(0, l-i-1): 
+                    if (wagons[j].position > wagons[j + 1].position): 
+                        tempo = wagons[j] 
+                        wagons[j]= wagons[j + 1] 
+                        wagons[j + 1]= tempo 
+            
+        
+            #Set max number of containers on wagon, needed for amount of table rows 
+            for wagon in wagons:
+                if len(wagon.containers) > maxContainers:
+                    maxContainers = len(wagon.containers)
+            title = ''
+            data = []
+            for wagon in wagons:
+                #Add wagonID to column list
+                columns.append(str(int(wagon.position))+ ". " + wagon.wagonID)
+                datarow = [] 
+                #Title of table
+                title = wagon.call
+                if 0 < maxContainers: 
+                    datarow.extend('empty' for x in range(0, maxContainers)) 
+                    #datarow.append(maxContainers) 
+
+                for i, container in enumerate(wagon.containers):
+                    datarow[i] = container.containerID
+
+                data.append(datarow)
+            print(data)
+            n_rows = len(data)
+            rows = ['slot %d' % (x+1) for x in range(len(data))]
+            print(rows)
+            colors = plt.cm.BuPu(np.linspace(0, 0.5, len(rows)))
+
+            cell_text = []
+            for row in range(n_rows):
+                cell_text.append(['%s' % (x) for x in data[row]])
+            # Reverse colors and text labels to display the last value at the top.
+            colors = colors[::-1]
+            cell_text.reverse()
+            
+            the_table = plt.table(cellText=data,
+                      rowLabels=columns,
+                      rowColours=colors,
+                      colLabels=rows,
+                      loc='center')
+            plt.subplots_adjust(left=0.230, bottom=0, right=0.965, top=0.938)
+            plt.axis('off')
+            #plt.title(title, fontsize=8, pad=None, )
+
+            fig = plt.gcf()
+            fig.suptitle(title, fontsize=10)
+            plt.savefig(title + '-planning', bbox_inches='tight', dpi=150)
+            plt.show()
+            
+
+
 
     # TODO: Cleanup the solution printing, move this functionality to the Container, Wagon and Train class
     # See train.print_solution() and Wagon.print_solution()
@@ -204,13 +288,13 @@ def main(containers, train):
                             wagon_distance += functions.getTravelDistance(container.get_position(), wagon.get_location())
                         container_count += 1
 
-                          
+            
             print('Packed wagon weight:', Color.GREEN, wagon_weight, Color.END, ' Wagon weight capacity: ', wagon.get_weight_capacity())
             print('Packed wagon length:', Color.GREEN, wagon_length, Color.END, ' Wagon length capacity: ', wagon.get_length_capacity())
             total_length += wagon_length
             total_weight += wagon_weight
             total_distance += wagon_distance
-            print()
+            
         #print(filled_wagons)
         print()
         print('Total packed weight:', total_weight, '(',round(total_weight / train.get_total_weight_capacity() * 100,1),'%)')
@@ -223,15 +307,18 @@ def main(containers, train):
         #         print("unplanned", container)
 
         # This is another way of printing solution values
+        # train.print_solution()
+        # print("Axle Load success: ", train.set_optimal_axle_load())
         #train.print_solution()
+        train.to_JSON(callcode="BASEL12345", weight=total_weight, length=total_length, distance=total_distance, amount=container_count, wagons=[])
 
-        with open('result.json', 'w') as fp:
-            json.dump(filled_wagons, fp)
+        # with open('result.json', 'w') as fp:
+        #     json.dump(filled_wagons, fp)
+
+        #get_tableplot(train)
 
     elif status == pywraplp.Solver.FEASIBLE:
         print('The problem does have a feasible solution')
     else:
         print('The problem does not have an optimal solution.')
 
-# if __name__ == '__main__':
-#     main()
