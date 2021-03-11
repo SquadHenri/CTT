@@ -201,6 +201,10 @@ def set_location(wagons):
     xlen = 0
     y_val = 0
     result = []
+
+    if len(wagons) == 0:
+        raise TypeError("No wagons")
+
     for wagon in wagons:
 
         if (xlen + wagon.total_length) < 320:

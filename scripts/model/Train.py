@@ -1,6 +1,8 @@
 import random
 from model.Wagon import Wagon
 import functions
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 
@@ -74,6 +76,79 @@ class Train():
     def set_length_capacities(self, value):
         for wagon in self.wagons:
             wagon.set_weight_capacity(value)
+
+
+    # Make a table to that represents a train planning
+    def get_tableplot(self):
+            
+        maxContainers = 0
+        columns = []
+
+        wagons = self.wagons
+        #Sort wagons on their position
+        l = len(wagons)
+        for i in range(0, l): 
+            for j in range(0, l-i-1): 
+                if (wagons[j].position > wagons[j + 1].position): 
+                    tempo = wagons[j] 
+                    wagons[j]= wagons[j + 1] 
+                    wagons[j + 1]= tempo 
+        
+    
+        #Set max number of containers on wagon, needed for amount of table rows 
+        for wagon in wagons:
+            if wagon.containers is None:
+                raise TypeError("No containers selected")
+            
+            if len(wagon.containers) > maxContainers:
+                maxContainers = len(wagon.containers)
+        title = ''
+        data = []
+        for wagon in wagons:
+            #Add wagonID to column list
+            columns.append(str(int(wagon.position))+ ". " + wagon.wagonID)
+            datarow = [] 
+            #Title of table
+            title = wagon.call
+            if 0 < maxContainers: 
+                datarow.extend('empty' for x in range(0, maxContainers)) 
+                #datarow.append(maxContainers) 
+
+            for i, container in enumerate(wagon.containers):
+                datarow[i] = container.containerID
+
+            data.append(datarow)
+        print(data)
+        n_rows = len(data)
+        rows = ['slot %d' % (x+1) for x in range(len(data))]
+        print(rows)
+        #colors = plt.cm.BuPu(np.linspace(0, 0.5, len(rows)))
+
+        cell_text = []
+        for row in range(n_rows):
+            cell_text.append(['%s' % (x) for x in data[row]])
+        # Reverse colors and text labels to display the last value at the top.
+        #colors = colors[::-1]
+        cell_text.reverse()
+        
+        rcolors = np.full(n_rows, '#11aae1')
+        ccolors = np.full(n_rows, '#8bc53d')
+
+        the_table = plt.table(cellText=data,
+                    rowLabels=columns,
+                    rowColours=rcolors,
+                    colColours=ccolors,
+                    colLabels=rows,
+                    loc='center')
+        plt.subplots_adjust(left=0.230, bottom=0, right=0.965, top=0.938)
+        plt.axis('off')
+        #plt.title(title, fontsize=8, pad=None, )
+
+        fig = plt.gcf()
+        fig.suptitle(title, fontsize=10)
+        plt.savefig(title + '-planning', bbox_inches='tight', dpi=150)
+        return plt
+        
 
 
     # CONSTRAINTS
