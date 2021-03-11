@@ -114,10 +114,12 @@ class Wagon():
         # Set the weight of the wagon to wagon only to add the weight of the containers later
         total_load = self.wagon_weight
         # Refining the list of containers so it contains the container and the mean of the slots it stands on ordered from left to right (not that that stil matters).
+        fillrate = 0
+        containerList = []
         for container in containers:
-            container[1] = mean(container[1])
-            total_load += container[0].gross_weight
-        containers = sorted(containers, key=lambda container: containers[1])
+            containerList.append([container, container.get_length / 2 + fillrate])
+            fillrate += container.get_length
+            total_load += container.get_length
         key = str(self.length_capacity) + str(self.number_of_axles)
         dictionairy = get_wagons("data/Wagons.csv")
         # Starting with all the Wagons that have 2 bogies and so have 4 axles
