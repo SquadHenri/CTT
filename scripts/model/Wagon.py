@@ -1,4 +1,5 @@
-import math
+import itertools as it
+
 from statistics import mean
 from . import Container
 from data.getWagonsFromCSV import get_wagons
@@ -31,7 +32,7 @@ class Wagon():
         
     """
 
-    def __init__(self, wagonID, weight_capacity, length_capacity, contents, position, number_of_axles, total_length, wagon_weight, call, containers = None):
+    def __init__(self, wagonID, weight_capacity, length_capacity, contents, position, number_of_axles, total_length, wagon_weight, call, containers = None, max_axle_load = None):
         self.wagonID = wagonID 
         self.weight_capacity = weight_capacity 
         self.length_capacity = length_capacity
@@ -47,6 +48,11 @@ class Wagon():
 
         # Can be None
         self.containers = containers
+        # Maximum aslast
+        if max_axle_load:
+            self.max_axle_load = max_axle_load
+        else:
+            self.max_axle_load = 22000
 
     # Convert Wagon to string
     # Print relevant information only, __repr__ is used to print every detail
@@ -63,7 +69,8 @@ class Wagon():
     # Prints relevant wagon information for the solution, expects self.containers to be filled
     def print_solution(self):
         if not self.containers:
-            print("There is no list of containers. Cannot print relevant information.")
+            print(self)
+            print("\t\tWagon does not have containers")
             return
         # Print information on the wagon
         print(self)
@@ -72,7 +79,20 @@ class Wagon():
             print(offset, '-', offset+container.get_length(),':\t', container)
             offset += container.get_length()
 
-
+    def to_JSON(self):
+        wagon_dict = {}
+        wagon_dict["wagon_id"] = self.wagonID
+        wagon_dict["weight_capacity"] = self.get_weight_capacity()
+        wagon_dict["length_capacity"] = self.get_length_capacity()
+        wagon_dict["position"] = self.get_position()
+        wagon_dict["containers"] = []
+        if not self.containers:
+            return wagon_dict
+        else:
+            for container in self.get_containers():
+                container_json = container.to_JSON()
+                wagon_dict["containers"].append(container_json)
+            return wagon_dict
 
 
     # CONSTRAINTS
@@ -151,7 +171,56 @@ class Wagon():
         load = weight * dist / axledist
         return load            
         
+    # Returns True for the first acceptable axle load found
+    # If an acceptable axle load is found, it will reorder self.containers to reflect that
+    def c_has_acceptable_axle_load(self, x, w_j, containers):
+
+        # Get all containers on wagon and the length they occupy
+        containers_on_wagon = []
+        total_length_containers = 0
+        for c_i, container in enumerate(containers):
+            if(x[c_i, w_j] == 1):
+                containers_on_wagon.append(container)
+                total_length_containers += container.get_length()
+
+        if(self.get_length_capacity > total_length_containers):
+
+            # a container with all blank values except the leftover length
+            container = Container.Container(0, 0, 0, self.get_length_capacity - total_length_containers, 0,0,0,0)
+            containers_on_wagon.append(container)       
+
+        for combination in it.permutations(containers_on_wagon):
+            print("COMBINATION: combination[0]:",  combination[0])
+            axle_load = self.get_axle_load(combination)
+            
+
+            # Is axle load fine?
+            # If axle load fine:
+                # return true
+
+        # Return False if no correct axle load if found
+        return False
+
+    # Sets the optimal axle load by reordering self.containers
+    # Returns False if it does not find one. Which should not happen if
+    # the constraint c_has_acceptable_axle_load is active and working correctly
+    def set_optimal_axle_load(self):
+        axle_load_score = 0
+        axle_best_found_permutation = []
+        if(self.containers is None):
+            print("The Wagon should have a list of containers.")
+            return False
+        for combination in it.permutations(self.containers):
+            print("COMBINATION: combination[0]:",  combination[0])
+            print(self.get_axle_load(combination))
+            
+            # Get score and update best_found if better
+            
+        # Return False if no correct axle load if found, so the list is empty
+        return bool(axle_best_found_permutation)
     
+    
+
     # UNUSED/UNFINISHED CONSTRAINTS
     
     # # Constraint that a container has to be put on the wagon as a whole
