@@ -322,6 +322,3 @@ def main(containers, train):
     else:
         print('The problem does not have an optimal solution.')
 
-
-if __name__ == '__main__':
-    main()
