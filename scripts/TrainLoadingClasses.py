@@ -108,10 +108,10 @@ def main(containers, train):
                     for c_i, container in enumerate(containers) 
                     for w_j, wagon in enumerate(train.wagons)) <= train.maxWeight)
 
-    for w_j, wagon in enumerate(train.wagons):
-        solver.Add(
-            wagon.c_has_acceptable_axle_load(x, w_j, containers)
-        )
+    # for w_j, wagon in enumerate(train.wagons):
+    #     solver.Add(
+    #         wagon.c_has_acceptable_axle_load(x, w_j, containers)
+    #     )
 
     # UNUSED/UNFINISHED CONSTRAINTS
 
@@ -214,7 +214,7 @@ def main(containers, train):
                     filled_wagons[w_j].append(c_i)
                     train.wagons[w_j].add_container(container)
                     if container in containers_:
-                        pass # The container is already in the solution
+                        pass # The container is\\\\\\\\\\\\\ already in the solution
                     else:
                         containers_.append(container)
                         print(Color.GREEN, "\tc_i:", c_i, Color.END, " \t", container)
@@ -249,8 +249,8 @@ def main(containers, train):
         train.to_JSON(callcode="BASEL12345", weight=total_weight, length=total_length, distance=total_distance, amount=container_count, wagons=[])
         train.to_CSV(total_weight, total_length)
 
-        trainplanning_plot = train.get_tableplot()
-        trainplanning_plot.show()
+        #trainplanning_plot = train.get_tableplot()
+        #trainplanning_plot.show()
 
     elif status == pywraplp.Solver.FEASIBLE:
         print('The problem does have a feasible solution')
