@@ -1,5 +1,6 @@
 from model import Wagon, Train, Container
 import TrainLoadingClasses
+import TrainLoadingConstraint
 from data import getContainersFromCSV
 
 import pandas
@@ -91,5 +92,6 @@ if __name__ == '__main__':
     
     train = Train.Train(wagons)
     TrainLoadingClasses.main(containers, train)
+    #TrainLoadingConstraint.main(containers, train)
 
 
