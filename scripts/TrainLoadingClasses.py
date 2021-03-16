@@ -93,7 +93,7 @@ def main(containers, train):
                     for w_j, wagon in enumerate(train.wagons) 
                     if (len(container.get_position()) == 3) and 
                     (container.get_position()[0] <= 52) and 
-                    (container.get_position()[1] <= 7) ) <= 500)
+                    (container.get_position()[1] <= 7) ) <= 1500)
 
     # #Travel distance constraint per container
     # for c_i, container in enumerate(containers):

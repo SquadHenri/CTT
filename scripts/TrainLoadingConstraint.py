@@ -31,11 +31,18 @@ def main(containers, train):
     for c_i, _ in enumerate(containers):    
         for w_j, wagon in enumerate(train.wagons):
             x[(c_i,w_j)] = model.NewIntVar(0, 1, 'cont:%i,wagon%i' % (c_i, w_j))
+    
+    # y = {}
+    # for w_j, wagon in enumerate(train.wagons):
+    #     y[(w_j)] = model.NewIntervalVar(0, wagon.get_total_length(), wagon.get_total_length(), 'wagon_slot_%i' % (w_j))
 
 
     """
                 CONSTRAINTS
     """
+
+    # for w_j, _ in enumerate(train.wagons):
+    #     model.AddNoOverlap(y[w_j])
 
     # Each container can be in at most one wagon.
     for c_i, container in enumerate(containers):
@@ -57,12 +64,12 @@ def main(containers, train):
 
     # The length of the containers cannot exceed the length of the wagon
     for w_j, wagon in enumerate(train.wagons):
-        model.Add(
-            sum(x[(c_i, w_j)] * container.get_length()
-                for c_i, container in enumerate(containers))
-                <=
-                int(wagon.get_length_capacity())
-        )
+            model.Add(
+                sum(x[(c_i, w_j)] * container.get_length()
+                    for c_i, container in enumerate(containers))
+                    <=
+                    int(wagon.get_length_capacity())
+            )
 
     #Travel distance constraint for total distance.
     model.Add(sum(x[(c_i, w_j)] * int(functions.getTravelDistance(container.get_position(), wagon.get_location()))
@@ -70,7 +77,7 @@ def main(containers, train):
                     for w_j, wagon in enumerate(train.wagons) 
                     if (len(container.get_position()) == 3) and 
                     (container.get_position()[0] <= 52) and 
-                    (container.get_position()[1] <= 7) ) <= 300)
+                    (container.get_position()[1] <= 7) ) <= 1500)
 
     # A train may not surpass a maximum weight, based on the destination of the train.
     model.Add(sum(x[(c_i, w_j)] * container.get_gross_weight() 
@@ -120,12 +127,13 @@ def main(containers, train):
                 Solving & Printing Solution
     """
 
-    print("Validation: " + model.Validate())
+    #print("Validation: " + model.Validate())
 
     print("Starting Solve...")
     solver = cp_model.CpSolver()
-    #solution_printer = SolutionPrinter(x)
     status = solver.Solve(model)
+    # solution_printer = SolutionPrinter(x)
+    # status = solver.SolveWithSolutionCallback(model, solution_printer)
 
     #status = solver.SearchForAllSolutions(model, solution_printer)
     #print("Solution Count: ", solution_printer.SolutionCount())
@@ -191,6 +199,10 @@ def main(containers, train):
 
         trainplanning_plot = train.get_tableplot()
         trainplanning_plot.show()
+
+        print(solver.ResponseStats())
+    elif status == cp_model.FEASIBLE:
+        print('hoi')
     
 class SolutionPrinter(cp_model.CpSolverSolutionCallback):
     """Prints intermediate solutions"""
@@ -202,6 +214,7 @@ class SolutionPrinter(cp_model.CpSolverSolutionCallback):
     
     def OnSolutionCallback(self):
         self.__solution_count += 1
+        print('SOlutuin cakkbaafos')
         for v in self.__variables:
             print('%s = %i' % (v, self.Value(v)), end = ' ')
         print()
