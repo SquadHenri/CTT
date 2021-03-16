@@ -4,7 +4,7 @@ from data import getContainersFromCSV
 
 import pandas
 
-dataset = pandas.read_csv('data/input_df_026798a1-811d-446d-a3d3-5a655d6fa538.csv')
+dataset = pandas.read_csv('data/input_df_868d36fb-a796-4d1d-99e8-e8fdb766e526.csv')
 
 def setup(dataset):
     containerlist = []
@@ -42,7 +42,6 @@ def setup(dataset):
     #Creating dataframes from container en wagon lists
     wagondf = pandas.DataFrame(wagonlist, columns =['wagonID', 'wagonType', 'wagonSizeft', 'wagonNoAxes', 'wagonMaxTEU', 'wagonLength', 'wagonPosition', 'wagonPayload', 'wagonCall', 'wagonTare', 'wagonTrack'])
     containerdf = pandas.DataFrame(containerlist, columns =['containerID', 'containerType', 'unNR', 'unKlasse', 'nettWeight', 'terminalWeightNett', 'containerTEU', 'containerPosition', 'containerTarra', 'containerCall'])
-    print(wagondf)
     # Remove all wagons and containers that contain Null values
     wagons = []
     containers = []
@@ -71,6 +70,7 @@ def setup(dataset):
         goods = container['unKlasse']
         priority = 1
         typeid = container['containerType']
+        hazard_class = container['unKlasse']
         
         containerObj = Container.Container(containerID, gross_weight, net_weight, foot, position, goods, priority, typeid)
         containers.append(containerObj)

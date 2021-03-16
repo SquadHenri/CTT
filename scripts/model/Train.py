@@ -81,6 +81,17 @@ class Train():
             total_length += wagon.length_capacity
             total_weight += wagon.weight_capacity
         return total_length, total_weight
+
+    def get_total_packed_weight(self):
+        weight_packed = 0
+        
+        
+        for wagon in self.wagons:
+            if wagon.containers is None:
+                   return 0
+            for i, container in enumerate(wagon.containers):
+                    weight_packed += container.gross_weight
+        return weight_packed
     
     def get_total_weight_capacity(self):
         total_weight = 0
@@ -157,8 +168,9 @@ class Train():
                     cellRowColour[i] = '#cc244b'
                 # orange #ff6153
                 # dark green #498499
-                if container.hazard_class == 1 or container.hazard_class == 2 or container.hazard_class == 3:
-                    cellRowColour[i] = '#13ffbd'
+                print(container.typeid)
+                if container.goods == 1 or container.goods == 2 or container.goods == 3:
+                    cellRowColour[i] = '#11aae1'
 
             cellColours.append(cellRowColour)
             data.append(datarow)
@@ -166,17 +178,17 @@ class Train():
         n_rows = len(data)
         rows = ['slot %d' % (x+1) for x in range(len(data))]
         print(rows)
-        #colors = plt.cm.BuPu(np.linspace(0, 0.5, len(rows)))
-
+        
         cell_text = []
         for row in range(n_rows):
             cell_text.append(['%s' % (x) for x in data[row]])
-        # Reverse colors and text labels to display the last value at the top.
-        #colors = colors[::-1]
+        
         cell_text.reverse()
-        #8bc53d
-        rcolors = np.full(n_rows, '#11aae1')
+        #CTT Green color: #8bc53d
+        #CTT Blue color: #11aae1
+        rcolors = np.full(n_rows, '#8bc53d')
         ccolors = np.full(n_rows, '#8bc53d')
+        
 
         the_table = plt.table(cellText=data,
                     rowLabels=columns,
@@ -201,6 +213,16 @@ class Train():
         dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
 
         fig = plt.gcf()
+        
+        train_weight = str(self.get_total_packed_weight())
+        plt.figtext(0.95, 0.05, "Total weight: " + train_weight,
+            horizontalalignment='right',
+            size=6,
+            weight='light',
+            color='#000'
+           )
+
+
         fig.suptitle(title + " on " + datetime.now().strftime("%d/%m/%Y %H:%M:%S"), fontsize=10)
         plt.savefig(title + '-planning-' + currentdate, bbox_inches='tight', dpi=150)
         return plt
