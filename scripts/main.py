@@ -74,6 +74,7 @@ def setup(dataset):
         goods = container['unKlasse']
         priority = 1
         typeid = container['containerType']
+        hazard_class = container['unKlasse']
         
         containerObj = Container.Container(containerID, gross_weight, net_weight, foot, position, goods, priority, typeid)
         containers.append(containerObj)
