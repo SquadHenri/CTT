@@ -248,9 +248,9 @@ def main(containers, train):
         #train.print_solution()
         train.to_JSON(callcode="BASEL12345", weight=total_weight, length=total_length, distance=total_distance, amount=container_count, wagons=[])
         train.to_CSV(total_weight, total_length)
-
-        #trainplanning_plot = train.get_tableplot(unplaced)
-        #trainplanning_plot.show()
+        
+        trainplanning_plot = train.get_tableplot()
+        trainplanning_plot.show()
 
     elif status == pywraplp.Solver.FEASIBLE:
         print('The problem does have a feasible solution')

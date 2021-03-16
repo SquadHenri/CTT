@@ -186,6 +186,11 @@ def main(containers, train):
 
         # Only get the container objects of unplaced, this will be used for plotting.
         unplaced_container = [x[1] for x in unplaced]
+        
+        print(train.wagons)
+
+        trainplanning_plot = train.get_tableplot()
+        trainplanning_plot.show()
     
 class SolutionPrinter(cp_model.CpSolverSolutionCallback):
     """Prints intermediate solutions"""
