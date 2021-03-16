@@ -4,6 +4,7 @@ import functions
 import numpy as np
 import matplotlib.pyplot as plt
 import json
+import pandas as pd
 from datetime import date, datetime
 
 
@@ -13,7 +14,7 @@ class Train():
     # wagons should be a list of wagons
     def __init__(self, wagons):
         self.wagons = wagons # This is the list of all the wagons on the train
-        self.maxWeight = 1000000000
+        self.maxWeight = 10000000000
     
     # Create some wagons, to use for testing
     def test_train(self):
@@ -50,28 +51,37 @@ class Train():
             wagon_json = wagon.to_JSON()
             result["train"]["wagons"].append(wagon_json)
 
-            # wagon_dict = {}
-            # wagon_dict["wagon_id"] = wagon.wagonID
-            # wagon_dict["weight_capacity"] = wagon.get_weight_capacity()
-            # wagon_dict["length_capacity"] = wagon.get_length_capacity()
-            # wagon_dict["position"] = wagon.get_position()
-            # wagon_dict["containers"] = []
-            # if not wagon.containers:
-            #     continue
-            # for container in wagon.get_containers():
-            #     container_dict = {}
-            #     container_dict["container_id"] = container.get_containerID()
-            #     container_dict["gross_weight"] = container.get_gross_weight()
-            #     container_dict["length"] = container.get_length()
-            #     container_dict["hazard_class"] = container.get_hazard_class()
-            #     wagon_dict["containers"].append(container_dict)
-
-            # result["train"]["wagons"].append(wagon_dict)
-
-        with open('train.json', 'w') as output:
+        with open('data/train.json', 'w') as output:
             json.dump(result, output)
-
-
+        
+    def to_CSV(self, total_weight, total_length):
+        data = []
+        for wagon in self.wagons:
+            if not wagon.containers:
+                wagon_dict = {}
+                wagon_dict["wagon_id"] = wagon.wagonID
+                wagon_dict["weight_capacity"] = wagon.get_weight_capacity()
+                wagon_dict["length_capacity"] = wagon.get_length_capacity()
+                wagon_dict["position"] = wagon.get_position()
+                wagon_dict["container_id"] = None
+                wagon_dict["gross_weight"] = None
+                wagon_dict["length"] = None
+                wagon_dict["hazard_class"] = None
+                data.append(wagon_dict)
+                continue
+            for container in wagon.containers:
+                wagon_dict = {}
+                wagon_dict["wagon_id"] = wagon.wagonID
+                wagon_dict["weight_capacity"] = wagon.get_weight_capacity()
+                wagon_dict["length_capacity"] = wagon.get_length_capacity()
+                wagon_dict["position"] = wagon.get_position()
+                wagon_dict["container_id"] = container.get_containerID()
+                wagon_dict["gross_weight"] = container.get_gross_weight()
+                wagon_dict["length"] = container.get_length()
+                wagon_dict["hazard_class"] = container.get_hazard_class()
+                data.append(wagon_dict)
+        df = pd.DataFrame(data)
+        df.to_excel("planning.xlsx")
 
     # Maybe split this up, but for now this is fine
     def get_total_capacity(self):

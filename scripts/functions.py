@@ -15,6 +15,8 @@ def getAllDistances():
 
 def getTravelDistance(c_cord, w_cord):
 
+    print("Adding travel distance for", c_cord)
+
     # factorize the difference in length of x and y
     x_fact = 6.5
     y_fact = 3
