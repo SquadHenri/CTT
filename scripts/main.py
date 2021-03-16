@@ -5,7 +5,7 @@ from data import getContainersFromCSV
 
 import pandas
 
-dataset = pandas.read_csv('data/input_df_868d36fb-a796-4d1d-99e8-e8fdb766e526.csv')
+dataset = pandas.read_csv('data\input_df_38ef9fb5-1a3f-4c86-b835-a2d204155b6a.csv')
 
 def setup(dataset):
     containerlist = []
