@@ -1,8 +1,11 @@
 import random
 from model.Wagon import Wagon
 import functions
-from colors import Color
+import numpy as np
+import matplotlib.pyplot as plt
 import json
+import pandas as pd
+from datetime import date, datetime
 
 
 class Train():
@@ -11,7 +14,7 @@ class Train():
     # wagons should be a list of wagons
     def __init__(self, wagons):
         self.wagons = wagons # This is the list of all the wagons on the train
-        self.maxWeight = 1000000000
+        self.maxWeight = 10000000000
     
     # Create some wagons, to use for testing
     def test_train(self):
@@ -48,28 +51,37 @@ class Train():
             wagon_json = wagon.to_JSON()
             result["train"]["wagons"].append(wagon_json)
 
-            # wagon_dict = {}
-            # wagon_dict["wagon_id"] = wagon.wagonID
-            # wagon_dict["weight_capacity"] = wagon.get_weight_capacity()
-            # wagon_dict["length_capacity"] = wagon.get_length_capacity()
-            # wagon_dict["position"] = wagon.get_position()
-            # wagon_dict["containers"] = []
-            # if not wagon.containers:
-            #     continue
-            # for container in wagon.get_containers():
-            #     container_dict = {}
-            #     container_dict["container_id"] = container.get_containerID()
-            #     container_dict["gross_weight"] = container.get_gross_weight()
-            #     container_dict["length"] = container.get_length()
-            #     container_dict["hazard_class"] = container.get_hazard_class()
-            #     wagon_dict["containers"].append(container_dict)
-
-            # result["train"]["wagons"].append(wagon_dict)
-
-        with open('train.json', 'w') as output:
+        with open('data/train.json', 'w') as output:
             json.dump(result, output)
-
-
+        
+    def to_CSV(self, total_weight, total_length):
+        data = []
+        for wagon in self.wagons:
+            if not wagon.containers:
+                wagon_dict = {}
+                wagon_dict["wagon_id"] = wagon.wagonID
+                wagon_dict["weight_capacity"] = wagon.get_weight_capacity()
+                wagon_dict["length_capacity"] = wagon.get_length_capacity()
+                wagon_dict["position"] = wagon.get_position()
+                wagon_dict["container_id"] = None
+                wagon_dict["gross_weight"] = None
+                wagon_dict["length"] = None
+                wagon_dict["hazard_class"] = None
+                data.append(wagon_dict)
+                continue
+            for container in wagon.containers:
+                wagon_dict = {}
+                wagon_dict["wagon_id"] = wagon.wagonID
+                wagon_dict["weight_capacity"] = wagon.get_weight_capacity()
+                wagon_dict["length_capacity"] = wagon.get_length_capacity()
+                wagon_dict["position"] = wagon.get_position()
+                wagon_dict["container_id"] = container.get_containerID()
+                wagon_dict["gross_weight"] = container.get_gross_weight()
+                wagon_dict["length"] = container.get_length()
+                wagon_dict["hazard_class"] = container.get_hazard_class()
+                data.append(wagon_dict)
+        df = pd.DataFrame(data)
+        df.to_excel("planning.xlsx")
 
     # Maybe split this up, but for now this is fine
     def get_total_capacity(self):
@@ -111,6 +123,98 @@ class Train():
     def set_length_capacities(self, value):
         for wagon in self.wagons:
             wagon.set_weight_capacity(value)
+
+    # Make a table to that represents a train planning
+    def get_tableplot(self):
+            
+        maxContainers = 0
+        columns = []
+        #Sort wagons on their position
+        wagons = self.wagons
+        l = len(wagons)
+        for i in range(0, l): 
+            for j in range(0, l-i-1): 
+                if (wagons[j].position > wagons[j + 1].position): 
+                    tempo = wagons[j] 
+                    wagons[j]= wagons[j + 1] 
+                    wagons[j + 1]= tempo 
+
+        #Set max number of containers on wagon, needed for amount of table rows 
+        for wagon in wagons:
+            if wagon.containers is None:
+                raise TypeError("No containers selected")
+            
+            if len(wagon.containers) > maxContainers:
+                maxContainers = len(wagon.containers)
+        title = ''
+        data = []
+        cellColours = []
+        for wagon in wagons:
+            #Add wagonID to column list
+            columns.append(str(int(wagon.position))+ ". " + wagon.wagonID)
+            datarow = []
+            cellRowColour = []
+            #Title of table
+            title = wagon.call
+            if 0 < maxContainers: 
+                datarow.extend('empty' for x in range(0, maxContainers))
+                cellRowColour.extend('#fefefe' for x in range(0, maxContainers)) 
+                #datarow.append(maxContainers) 
+
+            for i, container in enumerate(wagon.containers):
+                datarow[i] = container.containerID
+                if container.gross_weight > 30000:
+                    cellRowColour[i] = '#cc244b'
+                # orange #ff6153
+                # dark green #498499
+                if container.hazard_class == 1 or container.hazard_class == 2 or container.hazard_class == 3:
+                    cellRowColour[i] = '#13ffbd'
+
+            cellColours.append(cellRowColour)
+            data.append(datarow)
+        print(data)
+        n_rows = len(data)
+        rows = ['slot %d' % (x+1) for x in range(len(data))]
+        print(rows)
+        #colors = plt.cm.BuPu(np.linspace(0, 0.5, len(rows)))
+
+        cell_text = []
+        for row in range(n_rows):
+            cell_text.append(['%s' % (x) for x in data[row]])
+        # Reverse colors and text labels to display the last value at the top.
+        #colors = colors[::-1]
+        cell_text.reverse()
+        #8bc53d
+        rcolors = np.full(n_rows, '#11aae1')
+        ccolors = np.full(n_rows, '#8bc53d')
+
+        the_table = plt.table(cellText=data,
+                    rowLabels=columns,
+                    rowColours=rcolors,
+                    cellColours=cellColours,
+                    colColours=ccolors,
+                    colLabels=rows,
+                    loc='center')
+        plt.subplots_adjust(left=0.230, bottom=0, right=0.965, top=0.938)
+        plt.axis('off')
+        #plt.title(title, fontsize=8, pad=None, )
+   
+        # Month abbreviation, day and year	
+        currentdate = date.today().strftime("%b-%d-%Y")
+        
+
+        now = datetime.now()
+ 
+        print("now =", now)
+
+        # dd/mm/YY H:M:S
+        dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+
+        fig = plt.gcf()
+        fig.suptitle(title + " on " + datetime.now().strftime("%d/%m/%Y %H:%M:%S"), fontsize=10)
+        plt.savefig(title + '-planning-' + currentdate, bbox_inches='tight', dpi=150)
+        return plt
+        
 
 
     # CONSTRAINTS
