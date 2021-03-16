@@ -214,7 +214,7 @@ def main(containers, train):
                     filled_wagons[w_j].append(c_i)
                     train.wagons[w_j].add_container(container)
                     if container in containers_:
-                        pass # The container is already in the solution
+                        pass # The container is\\\\\\\\\\\\\ already in the solution
                     else:
                         containers_.append(container)
                         print(Color.GREEN, "\tc_i:", c_i, Color.END, " \t", container)

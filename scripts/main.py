@@ -5,7 +5,7 @@ from data import getContainersFromCSV
 
 import pandas
 
-dataset = pandas.read_csv('data/input_df_9ec1a10b-af1b-465e-8e09-d68643f12734.csv')
+dataset = pandas.read_csv('data/input_df_868d36fb-a796-4d1d-99e8-e8fdb766e526.csv')
 
 def setup(dataset):
     containerlist = []
@@ -91,7 +91,7 @@ if __name__ == '__main__':
         print("Wagon", i, wagon)
     
     train = Train.Train(wagons)
-    TrainLoadingClasses.main(containers, train)
-    #TrainLoadingConstraint.main(containers, train)
+    #TrainLoadingClasses.main(containers, train)
+    TrainLoadingConstraint.main(containers, train)
 
 
