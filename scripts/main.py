@@ -50,6 +50,8 @@ def setup(dataset):
     wagons = []
     containers = []
 
+    wrong_wagons = []
+
     for index, wagon in wagondf.iterrows():
         if pandas.notna(wagon['wagonSizeft']) and pandas.notna(wagon['wagonLength']) and pandas.notna(wagon['wagonPosition']) and pandas.notna(wagon['wagonPayload']) and pandas.notna(wagon['wagonTare']) and pandas.notna(wagon['wagonNoAxes']): 
             wagonID = wagon['wagonID']
@@ -64,6 +66,7 @@ def setup(dataset):
             wagons.append(wagonObj)
         else:
             print("Wagon", index, "contained null values.")
+            wrong_wagons.append(wagon)
 
     for index, container in containerdf.iterrows():
         containerID = container['containerID']
