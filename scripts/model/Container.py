@@ -74,7 +74,7 @@ class Container():
         return self.typeid
 
     # The hazard class of this container, an int that is of value
-    # 0,1,2,3
+    # 1,2,3 for the hazard classes, or None if is not hazardous
     def get_hazard_class(self):
         return self.hazard_class
 
