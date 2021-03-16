@@ -110,8 +110,6 @@ class Wagon():
 
     # Input for this funciton is the wagon and a list with the containers. The list of containers contains the container and the spots it takes in the wagon
     def get_axle_load(self, containers):
-        print(self.number_of_axles)
-
         # Set the weight of the wagon to wagon only to add the weight of the containers later
         total_load = self.wagon_weight
         # Refining the list of containers so it contains the container and the mean of the slots it stands on ordered from left to right (not that that stil matters).
@@ -191,14 +189,11 @@ class Wagon():
             containers_on_wagon.append(container)       
 
         for combination in it.permutations(containers_on_wagon):
-            print("COMBINATION: combination[0]:",  combination[0])
-            print(combination)
             axle_load = self.get_axle_load(combination)
             
             if(not bool(axle_load)):
                 continue
 
-            # 22000 should be max_axle_load
             
             if max(axle_load) < 220000000:
                 return True
@@ -220,7 +215,6 @@ class Wagon():
             print("The Wagon should have a list of containers.")
             return False
         for combination in it.permutations(self.containers):
-            print("COMBINATION: combination[0]:",  combination[0])
             print(self.get_axle_load(combination))
             
             # Get score and update best_found if better
