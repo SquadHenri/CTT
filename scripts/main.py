@@ -43,12 +43,9 @@ def setup(dataset):
     #Creating dataframes from container en wagon lists
     wagondf = pandas.DataFrame(wagonlist, columns =['wagonID', 'wagonType', 'wagonSizeft', 'wagonNoAxes', 'wagonMaxTEU', 'wagonLength', 'wagonPosition', 'wagonPayload', 'wagonCall', 'wagonTare', 'wagonTrack'])
     containerdf = pandas.DataFrame(containerlist, columns =['containerID', 'containerType', 'unNR', 'unKlasse', 'nettWeight', 'terminalWeightNett', 'containerTEU', 'containerPosition', 'containerTarra', 'containerCall'])
-<<<<<<< HEAD
-=======
 
     print(wagondf)
 
->>>>>>> 46ab3d8ed19c6bf183746adffc18cc69e23ccbaf
     # Remove all wagons and containers that contain Null values
     wagons = []
     containers = []
