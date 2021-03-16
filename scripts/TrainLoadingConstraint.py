@@ -70,7 +70,7 @@ def main(containers, train):
                     for w_j, wagon in enumerate(train.wagons) 
                     if (len(container.get_position()) == 3) and 
                     (container.get_position()[0] <= 52) and 
-                    (container.get_position()[1] <= 7) ) <= 1000)
+                    (container.get_position()[1] <= 7) ) <= 300)
 
     # A train may not surpass a maximum weight, based on the destination of the train.
     model.Add(sum(x[(c_i, w_j)] * container.get_gross_weight() 
@@ -104,14 +104,14 @@ def main(containers, train):
         )
     # model.Maximize(objective_length)
 
-    # objective_weight = model.NewIntVar(0, int(train.get_total_weight_capacity()), 'weight')
-    # model.Add(
-    #     objective_weight == sum(
-    #         x[(c_i, w_j)] * container.get_gross_weight() 
-    #             for c_i, container in enumerate(containers) 
-    #             for w_j, _ in enumerate(train.wagons)
-    #         )
-    #     )  
+    objective_weight = model.NewIntVar(0, int(train.get_total_weight_capacity()), 'weight')
+    model.Add(
+        objective_weight == sum(
+            x[(c_i, w_j)] * container.get_gross_weight() 
+                for c_i, container in enumerate(containers) 
+                for w_j, _ in enumerate(train.wagons)
+            )
+        )  
     #model.Maximize(objective_weight)
 
     model.Maximize(objective_length)
@@ -136,6 +136,7 @@ def main(containers, train):
         total_length = 0
         total_distance = 0
         container_count = 0
+        unplaced = [(c_i, container) for c_i, container in enumerate(containers)]
         placed_containers = []
         filled_wagons = {}
         for w_j, wagon in enumerate(train.wagons):
@@ -150,7 +151,8 @@ def main(containers, train):
                 containers_ = []
                 #for s_k, _ in enumerate(wagon.get_slots()):
                 if solver.Value(x[c_i,w_j]) > 0:
-                    filled_wagons[w_j].append(c_i)
+                    filled_wagons[w_j].append((c_i, container))
+                    unplaced.remove((c_i, container))
                     train.wagons[w_j].add_container(container)
                     if container in containers_:
                         pass # The container is already in the solution
@@ -178,7 +180,12 @@ def main(containers, train):
         print('Total distance travelled:', total_distance)
         print('Containers packed: ', container_count,"/",len(containers))
         placed_containers = sorted(placed_containers)
-        print(placed_containers)
+        print()
+        print("Placed", placed_containers)
+        print("Not placed", [x[0] for x in unplaced])
+
+        # Only get the container objects of unplaced, this will be used for plotting.
+        unplaced_container = [x[1] for x in unplaced]
     
 class SolutionPrinter(cp_model.CpSolverSolutionCallback):
     """Prints intermediate solutions"""
