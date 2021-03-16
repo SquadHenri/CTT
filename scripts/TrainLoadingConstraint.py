@@ -70,7 +70,7 @@ def main(containers, train):
                     for w_j, wagon in enumerate(train.wagons) 
                     if (len(container.get_position()) == 3) and 
                     (container.get_position()[0] <= 52) and 
-                    (container.get_position()[1] <= 7) ) <= 100)
+                    (container.get_position()[1] <= 7) ) <= 1000)
 
     # A train may not surpass a maximum weight, based on the destination of the train.
     model.Add(sum(x[(c_i, w_j)] * container.get_gross_weight() 
@@ -82,7 +82,18 @@ def main(containers, train):
                 OBJECTIVE
     """
 
-    print(train.get_total_length_capacity())
+    # objective_terms = []
+
+    # for w_j, wagon in enumerate(train.wagons):
+    #     for c_i, container in enumerate(containers):
+    #         objective_terms.append(x[c_i,w_j] * container.get_length())
+    
+    # for w_j, wagon in enumerate(train.wagons):
+    #     for c_i, container in enumerate(containers):
+    #         objective_terms.append(x[c_i,w_j] * container.get_gross_weight())
+
+    # model.Maximize(sum(objective_terms))
+
     objective_length = model.NewIntVar(0, int(train.get_total_length_capacity()), 'length')
     model.Add(
         objective_length == sum(
@@ -91,16 +102,19 @@ def main(containers, train):
                 for w_j, _ in enumerate(train.wagons)
             )
         )
+    # model.Maximize(objective_length)
 
-    objective_weight = model.NewIntVar(0, int(train.get_total_weight_capacity()), 'weight')
-    model.Add(
-        objective_weight == sum(
-            x[(c_i, w_j)] * container.get_gross_weight() 
-                for c_i, container in enumerate(containers) 
-                for w_j, _ in enumerate(train.wagons)
-            )
-        )  
-    model.Maximize(objective_weight * 3 + objective_length * 9)
+    # objective_weight = model.NewIntVar(0, int(train.get_total_weight_capacity()), 'weight')
+    # model.Add(
+    #     objective_weight == sum(
+    #         x[(c_i, w_j)] * container.get_gross_weight() 
+    #             for c_i, container in enumerate(containers) 
+    #             for w_j, _ in enumerate(train.wagons)
+    #         )
+    #     )  
+    #model.Maximize(objective_weight)
+
+    model.Maximize(objective_length)
 
     """"
                 Solving & Printing Solution
