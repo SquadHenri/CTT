@@ -14,7 +14,7 @@ class Train():
     # wagons should be a list of wagons
     def __init__(self, wagons):
         self.wagons = wagons # This is the list of all the wagons on the train
-        self.maxWeight = 10000000000
+        self.maxWeight = 1000000000
     
     # Create some wagons, to use for testing
     def test_train(self):
@@ -151,26 +151,35 @@ class Train():
                     wagons[j + 1]= tempo 
 
         #Set max number of containers on wagon, needed for amount of table rows 
+        print(wagons)
         for wagon in wagons:
+            
             if wagon.containers is None:
-                raise TypeError("No containers selected")
+                continue
             
             if len(wagon.containers) > maxContainers:
                 maxContainers = len(wagon.containers)
-        title = ''
+        
+        print(maxContainers)
+        title = wagon.call
         data = []
         cellColours = []
-        for wagon in wagons:
+        for wagon in wagons:           
             #Add wagonID to column list
             columns.append(str(int(wagon.position))+ ". " + wagon.wagonID)
             datarow = []
             cellRowColour = []
-            #Title of table
-            title = wagon.call
+        
             if 0 < maxContainers: 
                 datarow.extend('empty' for x in range(0, maxContainers))
                 cellRowColour.extend('#fefefe' for x in range(0, maxContainers)) 
                 #datarow.append(maxContainers) 
+            
+            if wagon.containers is None: 
+                data.append(datarow)
+                cellColours.append(cellRowColour)     
+                continue
+
 
             for i, container in enumerate(wagon.containers):
                 datarow[i] = container.containerID
@@ -178,13 +187,11 @@ class Train():
                     cellRowColour[i] = '#cc244b'
                 # orange #ff6153
                 # dark green #498499
-                print(container.typeid)
                 if container.goods == 1 or container.goods == 2 or container.goods == 3:
                     cellRowColour[i] = '#11aae1'
 
             cellColours.append(cellRowColour)
             data.append(datarow)
-        print(data)
         n_rows = len(data)
         rows = ['slot %d' % (x+1) for x in range(len(data))]
         print(rows)
@@ -199,7 +206,8 @@ class Train():
         rcolors = np.full(n_rows, '#8bc53d')
         ccolors = np.full(n_rows, '#8bc53d')
         
-
+        print(len(columns))
+        print(len(rows))
         the_table = plt.table(cellText=data,
                     rowLabels=columns,
                     rowColours=rcolors,
@@ -207,30 +215,26 @@ class Train():
                     colColours=ccolors,
                     colLabels=rows,
                     loc='center')
-        plt.subplots_adjust(left=0.230, bottom=0, right=0.965, top=0.938)
+        plt.subplots_adjust(left=0.276, bottom=0.03, right=0.965, top=0.938)
         plt.axis('off')
         #plt.title(title, fontsize=8, pad=None, )
    
         # Month abbreviation, day and year	
         currentdate = date.today().strftime("%b-%d-%Y")
-        
 
         now = datetime.now()
- 
-        print("now =", now)
-
         # dd/mm/YY H:M:S
         dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
 
         fig = plt.gcf()
         
-        train_weight = str(self.get_total_packed_weight())
-        plt.figtext(0.95, 0.05, "Total weight: " + train_weight,
-            horizontalalignment='right',
-            size=6,
-            weight='light',
-            color='#000'
-           )
+        #train_weight = str(self.get_total_packed_weight())
+        #plt.figtext(0.95, 0.05, "Total weight: " + train_weight,
+        #    horizontalalignment='right',
+        #    size=6,
+        #    weight='light',
+        #    color='#000'
+        #   )
 
 
         fig.suptitle(title + " on " + datetime.now().strftime("%d/%m/%Y %H:%M:%S"), fontsize=10)

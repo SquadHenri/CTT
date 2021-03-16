@@ -5,7 +5,7 @@ from data import getContainersFromCSV
 
 import pandas
 
-dataset = pandas.read_csv('data\input_df_38ef9fb5-1a3f-4c86-b835-a2d204155b6a.csv')
+dataset = pandas.read_csv('data\input_df_9ec1a10b-af1b-465e-8e09-d68643f12734.csv')
 
 def setup(dataset):
     containerlist = []
@@ -43,15 +43,12 @@ def setup(dataset):
     #Creating dataframes from container en wagon lists
     wagondf = pandas.DataFrame(wagonlist, columns =['wagonID', 'wagonType', 'wagonSizeft', 'wagonNoAxes', 'wagonMaxTEU', 'wagonLength', 'wagonPosition', 'wagonPayload', 'wagonCall', 'wagonTare', 'wagonTrack'])
     containerdf = pandas.DataFrame(containerlist, columns =['containerID', 'containerType', 'unNR', 'unKlasse', 'nettWeight', 'terminalWeightNett', 'containerTEU', 'containerPosition', 'containerTarra', 'containerCall'])
-<<<<<<< HEAD
-=======
 
-    print(wagondf)
 
->>>>>>> 46ab3d8ed19c6bf183746adffc18cc69e23ccbaf
     # Remove all wagons and containers that contain Null values
     wagons = []
     containers = []
+    wrong_wagons = []
 
     for index, wagon in wagondf.iterrows():
         if pandas.notna(wagon['wagonSizeft']) and pandas.notna(wagon['wagonLength']) and pandas.notna(wagon['wagonPosition']) and pandas.notna(wagon['wagonPayload']) and pandas.notna(wagon['wagonTare']) and pandas.notna(wagon['wagonNoAxes']): 
@@ -67,6 +64,7 @@ def setup(dataset):
             wagons.append(wagonObj)
         else:
             print("Wagon", index, "contained null values.")
+            wrong_wagons.append(wagon)
 
     for index, container in containerdf.iterrows():
         containerID = container['containerID']
@@ -95,7 +93,8 @@ if __name__ == '__main__':
         print("Wagon", i, wagon)
     
     train = Train.Train(wagons)
-    #TrainLoadingClasses.main(containers, train)
+   
+#TrainLoadingClasses.main(containers, train)
     TrainLoadingConstraint.main(containers, train)
 
 
