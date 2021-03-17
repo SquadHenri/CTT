@@ -44,7 +44,7 @@ def setup(dataset):
     wagondf = pandas.DataFrame(wagonlist, columns =['wagonID', 'wagonType', 'wagonSizeft', 'wagonNoAxes', 'wagonMaxTEU', 'wagonLength', 'wagonPosition', 'wagonPayload', 'wagonCall', 'wagonTare', 'wagonTrack'])
     containerdf = pandas.DataFrame(containerlist, columns =['containerID', 'containerType', 'unNR', 'unKlasse', 'nettWeight', 'terminalWeightNett', 'containerTEU', 'containerPosition', 'containerTarra', 'containerCall'])
 
-
+    print(wagondf)
     # Remove all wagons and containers that contain Null values
     wagons = []
     containers = []
@@ -94,7 +94,7 @@ if __name__ == '__main__':
     
     train = Train.Train(wagons)
    
-#TrainLoadingClasses.main(containers, train)
+    #TrainLoadingClasses.main(containers, train)
     TrainLoadingConstraint.main(containers, train)
 
 

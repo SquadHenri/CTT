@@ -14,7 +14,7 @@ class Train():
     # wagons should be a list of wagons
     def __init__(self, wagons):
         self.wagons = wagons # This is the list of all the wagons on the train
-        self.maxWeight = 1000000000
+        self.maxWeight = 500000
     
     # Create some wagons, to use for testing
     def test_train(self):
@@ -40,8 +40,12 @@ class Train():
 
     # Maybe check for success, but this is fine for now
     def set_optimal_axle_load(self):
+        success = True
         for wagon in self.wagons:
-            wagon.set_optimal_axle_load()
+            if(not wagon.set_optimal_axle_load()):
+                #print(wagon.wagonID, "has too much axle load")
+                success = False
+        return success
             
     def to_JSON(self, **kwargs):
         result = {}

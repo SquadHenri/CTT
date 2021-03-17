@@ -134,6 +134,8 @@ def get_wagons_prompt(reverse):
 # creates a list that represents the coordinates of a container.
 # it takes "##.##.##" as an input and returns [##, ##, ##]
 def get_pos(position):
+    if position is None:
+        return -1
     position = position.split(" ")
     position = position[0].split(".")
 
