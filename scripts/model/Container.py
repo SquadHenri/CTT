@@ -31,6 +31,8 @@ class Container():
 
     # Transform the position of the container into a list with coordinates.
     def calc_pos(self, position):
+        if position is None:
+            return -1
         position = position.split(" ")
         position = position[0].split(".")
 

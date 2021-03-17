@@ -12,8 +12,9 @@ class Train():
 
     
     # wagons should be a list of wagons
-    def __init__(self, wagons, containers):
+    def __init__(self, wagons, containers, wrong_wagons):
         self.wagons = wagons # This is the list of all the wagons on the train
+        self.wrong_wagons = wrong_wagons
         self.maxWeight = 1000000000
         self.containers = containers
     
@@ -45,8 +46,12 @@ class Train():
 
     # Maybe check for success, but this is fine for now
     def set_optimal_axle_load(self):
+        success = True
         for wagon in self.wagons:
-            wagon.set_optimal_axle_load()
+            if(not wagon.set_optimal_axle_load()):
+                #print(wagon.wagonID, "has too much axle load")
+                success = False
+        return success
             
     def to_JSON(self, **kwargs):
         result = {}
@@ -189,6 +194,9 @@ class Train():
 
 
     def get_planning_plot(self, total_length, total_weight, axs):
+        for wagon in self.wrong_wagons:
+            print("Unknown container", wagon.wagonID)
+
         # total_length = total length of containers planned on train.
         # total_weight = total weight of containers planned on tainr.
         
