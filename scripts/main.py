@@ -5,11 +5,17 @@ from data import getContainersFromCSV
 
 import pandas
 
-dataset = pandas.read_csv('data\input_df_868d36fb-a796-4d1d-99e8-e8fdb766e526.csv')
+dataset = pandas.read_csv('data\input_with_parameters.csv')
 
 def setup(dataset):
     containerlist = []
     wagonlist = []
+
+    max_traveldistance = dataset.MAXTRAVELDISTANCE[1]
+    split = dataset.TRAINSPLIT[1]
+    isReversed = False
+    if dataset.TRAINREVERSED[1] == 1:
+        isReversed = True
 
     for i, value in enumerate(dataset.WAGON):
         if pandas.notna(value):
@@ -44,7 +50,6 @@ def setup(dataset):
     wagondf = pandas.DataFrame(wagonlist, columns =['wagonID', 'wagonType', 'wagonSizeft', 'wagonNoAxes', 'wagonMaxTEU', 'wagonLength', 'wagonPosition', 'wagonPayload', 'wagonCall', 'wagonTare', 'wagonTrack'])
     containerdf = pandas.DataFrame(containerlist, columns =['containerID', 'containerType', 'unNR', 'unKlasse', 'nettWeight', 'terminalWeightNett', 'containerTEU', 'containerPosition', 'containerTarra', 'containerCall'])
 
-    print(wagondf)
     # Remove all wagons and containers that contain Null values
     wagons = []
     containers = []
@@ -81,15 +86,13 @@ def setup(dataset):
         containers.append(containerObj)
     
     wagons = getContainersFromCSV.set_location(wagons)
-    train = Train.Train(wagons, containers, wrong_wagons)
+    train = Train.Train(wagons, containers, wrong_wagons, split, isReversed, max_traveldistance)
 
     for i, container in enumerate(containers):
         print("Container", i, container)
     
     for i, wagon in enumerate(wagons):
         print("Wagon", i, wagon)
-
-    print(train)
 
     return train
 

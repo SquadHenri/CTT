@@ -12,15 +12,15 @@ class Train():
 
     
     # wagons should be a list of wagons
-    def __init__(self, wagons, containers, wrong_wagons):
+    def __init__(self, wagons, containers, wrong_wagons, split, isReversed, max_traveldistance):
         self.wagons = wagons # This is the list of all the wagons on the train
         self.wrong_wagons = wrong_wagons
         self.maxWeight = 100000000000
         self.containers = containers
+        self.split = split
+        self.isReversed = isReversed
+        self.max_traveldistance = max_traveldistance
     
-    def get_containers_for_call(self):
-        return self.containers
-
 
     # Create some wagons, to use for testing
     def test_train(self):
@@ -92,6 +92,18 @@ class Train():
                 data.append(wagon_dict)
         df = pd.DataFrame(data)
         df.to_excel("planning.xlsx")
+    
+    def get_containers_for_call(self):
+        return self.containers
+
+    def get_split(self):
+        return self.split
+
+    def get_max_traveldistance(self):
+        return self.max_traveldistance
+
+    def get_reversed_status(self):
+        return self.isReversed
 
     # Maybe split this up, but for now this is fine
     def get_total_capacity(self):
@@ -145,11 +157,30 @@ class Train():
         for wagon in self.wagons:
             wagon.set_weight_capacity(value)
 
+    
+    def get_total_length(self):
+        total_length = 0
+        for wagon in self.wagons:
+            total_length += wagon.wagon_length_load()
+        return total_length
+
+    def get_total_weight(self):
+        total_weight = 0
+        for wagon in self.wagons:
+            total_weight += wagon.wagon_weight_load()
+        return total_weight
+
+
+
     def get_container_plot(self, containers, axs):
         
+        axs[0].axis('tight')
+        axs[0].axis('off')  
+
         #Initiliase lists for input matplotlib table
         data = []
         cellColours = []
+        axs[0].set_title('Table 1: Unplaced containers')
         
         #Set column length for table
         column_length = 3
@@ -170,7 +201,6 @@ class Train():
             #Give value to the table cells
             for i, container in enumerate(containers):
                 datarow[i] = 'ID: ' + str(container.get_containerID()) + ' | Type: ' + str(container.get_type()) +  ' | Position: ' + str(container.get_position()) + ' | Gross (kg): ' + str(container.get_gross_weight()) 
-                print(container.hazard_class)
                 if container.hazard_class == 1 or container.hazard_class == 2 or container.hazard_class == 3:
                     cellRowColour[i] = '#11aae1'
   
@@ -186,32 +216,12 @@ class Train():
         return containerplot
 
     
-
     # Make a table to that represents a train planning
-
-  
-    def get_total_length(self):
-        total_length = 0
-        for wagon in self.wagons:
-            total_length += wagon.wagon_length_load()
-        return total_length
-
-    def get_total_weight(self):
-        total_weight = 0
-        for wagon in self.wagons:
-            total_weight += wagon.wagon_weight_load()
-        return total_weight
-
-
-
-
     def get_planning_plot(self, axs):
-        for wagon in self.wrong_wagons:
-            print("Unknown container", wagon.wagonID)
 
         total_length = self.get_total_length()
         total_weight = self.get_total_weight()    
-
+        axs[1].set_ylabel('Train planning')
         # total_length = total length of containers planned on train.
         # total_weight = total weight of containers planned on tainr.
         
@@ -340,25 +350,20 @@ class Train():
         return the_table, title
 
 
-
+    #Get plot with unplaced containers table and planning table
     def get_tableplot(self, unplaced_containers):
 
+        #Create figure and 2 axis to stack to tables
         fig, axs = plt.subplots(2,1)
-
-        axs[0].axis('tight')
-        axs[0].axis('off')      
 
         # Create a container table plot with unplaced containers
         if(len(unplaced_containers) > 0): 
             containerplot = self.get_container_plot(unplaced_containers, axs)
         planningplot, title = self.get_planning_plot(axs)
 
-
-        
         #the_table.auto_set_column_width(col=rows)
         plt.subplots_adjust(left=0.1, bottom=0.195, right=0.986, top=0.98)
         plt.axis('off')
-        
    
         # Month abbreviation, day and year	
         currentdate = date.today().strftime("%b-%d-%Y")
@@ -367,14 +372,18 @@ class Train():
 
         fig = plt.gcf()
         
+        #Create a list of wagons with null values to list as footnote of table
+        unknown_wagonlist = []
+        for wagon in self.wrong_wagons:
+            unknown_wagonlist.append(wagon.wagonID)
 
         #train_weight = str(self.get_total_packed_weight())
-        #plt.figtext(0.95, 0.05, "Total weight: " + train_weight,
-        #    horizontalalignment='right',
-        #    size=6,
-        #    weight='light',
-        #    color='#000'
-        #   )
+        plt.figtext(0.8, 0.01, "Unknown wagons: " + str(unknown_wagonlist),
+            horizontalalignment='right',
+            size=6,
+            weight='bold',
+            color='#ff0000'
+           )
 
 
         fig.suptitle(title + " on " + datetime.now().strftime("%d/%m/%Y %H:%M:%S"), fontsize=10)
