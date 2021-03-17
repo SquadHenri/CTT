@@ -21,6 +21,12 @@ def main(containers, train):
     for i in range(0, len(containers), 10):
         print("Container ", i, "Must be loaded")
         priority_list.append(i)
+    
+    # Make every sixth container hazardous
+    for i in range(0, len(containers), 10):
+        print("Container ", i, "is hazardous")
+        containers[i].set_hazard_class(1)
+
 
     """
                 VARIABLES
@@ -193,11 +199,12 @@ def main(containers, train):
         print("Not placed", [x[0] for x in unplaced])
 
         # Only get the container objects of unplaced, this will be used for plotting.
-        unplaced_container = [x[1] for x in unplaced]
+        unplaced_containers = [x[1] for x in unplaced]
         
-        print(train.wagons)
+        train.to_JSON(callcode=train.wagons[1].call, weight=total_weight, length=total_length, distance=total_distance, amount=container_count, wagons=[])
+        train.to_CSV(total_weight, total_length)
 
-        trainplanning_plot = train.get_tableplot()
+        trainplanning_plot = train.get_tableplot(total_length, total_weight, unplaced_containers)
         trainplanning_plot.show()
 
         print(solver.ResponseStats())

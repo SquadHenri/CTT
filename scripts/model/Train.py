@@ -136,9 +136,14 @@ class Train():
             wagon.set_weight_capacity(value)
 
     # Make a table to that represents a train planning
-    def get_tableplot(self):
-            
+    def get_tableplot(self, total_length, total_weight, unplaced_containers):
+
+        # total_length = total length of containers planned on train.
+        # total_weight = total weight of containers planned on tainr.
+
+        # The amount of containers of the wagon with the most containers. Starts at 0.
         maxContainers = 0
+        # for now, columns = rows
         columns = []
         #Sort wagons on their position
         wagons = self.wagons
@@ -151,63 +156,103 @@ class Train():
                     wagons[j + 1]= tempo 
 
         #Set max number of containers on wagon, needed for amount of table rows 
-        print(wagons)
+        #print(wagons)
         for wagon in wagons:
             
             if wagon.containers is None:
                 continue
             
+            # If wagon contains more containers than maxContainers, set maxContainers to new amount.
             if len(wagon.containers) > maxContainers:
                 maxContainers = len(wagon.containers)
         
-        print(maxContainers)
+
         title = wagon.call
         data = []
         cellColours = []
+        # Loop through all wagons
         for wagon in wagons:           
-            #Add wagonID to column list
+            #Add wagonID to first cell of the row
             columns.append(str(int(wagon.position))+ ". " + wagon.wagonID)
             datarow = []
             cellRowColour = []
         
+            # Initialize all cells with "empty" and basic grey color
             if 0 < maxContainers: 
-                datarow.extend('empty' for x in range(0, maxContainers))
-                cellRowColour.extend('#fefefe' for x in range(0, maxContainers)) 
-                #datarow.append(maxContainers) 
+                # We do maxContainers + 2, since we want to add two more columns that contain information.
+                datarow.extend('' for x in range(0, maxContainers + 2))
+                cellRowColour.extend('#fefefe' for x in range(0, maxContainers + 2)) 
             
+            # If the wagon is empty, we set the lengts and weight to 0%
             if wagon.containers is None: 
+                datarow[len(datarow) - 2] = "0/" + str(wagon.get_weight_capacity()).split(".")[0] + " (0%)"
+                datarow[len(datarow) - 1] = "0/" + str(wagon.get_length_capacity()).split(".")[0] + " (0%)"  
                 data.append(datarow)
-                cellColours.append(cellRowColour)     
+                cellColours.append(cellRowColour) 
                 continue
 
-
+            wagon_weight = 0
+            wagon_length = 0
+            # Place all containers in the cells
             for i, container in enumerate(wagon.containers):
-                datarow[i] = container.containerID
-                if container.gross_weight > 30000:
-                    cellRowColour[i] = '#cc244b'
+                wagon_weight += container.get_gross_weight()
+                wagon_length += container.get_length()
+                datarow[i] = container.containerID + " (" + str(container.get_length() / 20) + ")"
                 # orange #ff6153
                 # dark green #498499
-                if container.goods == 1 or container.goods == 2 or container.goods == 3:
+                if container.hazard_class == 1 or container.hazard_class == 2 or container.hazard_class == 3:
                     cellRowColour[i] = '#11aae1'
 
+            # Calculate the packed weight and length of a wagon.
+            weight_perc = round((wagon_weight/wagon.get_weight_capacity()) * 100, 1)
+            length_perc = round((wagon_length/wagon.get_length_capacity()) * 100, 1)
+
+            # Set the final two columns to the packed weight and packed length
+            datarow[len(datarow) - 2] = str(wagon_weight) + "/" + str(wagon.get_weight_capacity()).split(".")[0] + " ("+str(weight_perc)+ "%)"
+            datarow[len(datarow) - 1] = str(wagon_length) + "/" + str(wagon.get_length_capacity()).split(".")[0] + " ("+str(length_perc)+ "%)"
+
+            # If 90% of the weight is used, make the column red.
+            if weight_perc > 90:
+                cellRowColour[maxContainers] = '#ff6153'
+
+            # Add the row for this wagon to the list of all rows.
             cellColours.append(cellRowColour)
             data.append(datarow)
+        
+
+        # Add a final row, that is called Total, that contains the total weight and length of the train.
+        datarow = []
+        cellRowColour = []
+        columns.append("Total")
+        datarow.extend('' for x in range(0, maxContainers + 2))
+        cellRowColour.extend('#fefefe' for x in range(0, maxContainers + 2)) 
+        datarow[len(datarow) - 2] = str(total_weight) + "/" + str(self.get_total_weight_capacity()).split(".")[0] + " ("+str(round((total_weight/self.get_total_weight_capacity()) * 100, 1))+ " %)"
+        datarow[len(datarow) - 1] = str(total_length) + "/" + str(self.get_total_length_capacity()).split(".")[0] + " ("+str(round((total_length/self.get_total_length_capacity()) * 100, 1))+ " %)"
+        cellColours.append(cellRowColour)
+        data.append(datarow)
+
+
+        # Set the column titles to slot x, and the last two to Wagon Weight and Wagon Length
         n_rows = len(data)
         rows = ['slot %d' % (x+1) for x in range(len(data))]
-        print(rows)
+        rows[maxContainers] = "Wagon Weight"
+        rows[maxContainers + 1] = "Wagon Length"
+        #print(rows)
         
+        # Set the text to the cells
         cell_text = []
         for row in range(n_rows):
             cell_text.append(['%s' % (x) for x in data[row]])
         
+        # @TODO Find out what .reverse() does.
         cell_text.reverse()
+        
         #CTT Green color: #8bc53d
         #CTT Blue color: #11aae1
         rcolors = np.full(n_rows, '#8bc53d')
         ccolors = np.full(n_rows, '#8bc53d')
-        
-        print(len(columns))
-        print(len(rows))
+
+        # Create the table
         the_table = plt.table(cellText=data,
                     rowLabels=columns,
                     rowColours=rcolors,
@@ -215,6 +260,9 @@ class Train():
                     colColours=ccolors,
                     colLabels=rows,
                     loc='center')
+        the_table.set_fontsize(10)
+        the_table.auto_set_font_size(False)
+        #the_table.auto_set_column_width(col=rows)
         plt.subplots_adjust(left=0.276, bottom=0.03, right=0.965, top=0.938)
         plt.axis('off')
         #plt.title(title, fontsize=8, pad=None, )
