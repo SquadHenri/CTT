@@ -381,8 +381,8 @@ class Train():
         plt.figtext(0.8, 0.01, "Unknown wagons: " + str(unknown_wagonlist),
             horizontalalignment='right',
             size=6,
-            weight='light',
-            color='#000'
+            weight='bold',
+            color='#ff0000'
            )
 
 
