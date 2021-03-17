@@ -12,10 +12,15 @@ class Train():
 
     
     # wagons should be a list of wagons
-    def __init__(self, wagons):
+    def __init__(self, wagons, containers):
         self.wagons = wagons # This is the list of all the wagons on the train
         self.maxWeight = 1000000000
+        self.containers = containers
     
+    def get_containers_for_call(self):
+        return self.containers
+
+
     # Create some wagons, to use for testing
     def test_train(self):
         wagon1 = Wagon(0, 100, 5, None, [0,0])
@@ -135,12 +140,58 @@ class Train():
         for wagon in self.wagons:
             wagon.set_weight_capacity(value)
 
-    # Make a table to that represents a train planning
-    def get_tableplot(self, total_length, total_weight, unplaced_containers):
+    def get_container_plot(self, containers, axs):
+        
+        #Initiliase lists for input matplotlib table
+        data = []
+        cellColours = []
+        
+        #Set column length for table
+        column_length = 3
 
+        #Make datachunks of container list
+        containerlist = [containers[x:x+column_length] for x in range(0, len(containers), column_length)]
+        
+        for containers in containerlist:
+            datarow = []
+            cellRowColour = []
+            #Initialise all cell of the table
+            if 0 < column_length:
+                datarow.extend('' for x in range(0, column_length))
+                data.append(datarow)
+                cellRowColour.extend('#fefefe' for x in range(0, column_length)) 
+                cellColours.append(cellRowColour)
+
+            #Give value to the table cells
+            for i, container in enumerate(containers):
+                datarow[i] = 'ID: ' + str(container.get_containerID()) + ' | Type: ' + str(container.get_type()) +  ' | Position: ' + str(container.get_position()) + ' | Gross (kg): ' + str(container.get_gross_weight()) 
+                print(container.hazard_class)
+                if container.hazard_class == 1 or container.hazard_class == 2 or container.hazard_class == 3:
+                    cellRowColour[i] = '#11aae1'
+  
+        containerplot = axs[0].table(cellText=data,
+                    cellColours=cellColours,
+                    loc='center')
+        containerplot.auto_set_font_size(False)
+        containerplot.set_fontsize(10)
+                
+        #plt.subplots_adjust(left=0.03, bottom=0.033, right=0.965, top=0.938)
+        plt.axis('off')
+
+        return containerplot
+
+    
+
+    # Make a table to that represents a train planning
+
+  
+
+
+
+    def get_planning_plot(self, total_length, total_weight, axs):
         # total_length = total length of containers planned on train.
         # total_weight = total weight of containers planned on tainr.
-
+        
         # The amount of containers of the wagon with the most containers. Starts at 0.
         maxContainers = 0
         # for now, columns = rows
@@ -167,10 +218,11 @@ class Train():
                 maxContainers = len(wagon.containers)
         
 
-        title = wagon.call
+        
         data = []
         cellColours = []
         # Loop through all wagons
+        title = wagons[0].call
         for wagon in wagons:           
             #Add wagonID to first cell of the row
             columns.append(str(int(wagon.position))+ ". " + wagon.wagonID)
@@ -219,7 +271,6 @@ class Train():
             cellColours.append(cellRowColour)
             data.append(datarow)
         
-
         # Add a final row, that is called Total, that contains the total weight and length of the train.
         datarow = []
         cellRowColour = []
@@ -231,13 +282,11 @@ class Train():
         cellColours.append(cellRowColour)
         data.append(datarow)
 
-
         # Set the column titles to slot x, and the last two to Wagon Weight and Wagon Length
         n_rows = len(data)
         rows = ['slot %d' % (x+1) for x in range(len(data))]
         rows[maxContainers] = "Wagon Weight"
         rows[maxContainers + 1] = "Wagon Length"
-        #print(rows)
         
         # Set the text to the cells
         cell_text = []
@@ -253,29 +302,48 @@ class Train():
         ccolors = np.full(n_rows, '#8bc53d')
 
         # Create the table
-        the_table = plt.table(cellText=data,
+        the_table = axs[1].table(cellText=data,
                     rowLabels=columns,
                     rowColours=rcolors,
                     cellColours=cellColours,
                     colColours=ccolors,
                     colLabels=rows,
                     loc='center')
+
+
         the_table.set_fontsize(10)
         the_table.auto_set_font_size(False)
+
+        return the_table, title
+
+
+
+    def get_tableplot(self, total_length, total_weight, unplaced_containers):
+
+        fig, axs = plt.subplots(2,1)
+
+        axs[0].axis('tight')
+        axs[0].axis('off')      
+
+        # Create a container table plot with unplaced containers
+        containerplot = self.get_container_plot(unplaced_containers, axs)
+        planningplot, title = self.get_planning_plot(total_length, total_weight, axs)
+
+
+        
         #the_table.auto_set_column_width(col=rows)
-        plt.subplots_adjust(left=0.276, bottom=0.03, right=0.965, top=0.938)
+        plt.subplots_adjust(left=0.1, bottom=0.195, right=0.986, top=0.98)
         plt.axis('off')
-        #plt.title(title, fontsize=8, pad=None, )
+        
    
         # Month abbreviation, day and year	
         currentdate = date.today().strftime("%b-%d-%Y")
-
-        now = datetime.now()
-        # dd/mm/YY H:M:S
-        dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+        # Date sring: dd/mm/YY H:M:S
+        dt_string = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
         fig = plt.gcf()
         
+
         #train_weight = str(self.get_total_packed_weight())
         #plt.figtext(0.95, 0.05, "Total weight: " + train_weight,
         #    horizontalalignment='right',

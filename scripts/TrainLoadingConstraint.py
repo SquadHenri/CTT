@@ -12,8 +12,9 @@ from model import *
 from data import getContainersFromCSV
 import functions
 
-def main(containers, train):
+def main(train):
 
+    containers = train.get_containers_for_call()
     # Define the cp model
     model = cp_model.CpModel()
     priority_list = []
