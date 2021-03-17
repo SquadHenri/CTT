@@ -190,12 +190,27 @@ class Train():
     # Make a table to that represents a train planning
 
   
+    def get_total_length(self):
+        total_length = 0
+        for wagon in self.wagons:
+            total_length += wagon.wagon_length_load()
+        return total_length
+
+    def get_total_weight(self):
+        total_weight = 0
+        for wagon in self.wagons:
+            total_weight += wagon.wagon_weight_load()
+        return total_weight
 
 
 
-    def get_planning_plot(self, total_length, total_weight, axs):
+
+    def get_planning_plot(self, axs):
         for wagon in self.wrong_wagons:
             print("Unknown container", wagon.wagonID)
+
+        total_length = self.get_total_length()
+        total_weight = self.get_total_weight()    
 
         # total_length = total length of containers planned on train.
         # total_weight = total weight of containers planned on tainr.
@@ -326,7 +341,7 @@ class Train():
 
 
 
-    def get_tableplot(self, total_length, total_weight, unplaced_containers):
+    def get_tableplot(self, unplaced_containers):
 
         fig, axs = plt.subplots(2,1)
 
@@ -335,7 +350,7 @@ class Train():
 
         # Create a container table plot with unplaced containers
         containerplot = self.get_container_plot(unplaced_containers, axs)
-        planningplot, title = self.get_planning_plot(total_length, total_weight, axs)
+        planningplot, title = self.get_planning_plot(axs)
 
 
         

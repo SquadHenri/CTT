@@ -221,7 +221,7 @@ def main(train):
         train.to_JSON(callcode=train.wagons[1].call, weight=total_weight, length=total_length, distance=total_distance, amount=container_count, wagons=[])
         train.to_CSV(total_weight, total_length)
 
-        trainplanning_plot = train.get_tableplot(total_length, total_weight, unplaced_containers)
+        trainplanning_plot = train.get_tableplot(unplaced_containers)
         trainplanning_plot.show()
 
         # print(solver.ResponseStats())
