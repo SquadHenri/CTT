@@ -15,7 +15,7 @@ class Train():
     def __init__(self, wagons, containers, wrong_wagons):
         self.wagons = wagons # This is the list of all the wagons on the train
         self.wrong_wagons = wrong_wagons
-        self.maxWeight = 1000000000
+        self.maxWeight = 500000
         self.containers = containers
     
     def get_containers_for_call(self):
@@ -349,7 +349,8 @@ class Train():
         axs[0].axis('off')      
 
         # Create a container table plot with unplaced containers
-        containerplot = self.get_container_plot(unplaced_containers, axs)
+        if(len(unplaced_containers) > 0): 
+            containerplot = self.get_container_plot(unplaced_containers, axs)
         planningplot, title = self.get_planning_plot(axs)
 
 
