@@ -77,24 +77,25 @@ def setup(dataset):
         typeid = container['containerType']
         hazard_class = container['unKlasse']
         
-        containerObj = Container.Container(containerID, gross_weight, net_weight, foot, position, goods, priority, typeid)
+        containerObj = Container.Container(containerID, gross_weight, net_weight, foot, position, goods, priority, typeid, hazard_class)
         containers.append(containerObj)
-
-    return containers, wagons, wrong_wagons
-
-if __name__ == '__main__':
-    containers, wagons, wrong_wagons = setup(dataset)
+    
     wagons = getContainersFromCSV.set_location(wagons)
+    train = Train.Train(wagons, containers, wrong_wagons)
 
     for i, container in enumerate(containers):
         print("Container", i, container)
     
     for i, wagon in enumerate(wagons):
         print("Wagon", i, wagon)
-    
-    train = Train.Train(wagons, wrong_wagons)
-   
+
+    print(train)
+
+    return train
+
+if __name__ == '__main__':
+    train = setup(dataset)
     #TrainLoadingClasses.main(containers, train)
-    TrainLoadingConstraint.main(containers, train)
+    TrainLoadingConstraint.main(train)
 
 

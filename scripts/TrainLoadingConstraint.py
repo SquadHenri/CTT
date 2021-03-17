@@ -12,11 +12,13 @@ from model import *
 from data import getContainersFromCSV
 import functions
 
-def main(containers, train):
+def main(train):
 
+    containers = train.get_containers_for_call()
     # Define the cp model
     model = cp_model.CpModel()
     priority_list = []
+
     # Set some random containers to be in the priority list.
     for i in range(0, len(containers), 10):
         print("Container ", i, "Must be loaded")
@@ -27,6 +29,7 @@ def main(containers, train):
         print("Container ", i, "is hazardous")
         containers[i].set_hazard_class(1)
 
+    
 
     """
                 VARIABLES
@@ -38,6 +41,10 @@ def main(containers, train):
         for w_j, wagon in enumerate(train.wagons):
             x[(c_i,w_j)] = model.NewIntVar(0, 1, 'cont:%i,wagon%i' % (c_i, w_j))
     
+    # This value of this is: spreadContainers == (len(containers) > len(train.wagons))
+    # This is added as a constraint
+    spreadContainers = model.NewBoolVar('spreadContainers')
+
     # y = {}
     # for w_j, wagon in enumerate(train.wagons):
     #     y[(w_j)] = model.NewIntervalVar(0, wagon.get_total_length(), wagon.get_total_length(), 'wagon_slot_%i' % (w_j))
@@ -59,9 +66,19 @@ def main(containers, train):
     # Each container can be in at most one wagon.
     for c_i, container in enumerate(containers):
         if container not in priority_list:
-            model.Add(sum(x[(c_i, w_j)] for w_j, _ in enumerate(train.wagons)) <= 1)
+            model.Add(
+                sum(x[(c_i, w_j)] for w_j, _ in enumerate(train.wagons)) <= 1
+                )
 
     # Each wagon has at least one container
+    # Only enforce if there are enough containers
+    model.Add( 
+        spreadContainers == (len(containers) > len(train.wagons)) # Check if there are enough containers to spread them out over wagons
+        )
+    for w_j, _ in enumerate(train.wagons):
+        model.Add(
+            sum(x[(c_i, w_j)] for c_i, _ in enumerate(containers)) >= 1 # Each wagon has at least one container
+        ).OnlyEnforceIf(spreadContainers)
 
     # All containers in the priority list need to be loaded on the train, no matter what.
     for c_i in priority_list:
@@ -220,7 +237,7 @@ def main(containers, train):
         train.to_JSON(callcode=train.wagons[1].call, weight=total_weight, length=total_length, distance=total_distance, amount=container_count, wagons=[])
         train.to_CSV(total_weight, total_length)
 
-        trainplanning_plot = train.get_tableplot(total_length, total_weight, unplaced_containers)
+        trainplanning_plot = train.get_tableplot(unplaced_containers)
         trainplanning_plot.show()
 
         # print(solver.ResponseStats())
