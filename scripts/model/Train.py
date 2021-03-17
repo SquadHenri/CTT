@@ -12,8 +12,9 @@ class Train():
 
     
     # wagons should be a list of wagons
-    def __init__(self, wagons):
+    def __init__(self, wagons, wrong_wagons):
         self.wagons = wagons # This is the list of all the wagons on the train
+        self.wrong_wagons = wrong_wagons
         self.maxWeight = 1000000000
     
     # Create some wagons, to use for testing
@@ -137,6 +138,9 @@ class Train():
 
     # Make a table to that represents a train planning
     def get_tableplot(self, total_length, total_weight, unplaced_containers):
+
+        for wagon in self.wrong_wagons:
+            print("Unknown container", wagon.wagonID)
 
         # total_length = total length of containers planned on train.
         # total_weight = total weight of containers planned on tainr.
