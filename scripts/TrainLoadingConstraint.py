@@ -43,17 +43,25 @@ def main(containers, train):
     #     y[(w_j)] = model.NewIntervalVar(0, wagon.get_total_length(), wagon.get_total_length(), 'wagon_slot_%i' % (w_j))
 
 
+    # w_slot = {}
+    # for w_j, wagon in enumerate(train.wagons):
+    #     w_slot[(w_j)] = model.NewIntervalVar(0, int(wagon.get_total_length()), int(wagon.get_total_length()), 'wagon_%i' % w_j)
+
+    # c_start = {}
+    # for c_i, container in enumerate(containers):
+    #     c_start[(c_i)] = model.NewIntVar(0, 10, 'c_start_%i' % c_i)
+
     """
                 CONSTRAINTS
     """
 
-    # for w_j, _ in enumerate(train.wagons):
-    #     model.AddNoOverlap(y[w_j])
 
     # Each container can be in at most one wagon.
     for c_i, container in enumerate(containers):
         if container not in priority_list:
             model.Add(sum(x[(c_i, w_j)] for w_j, _ in enumerate(train.wagons)) <= 1)
+
+    # Each wagon has at least one container
 
     # All containers in the priority list need to be loaded on the train, no matter what.
     for c_i in priority_list:
@@ -200,16 +208,26 @@ def main(containers, train):
 
         # Only get the container objects of unplaced, this will be used for plotting.
         unplaced_containers = [x[1] for x in unplaced]
-        
+
+        # trainplanning_plot = train.get_tableplot(total_length, total_weight, unplaced_containers)
+        # trainplanning_plot.show()
+
+        axle_load_success = train.set_optimal_axle_load()
+        # print("Axle load success: ", axle_load_success)
+
+
+
         train.to_JSON(callcode=train.wagons[1].call, weight=total_weight, length=total_length, distance=total_distance, amount=container_count, wagons=[])
         train.to_CSV(total_weight, total_length)
 
         trainplanning_plot = train.get_tableplot(total_length, total_weight, unplaced_containers)
         trainplanning_plot.show()
 
-        print(solver.ResponseStats())
+        # print(solver.ResponseStats())
     elif status == cp_model.FEASIBLE:
         print('hoi')
+    else:
+        print("Solution Not found. Stats: ", solver.ResponseStats())
     
 class SolutionPrinter(cp_model.CpSolverSolutionCallback):
     """Prints intermediate solutions"""

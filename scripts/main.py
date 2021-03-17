@@ -44,7 +44,7 @@ def setup(dataset):
     wagondf = pandas.DataFrame(wagonlist, columns =['wagonID', 'wagonType', 'wagonSizeft', 'wagonNoAxes', 'wagonMaxTEU', 'wagonLength', 'wagonPosition', 'wagonPayload', 'wagonCall', 'wagonTare', 'wagonTrack'])
     containerdf = pandas.DataFrame(containerlist, columns =['containerID', 'containerType', 'unNR', 'unKlasse', 'nettWeight', 'terminalWeightNett', 'containerTEU', 'containerPosition', 'containerTarra', 'containerCall'])
 
-
+    print(wagondf)
     # Remove all wagons and containers that contain Null values
     wagons = []
     containers = []
@@ -80,10 +80,10 @@ def setup(dataset):
         containerObj = Container.Container(containerID, gross_weight, net_weight, foot, position, goods, priority, typeid)
         containers.append(containerObj)
 
-    return containers, wagons
+    return containers, wagons, wrong_wagons
 
 if __name__ == '__main__':
-    containers, wagons = setup(dataset)
+    containers, wagons, wrong_wagons = setup(dataset)
     wagons = getContainersFromCSV.set_location(wagons)
 
     for i, container in enumerate(containers):
@@ -92,9 +92,9 @@ if __name__ == '__main__':
     for i, wagon in enumerate(wagons):
         print("Wagon", i, wagon)
     
-    train = Train.Train(wagons)
+    train = Train.Train(wagons, wrong_wagons)
    
-#TrainLoadingClasses.main(containers, train)
+    #TrainLoadingClasses.main(containers, train)
     TrainLoadingConstraint.main(containers, train)
 
 
