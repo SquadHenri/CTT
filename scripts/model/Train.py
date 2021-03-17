@@ -14,12 +14,8 @@ class Train():
     # wagons should be a list of wagons
     def __init__(self, wagons, wrong_wagons):
         self.wagons = wagons # This is the list of all the wagons on the train
-<<<<<<< HEAD
-        self.maxWeight = 500000
-=======
         self.wrong_wagons = wrong_wagons
         self.maxWeight = 1000000000
->>>>>>> 1156833783775391400a07eebc7d7a3bf22593c8
     
     # Create some wagons, to use for testing
     def test_train(self):
