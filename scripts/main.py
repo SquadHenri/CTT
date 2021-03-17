@@ -45,10 +45,6 @@ def setup(dataset):
     containerdf = pandas.DataFrame(containerlist, columns =['containerID', 'containerType', 'unNR', 'unKlasse', 'nettWeight', 'terminalWeightNett', 'containerTEU', 'containerPosition', 'containerTarra', 'containerCall'])
 
     print(wagondf)
-<<<<<<< HEAD
-=======
-
->>>>>>> 1156833783775391400a07eebc7d7a3bf22593c8
     # Remove all wagons and containers that contain Null values
     wagons = []
     containers = []
