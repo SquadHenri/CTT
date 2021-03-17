@@ -244,11 +244,12 @@ class Wagon():
         # print("Axle load list: ", self.get_axle_load(axle_best_found_permutation))
 
         if axle_load_score < 22500:
-            # try:
-            #     axle_best_found_permutation.remove(dummy_container1)
-            #     axle_best_found_permutation.remove(dummy_container2)
-            # except ValueError:
-            #     pass
+
+            # If dummy_container1 is in there, dummy_container2 is also there
+            if dummy_container1 in axle_best_found_permutation:
+                axle_best_found_permutation.remove(dummy_container1)
+                axle_best_found_permutation.remove(dummy_container2)
+                
 
             self.containers = axle_best_found_permutation
             return True
