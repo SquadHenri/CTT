@@ -226,8 +226,8 @@ class Wagon():
         if self.length_capacity - occupied_length > 0:
             empty_length = self.length_capacity - occupied_length
             dummy_length = math.floor(empty_length/2)
-            dummy_container1 = Container.Container("DUMMY1", 1, 1, dummy_length, None, None, None, None, None)
-            dummy_container2 = Container.Container("DUMMY2", 1, 1, dummy_length, None, None, None, None, None)
+            dummy_container1 = Container.Container("Empty Space 1", 1, 1, dummy_length, None, None, None, None, None)
+            dummy_container2 = Container.Container("Empty Space 2", 1, 1, dummy_length, None, None, None, None, None)
             container_copy.append(dummy_container1)
             container_copy.append(dummy_container2)
 
@@ -246,9 +246,9 @@ class Wagon():
         if axle_load_score < 22500:
 
             # If dummy_container1 is in there, dummy_container2 is also there
-            if dummy_container1 in axle_best_found_permutation:
-                axle_best_found_permutation.remove(dummy_container1)
-                axle_best_found_permutation.remove(dummy_container2)
+            # if dummy_container1 in axle_best_found_permutation:
+            #     axle_best_found_permutation.remove(dummy_container1)
+            #     axle_best_found_permutation.remove(dummy_container2)
                 
 
             self.containers = axle_best_found_permutation
