@@ -2,6 +2,7 @@
 from ortools.sat.python import cp_model
 import collections
 import math as math
+from timeit import default_timer as timer
 
 # Required modules
 import pandas as pd
@@ -12,8 +13,11 @@ from model import *
 from data import getContainersFromCSV
 import functions
 
-def main(train):
 
+
+
+def main(train):
+    start = timer()
     containers = train.get_containers_for_call()
     # Define the cp model
     model = cp_model.CpModel()
@@ -232,7 +236,7 @@ def main(train):
         axle_load_success = train.set_optimal_axle_load()
         # print("Axle load success: ", axle_load_success)
 
-
+        print("Calculation time", timer() - start)
 
         train.to_JSON(callcode=train.wagons[1].call, weight=total_weight, length=total_length, distance=total_distance, amount=container_count, wagons=[])
         train.to_CSV(total_weight, total_length)
