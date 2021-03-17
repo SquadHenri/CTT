@@ -61,6 +61,8 @@ def main(containers, train):
         if container not in priority_list:
             model.Add(sum(x[(c_i, w_j)] for w_j, _ in enumerate(train.wagons)) <= 1)
 
+    # Each wagon has at least one container
+
     # All containers in the priority list need to be loaded on the train, no matter what.
     for c_i in priority_list:
         model.Add(sum(x[(c_i,w_j)] for w_j, _ in enumerate(train.wagons)) == 1)
