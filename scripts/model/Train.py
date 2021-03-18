@@ -360,12 +360,12 @@ class Train():
             fig, axs = plt.subplots()
             t1data, t1columns, t1rcolors, t1cellColours, t1ccolors, t1rows, t1title = self.get_planning_plot()
             title = t1title
-            planning_table = plt.table(cellText=data,
-                    rowLabels=columns,
-                    rowColours=rcolors,
-                    cellColours=cellColours,
-                    colColours=ccolors,
-                    colLabels=rows,
+            planning_table = plt.table(cellText=t1data,
+                    rowLabels=t1columns,
+                    rowColours=t1rcolors,
+                    cellColours=t1cellColours,
+                    colColours=t1ccolors,
+                    colLabels=t1rows,
                     loc='center')
 
         #Formatting container table
