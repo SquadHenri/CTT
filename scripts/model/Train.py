@@ -172,15 +172,12 @@ class Train():
 
 
 
-    def get_container_plot(self, containers, axs):
+    def get_container_plot(self, containers):
         
-        axs[0].axis('tight')
-        axs[0].axis('off')  
-
         #Initiliase lists for input matplotlib table
         data = []
         cellColours = []
-        axs[0].set_title('Table 1: Unplaced containers')
+        #axs[0].set_title('Table 1: Unplaced containers')
         
         #Set column length for table
         column_length = 3
@@ -203,25 +200,15 @@ class Train():
                 datarow[i] = 'ID: ' + str(container.get_containerID()) + ' | Type: ' + str(container.get_type()) +  ' | Position: ' + str(container.get_position()) + ' | Gross (kg): ' + str(container.get_gross_weight()) 
                 if container.hazard_class == 1 or container.hazard_class == 2 or container.hazard_class == 3:
                     cellRowColour[i] = '#11aae1'
-  
-        containerplot = axs[0].table(cellText=data,
-                    cellColours=cellColours,
-                    loc='center')
-        containerplot.auto_set_font_size(False)
-        containerplot.set_fontsize(10)
-                
-        #plt.subplots_adjust(left=0.03, bottom=0.033, right=0.965, top=0.938)
-        plt.axis('off')
 
-        return containerplot
+        return data, cellColours
 
     
     # Make a table to that represents a train planning
-    def get_planning_plot(self, axs):
+    def get_planning_plot(self):
 
         total_length = self.get_total_length()
-        total_weight = self.get_total_weight()    
-        axs[1].set_ylabel('Train planning')
+        total_weight = self.get_total_weight()
         # total_length = total length of containers planned on train.
         # total_weight = total weight of containers planned on tainr.
         
@@ -249,9 +236,7 @@ class Train():
             # If wagon contains more containers than maxContainers, set maxContainers to new amount.
             if len(wagon.containers) > maxContainers:
                 maxContainers = len(wagon.containers)
-        
-
-        
+                
         data = []
         cellColours = []
         # Loop through all wagons
@@ -334,8 +319,48 @@ class Train():
         rcolors = np.full(n_rows, '#8bc53d')
         ccolors = np.full(n_rows, '#8bc53d')
 
-        # Create the table
-        the_table = axs[1].table(cellText=data,
+        return data, columns, rcolors, cellColours, ccolors, rows, title
+
+
+    #Get plot with unplaced containers table and planning table
+    def get_tableplot(self, unplaced_containers):
+        
+        fig = None
+        axs = None        
+        planning_table = None
+        container_table = None
+        title = 'planning'
+        unknown_wagonlist = []
+        
+        #Create a list of wagons with null values to list as footnote of table
+        for wagon in self.wrong_wagons:
+            unknown_wagonlist.append(str(int(wagon.wagonPosition)) + ". " + wagon.wagonID)
+
+        #Check there are unplaced containers, if yes show in table plot
+        if(len(unplaced_containers) > 0): 
+            #Create figure and 2 axis to stack to tables
+            fig, axs = plt.subplots(2,1)
+            #Create container table
+            t2data, t2cellColours = self.get_container_plot(unplaced_containers)
+            container_table = axs[0].table(cellText=t2data,
+                    cellColours=t2cellColours,
+                    loc='center')
+            #Create planning table
+            t1data, t1columns, t1rcolors, t1cellColours, t1ccolors, t1rows, t1title = self.get_planning_plot()
+            title = t1title
+            planning_table = axs[1].table(cellText=t1data,
+                    rowLabels=t1columns,
+                    rowColours=t1rcolors,
+                    cellColours=t1cellColours,
+                    colColours=t1ccolors,
+                    colLabels=t1rows,
+                    loc='center')
+        #If there are no unplaced containers, only show the planning plot and take full space
+        else:
+            fig, axs = plt.subplots()
+            t1data, t1columns, t1rcolors, t1cellColours, t1ccolors, t1rows, t1title = self.get_planning_plot()
+            title = t1title
+            planning_table = plt.table(cellText=data,
                     rowLabels=columns,
                     rowColours=rcolors,
                     cellColours=cellColours,
@@ -343,50 +368,38 @@ class Train():
                     colLabels=rows,
                     loc='center')
 
+        #Formatting container table
+        if container_table is not None:
+            container_table.auto_set_font_size(False)
+            container_table.set_fontsize(10)
+            axs[0].axis('tight')
+            axs[0].axis('off')  
 
-        the_table.set_fontsize(10)
-        the_table.auto_set_font_size(False)
-
-        return the_table, title
-
-
-    #Get plot with unplaced containers table and planning table
-    def get_tableplot(self, unplaced_containers):
-
-        #Create figure and 2 axis to stack to tables
-        fig, axs = plt.subplots(2,1)
-
-        # Create a container table plot with unplaced containers
-        if(len(unplaced_containers) > 0): 
-            containerplot = self.get_container_plot(unplaced_containers, axs)
-        planningplot, title = self.get_planning_plot(axs)
-
-        #the_table.auto_set_column_width(col=rows)
+        #Formatting planning table
+        if planning_table is not None:
+            planning_table.auto_set_font_size(False)
+            planning_table.set_fontsize(10)
+        
+        #Plot layout settings
         plt.subplots_adjust(left=0.1, bottom=0.195, right=0.986, top=0.98)
         plt.axis('off')
-   
-        # Month abbreviation, day and year	
-        currentdate = date.today().strftime("%b-%d-%Y")
-        # Date sring: dd/mm/YY H:M:S
-        dt_string = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-
-        fig = plt.gcf()
         
-        #Create a list of wagons with null values to list as footnote of table
-        unknown_wagonlist = []
-        for wagon in self.wrong_wagons:
-            unknown_wagonlist.append(wagon.wagonID)
+        # If no current figure exists, a new one is created using figure()
+        fig = plt.gcf()
+        # Figure title including date string: dd/mm/YY H:M:S
+        fig.suptitle(title + " on " + datetime.now().strftime("%d/%m/%Y %H:%M:%S"), fontsize=10)
 
-        #train_weight = str(self.get_total_packed_weight())
-        plt.figtext(0.8, 0.01, "Unknown wagons: " + str(unknown_wagonlist),
+        # Display all unknown wagons with null values in the footnote, color: red.
+        plt.figtext(0.8, 0.01, "[WARNING] Missing information for the following wagon(s): " + str(unknown_wagonlist),
             horizontalalignment='right',
-            size=6,
+            size=7,
             weight='bold',
             color='#ff0000'
            )
-
-
-        fig.suptitle(title + " on " + datetime.now().strftime("%d/%m/%Y %H:%M:%S"), fontsize=10)
+        
+        #Save figure as png image
+        # Month abbreviation, day and year	
+        currentdate = date.today().strftime("%b-%d-%Y")
         plt.savefig(title + '-planning-' + currentdate, bbox_inches='tight', dpi=150)
         return plt
         

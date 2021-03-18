@@ -108,7 +108,7 @@ def main(train):
                     for w_j, wagon in enumerate(train.wagons) 
                     if (len(container.get_position()) == 3) and 
                     (container.get_position()[0] <= 52) and 
-                    (container.get_position()[1] <= 7) ) <= 1500)
+                    (container.get_position()[1] <= 7) ) <= int(train.get_max_traveldistance()))
 
     # A train may not surpass a maximum weight, based on the destination of the train.
     model.Add(sum(x[(c_i, w_j)] * container.get_gross_weight() 
