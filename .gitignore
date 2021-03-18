@@ -135,3 +135,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+data/train.json
+CTTROT20210316POL-C-planning-Mar-18-2021.png
+planning.xlsx
+data/train.json

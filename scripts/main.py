@@ -60,8 +60,10 @@ def setup(dataset):
     wagons = []
     containers = []
     wrong_wagons = []
+    all_wagons_including_null = []
 
     for index, wagon in wagondf.iterrows():
+        all_wagons_including_null.append(wagon)
         if pandas.notna(wagon['wagonSizeft']) and pandas.notna(wagon['wagonLength']) and pandas.notna(wagon['wagonPosition']) and pandas.notna(wagon['wagonPayload']) and pandas.notna(wagon['wagonTare']) and pandas.notna(wagon['wagonNoAxes']): 
             wagonID = wagon['wagonID']
             weight_capacity = wagon['wagonPayload']
@@ -92,7 +94,8 @@ def setup(dataset):
         containers.append(containerObj)
     
     wagons = getContainersFromCSV.set_location(wagons, split)
-    train = Train.Train(wagons, containers, wrong_wagons, split, isReversed, max_traveldistance)
+    train = Train.Train(wagons, containers, wrong_wagons, all_wagons_including_null, split, isReversed, max_traveldistance)
+    
 
     for i, container in enumerate(containers):
         print("Container", i, container)
