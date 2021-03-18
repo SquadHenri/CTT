@@ -11,10 +11,16 @@ def setup(dataset):
     containerlist = []
     wagonlist = []
 
-    max_traveldistance = dataset.MAXTRAVELDISTANCE[1]
-    split = dataset.TRAINSPLIT[1]
+    max_traveldistance = 50
+    if dataset.MAXTRAVELDISTANCE[1] is not None:
+        max_traveldistance = dataset.MAXTRAVELDISTANCE[1]
+    
+    split = None 
+    if dataset.TRAINSPLIT[1] is not None:
+        split = dataset.TRAINSPLIT[1]
+
     isReversed = False
-    if dataset.TRAINREVERSED[1] == 1:
+    if dataset.TRAINREVERSED[1] is not None and dataset.TRAINREVERSED[1] == 1:
         isReversed = True
 
     for i, value in enumerate(dataset.WAGON):
