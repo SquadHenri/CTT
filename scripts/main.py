@@ -11,6 +11,7 @@ def setup(dataset):
     containerlist = []
     wagonlist = []
 
+    #Set parameters
     max_traveldistance = 50
     if dataset.MAXTRAVELDISTANCE[1] is not None:
         max_traveldistance = dataset.MAXTRAVELDISTANCE[1]
@@ -55,15 +56,24 @@ def setup(dataset):
     #Creating dataframes from container en wagon lists
     wagondf = pandas.DataFrame(wagonlist, columns =['wagonID', 'wagonType', 'wagonSizeft', 'wagonNoAxes', 'wagonMaxTEU', 'wagonLength', 'wagonPosition', 'wagonPayload', 'wagonCall', 'wagonTare', 'wagonTrack'])
     containerdf = pandas.DataFrame(containerlist, columns =['containerID', 'containerType', 'unNR', 'unKlasse', 'nettWeight', 'terminalWeightNett', 'containerTEU', 'containerPosition', 'containerTarra', 'containerCall'])
+    
+    
+    wagondf = wagondf.sort_values(by='wagonPosition')
+    
+    #Reverse wagons if neccesary
+    if isReversed:
+        
+        wagondf = wagondf[::-1]
+        wagondf = wagondf.reset_index(drop=True)
+        for i, wagon in wagondf.iterrows():
+            wagondf.at[i, 'wagonPosition'] = i+1
 
     # Remove all wagons and containers that contain Null values
     wagons = []
     containers = []
-    wrong_wagons = []
-    all_wagons_including_null = []
+    wrong_wagons = []    
 
     for index, wagon in wagondf.iterrows():
-        all_wagons_including_null.append(wagon)
         if pandas.notna(wagon['wagonSizeft']) and pandas.notna(wagon['wagonLength']) and pandas.notna(wagon['wagonPosition']) and pandas.notna(wagon['wagonPayload']) and pandas.notna(wagon['wagonTare']) and pandas.notna(wagon['wagonNoAxes']): 
             wagonID = wagon['wagonID']
             weight_capacity = wagon['wagonPayload']
@@ -92,10 +102,9 @@ def setup(dataset):
         
         containerObj = Container.Container(containerID, gross_weight, net_weight, foot, position, goods, priority, typeid, hazard_class)
         containers.append(containerObj)
-    
+  
     wagons = getContainersFromCSV.set_location(wagons, split)
-    train = Train.Train(wagons, containers, wrong_wagons, all_wagons_including_null, split, isReversed, max_traveldistance)
-    
+    train = Train.Train(wagons, containers, wrong_wagons, split, isReversed, max_traveldistance)
 
     for i, container in enumerate(containers):
         print("Container", i, container)

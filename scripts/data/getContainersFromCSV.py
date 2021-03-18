@@ -201,14 +201,14 @@ def calculate_distances(containers, wagons):
 # Sets the location of the wagon takes a list of all the containers in the train
 def set_location(wagons, split):
 
-    # sort the wagon list on position
-    l = len(wagons)
-    for i in range(0, l): 
-        for j in range(0, l-i-1): 
-            if (wagons[j].position > wagons[j + 1].position): 
-                tempo = wagons[j] 
-                wagons[j]= wagons[j + 1] 
-                wagons[j + 1]= tempo 
+    # # sort the wagon list on position
+    # l = len(wagons)
+    # for i in range(0, l): 
+    #     for j in range(0, l-i-1): 
+    #         if (wagons[j].position > wagons[j + 1].position): 
+    #             tempo = wagons[j] 
+    #             wagons[j]= wagons[j + 1] 
+    #             wagons[j + 1]= tempo 
             
     xlen = 0
     y_val = 0
