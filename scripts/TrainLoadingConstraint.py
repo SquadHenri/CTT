@@ -28,8 +28,9 @@ def main(train):
         print("Container ", i, "Must be loaded")
         priority_list.append(i)
     
-    # Make every sixth container hazardous
-    for i in range(0, len(containers), 10):
+    # Make every nth container hazardous
+    n = 5
+    for i in range(0, len(containers), n):
         print("Container ", i, "is hazardous")
         containers[i].set_hazard_class(1)
 
@@ -119,7 +120,37 @@ def main(train):
                     for c_i, container in enumerate(containers) 
                     for w_j, wagon in enumerate(train.wagons)) <= train.maxWeight)
 
+    # The distance between two hazardous containers should be at least one wagon
+    for c_i, container_i in enumerate(containers):
+        for c_ii, container_ii in enumerate(containers):
+            if(c_i == c_ii):
+                continue
+            if(not container_i.get_hazard_class() > 0 or not container_ii.get_hazard_class() > 0):
+                continue
 
+            # Let OR-tools determine this value
+            # The constraints force OR tools to choose the right value
+            direction = model.NewBoolVar('direction_to_enforce')
+
+            # TODO: remove position and position_2, this 
+            # makes the code more messy, but probably faster for long solves
+            # TODO: if there are too many hazardous goods, then the solver can't find the solution
+            # So add a check somewhere to see if it is possible to uphold this constraint
+            position = model.NewIntVar(0, 40, 'position_%i' % c_i)
+            position_2 = model.NewIntVar(0, 40, 'position_%i' % c_ii)
+            model.Add(
+                position == sum(x[c_i, w_j] * int(wagon.get_position()) for w_j, wagon in enumerate(train.wagons))
+                )
+            model.Add(
+                position_2 == sum(x[c_ii, w_j] * int(wagon.get_position()) for w_j, wagon in enumerate(train.wagons))
+                )
+            model.Add(
+                position >= 2 + position_2
+                ).OnlyEnforceIf(direction)
+            model.Add(
+                position  <= -2 + position_2
+            ).OnlyEnforceIf(direction.Not())
+    
     """
                 OBJECTIVE
     """
@@ -246,7 +277,7 @@ def main(train):
 
         # print(solver.ResponseStats())
     elif status == cp_model.FEASIBLE:
-        print('hoi')
+        print('hoi, status == cp_model.FEASIBLE')
     else:
         print("Solution Not found. Stats: ", solver.ResponseStats())
     
