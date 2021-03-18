@@ -164,7 +164,7 @@ class Wagon():
                 axle_3 = total_load / 2 - right_axle1_load
             return [axle_1 / 2, right_axle_load / 2, axle_3 / 2, right_axle1_load / 2], total_load
         else:
-            print('the 4 bogies wagons have not been configured yet')
+            print('this is a very weird wagon')
             return []
 
     def container_load(self, weight, dist, axledist):
