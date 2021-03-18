@@ -140,14 +140,14 @@ class Wagon():
             left_axle_load = right_axle_load = self.wagon_weight / 3
             # Adding the weight of the containers
             for container in containerList: # splitting the train to calculate load on different parts
-                if container[1] < self.length_capacity / 2:
+                if container[1] < (self.length_capacity / 2):
                     dist = middle - container[1] * 0.3048
                     left_axle_load += self.container_load(container[0].gross_weight, dist, dictionairy[key][3])
                 else:
                     dist = container[1] * 0.3048 - middle
                     right_axle_load += self.container_load(container[0].gross_weight, dist, dictionairy[key][3])
                 middle_axle_load = total_load - right_axle_load - left_axle_load
-                return [left_axle_load, middle_axle_load, right_axle_load], total_load
+            return [left_axle_load / 2, middle_axle_load / 2, right_axle_load / 2], total_load
         elif self.number_of_axles == 8:
             # define middle
             middle = dictionairy[key][2] + dictionairy[key][3]
@@ -162,7 +162,7 @@ class Wagon():
                     right_axle1_load += self.container_load(container[0].gross_weight, dist, dictionairy[key][3])
                 axle_1 = total_load / 2 - right_axle_load
                 axle_3 = total_load / 2 - right_axle1_load
-                return [axle_1, right_axle_load, axle_3, right_axle1_load], total_load
+            return [axle_1 / 2, right_axle_load / 2, axle_3 / 2, right_axle1_load / 2], total_load
         else:
             print('the 4 bogies wagons have not been configured yet')
             return []
@@ -173,38 +173,38 @@ class Wagon():
         
     # Returns True for the first acceptable axle load found
     # If an acceptable axle load is found, it will reorder self.containers to reflect that
-    def c_has_acceptable_axle_load(self, x, w_j, containers):
+    # def c_has_acceptable_axle_load(self, x, w_j, containers):
 
-        # Get all containers on wagon and the length they occupy
-        containers_on_wagon = []
-        total_length_containers = 0
-        for c_i, container in enumerate(containers):
-            if(x[c_i, w_j] == 1):
-                containers_on_wagon.append(container)
-                total_length_containers += container.get_length()
+    #     # Get all containers on wagon and the length they occupy
+    #     containers_on_wagon = []
+    #     total_length_containers = 0
+    #     for c_i, container in enumerate(containers):
+    #         if(x[c_i, w_j] == 1):
+    #             containers_on_wagon.append(container)
+    #             total_length_containers += container.get_length()
 
-        if(self.get_length_capacity() > total_length_containers):
+    #     if(self.get_length_capacity() > total_length_containers):
 
-            # a container with all blank values except the leftover length
-            container = Container.Container(0, 0, 0, self.get_length_capacity() - total_length_containers, 0,0,0,0)
-            containers_on_wagon.append(container)       
+    #         # a container with all blank values except the leftover length
+    #         container = Container.Container(0, 0, 0, self.get_length_capacity() - total_length_containers, 0,0,0,0)
+    #         containers_on_wagon.append(container)       
 
-        for combination in it.permutations(containers_on_wagon):
-            axle_load = self.get_axle_load(combination)
+    #     for combination in it.permutations(containers_on_wagon):
+    #         axle_load = self.get_axle_load(combination)
             
-            if(not bool(axle_load)):
-                continue
+    #         if(not bool(axle_load)):
+    #             continue
 
             
-            if max(axle_load) < 220000000:
-                return True
+    #         if max(axle_load) < 220000000:
+    #             return True
 
-            # Is axle load fine?
-            # If axle load fine:
-                # return true
+    #         # Is axle load fine?
+    #         # If axle load fine:
+    #             # return true
 
-        # Return False if no correct axle load if found
-        return False
+    #     # Return False if no correct axle load if found
+    #     return False
 
     # Sets the optimal axle load by reordering self.containers
     # Returns False if it does not find one. Which should not happen if
@@ -226,8 +226,8 @@ class Wagon():
         if self.length_capacity - occupied_length > 0:
             empty_length = self.length_capacity - occupied_length
             dummy_length = math.floor(empty_length/2)
-            dummy_container1 = Container.Container("DUMMY1", 1, 1, dummy_length, None, None, None, None)
-            dummy_container2 = Container.Container("DUMMY2", 1, 1, dummy_length, None, None, None, None)
+            dummy_container1 = Container.Container("Empty Space 1", 0, -1, dummy_length, None, None, None, None, None)
+            dummy_container2 = Container.Container("Empty Space 2", 0, -1, dummy_length, None, None, None, None, None)
             container_copy.append(dummy_container1)
             container_copy.append(dummy_container2)
 
@@ -240,15 +240,15 @@ class Wagon():
                 axle_best_found_permutation = container_list
                 axle_load_score = max(axle_load)
 
-        # print("Wagon:", self.wagonID, "Axle Load:", axle_load_score)
+        print("Wagon:", self.wagonID, "Axle Load:", axle_load_score)
         # print("Axle load list: ", self.get_axle_load(axle_best_found_permutation))
 
         if axle_load_score < 22500:
 
             # If dummy_container1 is in there, dummy_container2 is also there
-            if dummy_container1 in axle_best_found_permutation:
-                axle_best_found_permutation.remove(dummy_container1)
-                axle_best_found_permutation.remove(dummy_container2)
+            # if dummy_container1 in axle_best_found_permutation:
+            #     axle_best_found_permutation.remove(dummy_container1)
+            #     axle_best_found_permutation.remove(dummy_container2)
                 
 
             self.containers = axle_best_found_permutation
@@ -265,7 +265,8 @@ class Wagon():
     def wagon_length_load(self):
         load = 0
         for container in self.containers:
-            load += container.get_length()
+            if container.get_gross_weight() != 0:
+                load += container.get_length()
         return load
 
     # UNUSED/UNFINISHED CONSTRAINTS
