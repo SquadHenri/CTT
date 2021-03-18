@@ -12,14 +12,19 @@ class Train():
 
     
     # wagons should be a list of wagons
-    def __init__(self, wagons, containers, wrong_wagons, split, isReversed, max_traveldistance):
+    def __init__(self, wagons, containers, wrong_wagons, all_wagons_including_null, split, isReversed, max_traveldistance):
         self.wagons = wagons # This is the list of all the wagons on the train
         self.wrong_wagons = wrong_wagons
         self.maxWeight = 100000000000
         self.containers = containers
         self.split = split
-        self.isReversed = isReversed
+        self.all_wagons_including_null = all_wagons_including_null
         self.max_traveldistance = max_traveldistance
+        self.isReversed = isReversed
+        if isReversed:
+            self.reverse_wagons()
+
+        
     
 
     # Create some wagons, to use for testing
@@ -92,6 +97,14 @@ class Train():
                 data.append(wagon_dict)
         df = pd.DataFrame(data)
         df.to_excel("planning.xlsx")
+    
+    # Reverse wagons if train is arrived with reversed wagonset
+    def reverse_wagons(self):
+        if self.isReversed:
+            self.wagons.reverse()
+        if len(self.wrong_wagons) == 0:
+            for i, wagon in enumerate(self.wagons):
+                wagon.position = i + 1
     
     def get_containers_for_call(self):
         return self.containers
@@ -387,7 +400,10 @@ class Train():
         # If no current figure exists, a new one is created using figure()
         fig = plt.gcf()
         # Figure title including date string: dd/mm/YY H:M:S
-        fig.suptitle(title + " on " + datetime.now().strftime("%d/%m/%Y %H:%M:%S"), fontsize=10)
+        fig.suptitle(title + " on " + datetime.now().strftime("%d/%m/%Y %H:%M:%S" 
+        + " Reversed:" + str(self.isReversed) 
+        + " Split:" + str(self.split) 
+        + " MaxTravel:" + str(self.max_traveldistance) ), fontsize=10)
 
         # Display all unknown wagons with null values in the footnote, color: red.
         plt.figtext(0.8, 0.01, "[WARNING] Missing information for the following wagon(s): " + str(unknown_wagonlist),
