@@ -15,7 +15,7 @@ class Train():
     def __init__(self, wagons, containers, wrong_wagons, split, isReversed, max_traveldistance):
         self.wagons = wagons # This is the list of all the wagons on the train
         self.wrong_wagons = wrong_wagons
-        self.maxWeight = 500000
+        self.maxWeight = 100000000000
         self.containers = containers
         self.split = split
         self.isReversed = isReversed
@@ -261,12 +261,12 @@ class Train():
                 cellColours.append(cellRowColour) 
                 continue
 
-            wagon_weight = 0
-            wagon_length = 0
+            wagon_weight = wagon.wagon_weight_load()
+            wagon_length = wagon.wagon_length_load()
             # Place all containers in the cells
             for i, container in enumerate(wagon.containers):
-                wagon_weight += container.get_gross_weight()
-                wagon_length += container.get_length()
+                #wagon_weight += container.get_gross_weight()
+                #wagon_length += container.get_length()
                 datarow[i] = container.containerID + " (" + str(container.get_length() / 20) + ")"
                 # orange #ff6153
                 # dark green #498499

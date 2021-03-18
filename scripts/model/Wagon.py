@@ -226,8 +226,8 @@ class Wagon():
         if self.length_capacity - occupied_length > 0:
             empty_length = self.length_capacity - occupied_length
             dummy_length = math.floor(empty_length/2)
-            dummy_container1 = Container.Container("Empty Space 1", 1, 1, dummy_length, None, None, None, None, None)
-            dummy_container2 = Container.Container("Empty Space 2", 1, 1, dummy_length, None, None, None, None, None)
+            dummy_container1 = Container.Container("Empty Space 1", 0, -1, dummy_length, None, None, None, None, None)
+            dummy_container2 = Container.Container("Empty Space 2", 0, -1, dummy_length, None, None, None, None, None)
             container_copy.append(dummy_container1)
             container_copy.append(dummy_container2)
 
@@ -265,7 +265,8 @@ class Wagon():
     def wagon_length_load(self):
         load = 0
         for container in self.containers:
-            load += container.get_length()
+            if container.get_gross_weight() != 0:
+                load += container.get_length()
         return load
 
     # UNUSED/UNFINISHED CONSTRAINTS
