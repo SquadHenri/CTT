@@ -91,7 +91,7 @@ def setup(dataset):
         containerObj = Container.Container(containerID, gross_weight, net_weight, foot, position, goods, priority, typeid, hazard_class)
         containers.append(containerObj)
     
-    wagons = getContainersFromCSV.set_location(wagons)
+    wagons = getContainersFromCSV.set_location(wagons, split)
     train = Train.Train(wagons, containers, wrong_wagons, split, isReversed, max_traveldistance)
 
     for i, container in enumerate(containers):

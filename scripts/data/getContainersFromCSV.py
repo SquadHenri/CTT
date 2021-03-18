@@ -199,7 +199,7 @@ def calculate_distances(containers, wagons):
 #print(calculate_distances(containers_data, wagons_data))
 
 # Sets the location of the wagon takes a list of all the containers in the train
-def set_location(wagons):
+def set_location(wagons, split):
 
     # sort the wagon list on position
     l = len(wagons)
@@ -218,16 +218,29 @@ def set_location(wagons):
         raise TypeError("No wagons")
 
     for wagon in wagons:
+        if split != None:
 
-        if (xlen + wagon.total_length) < 320:
-            wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6.1), y_val]
-            xlen += wagon.total_length
+            if wagon.position < split:
+                wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6.1), y_val]
+                xlen += wagon.total_length
+            
+            else:
+                xlen = 0
+                split = 100
+                y_val = -1
+                wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6.1), y_val]
+                xlen += wagon.total_length
 
         else:
-            xlen = 0
-            y_val = -1
-            wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6/1), y_val]
-            xlen += wagon.total_length
+            if (xlen + wagon.total_length) < 320:
+                wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6.1), y_val]
+                xlen += wagon.total_length
+
+            else:
+                xlen = 0
+                y_val = -1
+                wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6.1), y_val]
+                xlen += wagon.total_length
 
         result.append(wagon)
 # See where the last wagon in located to calculate the shift the 2nd row of wagons hast to make
