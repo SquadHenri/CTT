@@ -6,7 +6,7 @@ from data import getContainersFromCSV
 
 import pandas
 
-dataset = pandas.read_csv('data\input_with_parameters.csv')
+dataset = pandas.read_csv('data\input_cttrot202110323pol.csv')
 
 def setup(dataset):
     containerlist = []
@@ -97,7 +97,7 @@ def setup(dataset):
         containerID = container['containerID']
         gross_weight = int(container['nettWeight']) + int(container['containerTarra'])
         net_weight = container['nettWeight']
-        foot = 20 * int(container['containerTEU'])
+        foot = int(container['containerTEU'] * 20)
         position = str(container['containerPosition'])
         goods = container['unKlasse']
         priority = 1

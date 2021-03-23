@@ -25,9 +25,10 @@ def main(train, objective_value_limit = None):
     priority_list = []
 
     # Set some random containers to be in the priority list.
-    for i in range(0, len(containers), 10):
-        priority_list.append(i)
-    print("These containers are in the priority list:", priority_list)
+    if testing:
+        for i in range(0, len(containers), 10):
+            priority_list.append(i)
+        ("These containers are in the priority list:", priority_list)
     
     # Make every nth container hazardous
     if testing:

@@ -227,7 +227,7 @@ class Train():
 
             #Give value to the table cells
             for i, container in enumerate(containers):
-                datarow[i] = 'ID: ' + str(container.get_containerID()) + ' | Type: ' + str(container.get_type()) +  ' | Position: ' + str(container.get_position()) + ' | Gross (kg): ' + str(container.get_gross_weight()) 
+                datarow[i] = 'ID: ' + str(container.get_containerID()) + ' | Type: ' + str(container.get_type()) +  ' | Position: ' + str(container.get_position()) + ' | Gross (kg): ' + str(container.get_gross_weight()) + ' | Container Lenght: ' + str(container.get_length()) 
                 if container.hazard_class == 1 or container.hazard_class == 2 or container.hazard_class == 3:
                     cellRowColour[i] = '#11aae1'
 
@@ -431,7 +431,7 @@ class Train():
                 color='#ff0000'
             )
         else:
-            plt.figtext(0.8, 0.01, "The train is split between wagon " + str(self.split) + " and wagon " + str(int(self.split) + 1) + '.',
+            plt.figtext(0.8, 0.01, "The train is split between wagon " + str(int(self.split) - 1) + " and wagon " + str(int(self.split)) + '.',
                 horizontalalignment='right',
                 size=7,
                 weight='light',
