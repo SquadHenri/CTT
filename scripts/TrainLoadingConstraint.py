@@ -17,7 +17,7 @@ import functions
 
 
 def main(train):
-    testing = True
+    testing = False
     start = timer()
     containers = train.get_containers_for_call()
     # Define the cp model
@@ -25,9 +25,10 @@ def main(train):
     priority_list = []
 
     # Set some random containers to be in the priority list.
-    for i in range(0, len(containers), 10):
-        print("Container ", i, "Must be loaded")
-        priority_list.append(i)
+    if testing:
+        for i in range(0, len(containers), 10):
+            print("Container ", i, "Must be loaded")
+            priority_list.append(i)
     
     # Make every nth container hazardous
     if testing:
