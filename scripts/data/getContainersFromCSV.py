@@ -223,7 +223,8 @@ def set_location(wagons, split):
             if wagon.position < split:
                 wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6.1), y_val]
                 xlen += wagon.total_length
-                splitshift = wagon
+                if wagon.location[1] == 0:
+                    splitshift = wagon
             
             else:
                 xlen = 0
@@ -245,6 +246,7 @@ def set_location(wagons, split):
 
         result.append(wagon)
 # See where the last wagon in located to calculate the shift the 2nd row of wagons hast to make
+
     shift_wagon = splitshift
     shift_wagon_xloc = shift_wagon.location[0]
     shift_wagon_length = shift_wagon.total_length

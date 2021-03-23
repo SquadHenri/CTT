@@ -17,7 +17,7 @@ import functions
 
 
 def main(train):
-    testing = True
+    testing = False
     start = timer()
     containers = train.get_containers_for_call()
     # Define the cp model
@@ -25,9 +25,10 @@ def main(train):
     priority_list = []
 
     # Set some random containers to be in the priority list.
-    for i in range(0, len(containers), 10):
-        print("Container ", i, "Must be loaded")
-        priority_list.append(i)
+    if testing:
+        for i in range(0, len(containers), 10):
+            print("Container ", i, "Must be loaded")
+            priority_list.append(i)
     
     # Make every nth container hazardous
     if testing:
@@ -35,6 +36,9 @@ def main(train):
         for i in range(0, len(containers), n):
             print("Container ", i, "is hazardous")
             containers[i].set_hazard_class(1)
+    
+    for c in containers:
+        print(c.containerID, c.hazard_class)
 
     
 
@@ -109,13 +113,23 @@ def main(train):
                     int(wagon.get_length_capacity())
             )
 
+    print("amount of containers on terminal with right coordinates")
+    print(len([container for container in train.containers 
+                        if (len(container.get_position()) == 3) and 
+                        (container.get_position()[0] <= 52) and 
+                        (container.get_position()[1] <= 7)]))
+
     #Travel distance constraint for total distance.
     model.Add(sum(x[(c_i, w_j)] * int(functions.getTravelDistance(container.get_position(), wagon.get_location()))
                     for c_i, container in enumerate(containers) 
                     for w_j, wagon in enumerate(train.wagons) 
                     if (len(container.get_position()) == 3) and 
                     (container.get_position()[0] <= 52) and 
-                    (container.get_position()[1] <= 7) ) <= int(train.get_max_traveldistance()))
+                    (container.get_position()[1] <= 7) ) <= int(train.get_max_traveldistance()) * 
+                        len([container for container in train.containers 
+                        if (len(container.get_position()) == 3) and 
+                        (container.get_position()[0] <= 52) and 
+                        (container.get_position()[1] <= 7)]))
 
     # A train may not surpass a maximum weight, based on the destination of the train.
     model.Add(sum(x[(c_i, w_j)] * container.get_gross_weight() 
@@ -207,9 +221,9 @@ def main(train):
                 for w_j, _ in enumerate(train.wagons)
             )
         )  
-    #model.Maximize(objective_weight)
+    model.Maximize(objective_weight)
 
-    model.Maximize(objective_length)
+    #model.Maximize(objective_length)
 
     """"
                 Solving & Printing Solution
