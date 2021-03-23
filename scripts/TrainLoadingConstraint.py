@@ -109,13 +109,23 @@ def main(train, objective_value_limit = None):
                     int(wagon.get_length_capacity())
             )
 
+    print("amount of containers on terminal with right coordinates")
+    print(len([container for container in train.containers 
+                        if (len(container.get_position()) == 3) and 
+                        (container.get_position()[0] <= 52) and 
+                        (container.get_position()[1] <= 7)]))
+
     #Travel distance constraint for total distance.
     model.Add(sum(x[(c_i, w_j)] * int(functions.getTravelDistance(container.get_position(), wagon.get_location()))
                     for c_i, container in enumerate(containers) 
                     for w_j, wagon in enumerate(train.wagons) 
                     if (len(container.get_position()) == 3) and 
                     (container.get_position()[0] <= 52) and 
-                    (container.get_position()[1] <= 7) ) <= int(train.get_max_traveldistance()))
+                    (container.get_position()[1] <= 7) ) <= int(train.get_max_traveldistance()) * 
+                        len([container for container in train.containers 
+                        if (len(container.get_position()) == 3) and 
+                        (container.get_position()[0] <= 52) and 
+                        (container.get_position()[1] <= 7)]))
 
     # A train may not surpass a maximum weight, based on the destination of the train.
     model.Add(sum(x[(c_i, w_j)] * container.get_gross_weight() 
@@ -255,7 +265,7 @@ def main(train, objective_value_limit = None):
                 for w_j, _ in enumerate(train.wagons)
             )
         )  
-    #model.Maximize(objective_weight)
+    model.Maximize(objective_weight)
 
     # Add objective_value_limit if is is defined
     if(objective_value_limit):

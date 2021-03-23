@@ -300,7 +300,7 @@ class Train():
                 datarow[i] = container.containerID + " (" + str(container.get_length() / 20) + ")"
                 # orange #ff6153
                 # dark green #498499
-                if container.hazard_class == 1 or container.hazard_class == 2 or container.hazard_class == 3:
+                if str(container.hazard_class).startswith("1") or str(container.hazard_class).startswith("2") or str(container.hazard_class).startswith("3"):
                     cellRowColour[i] = '#11aae1'
 
             # Calculate the packed weight and length of a wagon.
