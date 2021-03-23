@@ -134,6 +134,8 @@ if __name__ == '__main__':
     train.to_JSON(callcode=train.wagons[1].call, weight=train.get_total_packed_weight(), length=train.get_total_packed_length(), distance=train.get_total_travel_distance(), amount=len(placed_containers), wagons=[])
     train.to_CSV(train.get_total_packed_weight(), train.get_total_packed_length())
     
+    train.print_solution()
+
     trainplanning_plot = train.get_tableplot([container for container in train.get_containers_for_call() if(container not in placed_containers)])
     trainplanning_plot.show()
 

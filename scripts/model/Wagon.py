@@ -84,7 +84,7 @@ class Wagon():
             packed_length += container.get_length()
             packed_weight += container.get_gross_weight()
             travel_distance = 0
-            if (len(container.get_position()) == 3) and (container.get_position()[0] <= 52) and (container.get_position()[1] <= 7):
+            if (container.get_position() == 3) and (container.get_position()[0] <= 52) and (container.get_position()[1] <= 7):
                             travel_distance += functions.getTravelDistance(container.get_position(), self.get_location())
         return packed_length, packed_weight, travel_distance
 
