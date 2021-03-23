@@ -226,8 +226,8 @@ class Wagon():
         if self.length_capacity - occupied_length > 0:
             empty_length = self.length_capacity - occupied_length
             dummy_length = math.floor(empty_length/2)
-            dummy_container1 = Container.Container("Empty Space 1", 0, -1, dummy_length, None, None, None, None, None)
-            dummy_container2 = Container.Container("Empty Space 2", 0, -1, dummy_length, None, None, None, None, None)
+            dummy_container1 = Container.Container("", 0, -1, dummy_length, None, None, None, None, None)
+            dummy_container2 = Container.Container("", 0, -1, dummy_length, None, None, None, None, None)
             container_copy.append(dummy_container1)
             container_copy.append(dummy_container2)
 
