@@ -157,6 +157,20 @@ def main(train):
             model.Add(
                 position  <= -2 + position_2
             ).OnlyEnforceIf(direction.Not())
+
+    # Bogie in middle of wagon constraint
+    for w_j, wagon in enumerate(train.wagons):
+        if wagon.number_of_axles > 4:
+            # get the number of 30ft containers on the wagon
+            number_of_30ft = model.NewIntVar(0, 2, 'wagon_%i' % w_j)
+
+            model.Add(number_of_30ft == sum(x[c_i, w_j] for c_i, container in enumerate(containers) if container.get_length() == 30))
+
+            #model.Add(sum(x[c_i, w_j] for c_i, container in enumerate(containers) if container.get_length() == 30))
+            
+            # for c_i, container in enumerate(containers):
+            #     model.Add(x[c_i, w_j] * container.get_length() <= int((wagon.get_length_capacity() / 2)))
+            #model.Add(sum(x[c_i, w_j] * container.get_length() for c_i, container in enumerate(containers)))
     
     """
                 OBJECTIVE
