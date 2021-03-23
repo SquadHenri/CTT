@@ -128,6 +128,12 @@ def main(train):
             if(not container_i.get_hazard_class() > 0 or not container_ii.get_hazard_class() > 0):
                 continue
 
+            if(not container_i.get_hazard_class() <= 3 or not container_ii.get_hazard_class() <= 3):
+                continue
+
+            if (container_i.get_hazard_class() == container_ii.get_hazard_class()):
+                continue
+
             # Let OR-tools determine this value
             # The constraints force OR tools to choose the right value
             direction = model.NewBoolVar('direction_to_enforce')
