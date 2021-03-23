@@ -115,11 +115,14 @@ class Wagon():
         total_load = self.wagon_weight
         # Refining the list of containers so it contains the container and the mean of the slots it stands on ordered from left to right (not that that stil matters).
         fillrate = 0
+        hinge_splittable = False
         containerList = []
         for container in containers:
             containerList.append([container, container.get_length() / 2 + fillrate])
             fillrate += container.get_length()
             total_load += container.get_gross_weight()
+            if fillrate == (self.length_capacity / 2):
+                hinge_splittable = True
         key = str(self.length_capacity).split('.')[0] + str(self.number_of_axles).split('.')[0]
         dictionairy = get_wagons("data/Wagons.csv")
         # Starting with all the Wagons that have 2 bogies and so have 4 axles
@@ -135,34 +138,40 @@ class Wagon():
             return [left_axle_load / 2, right_axle_load / 2], total_load
         # Setting The right numbers for the wagons with 3 bogies
         elif self.number_of_axles == 6:
-            middle = dictionairy[key][2] + dictionairy[key][3]
-            # Setting the basic load on the axles to add the containers later, given the load is equal on all bogies
-            left_axle_load = right_axle_load = self.wagon_weight / 3
-            # Adding the weight of the containers
-            for container in containerList: # splitting the train to calculate load on different parts
-                if container[1] < (self.length_capacity / 2):
-                    dist = middle - container[1] * 0.3048
-                    left_axle_load += self.container_load(container[0].gross_weight, dist, dictionairy[key][3])
-                else:
-                    dist = container[1] * 0.3048 - middle
-                    right_axle_load += self.container_load(container[0].gross_weight, dist, dictionairy[key][3])
-                middle_axle_load = total_load - right_axle_load - left_axle_load
-            return [left_axle_load / 2, middle_axle_load / 2, right_axle_load / 2], total_load
+            if hinge_splittable:
+                middle = dictionairy[key][2] + dictionairy[key][3]
+                # Setting the basic load on the axles to add the containers later, given the load is equal on all bogies
+                left_axle_load = right_axle_load = self.wagon_weight / 3
+                # Adding the weight of the containers
+                for container in containerList: # splitting the train to calculate load on different parts
+                    if container[1] < (self.length_capacity / 2):
+                        dist = middle - container[1] * 0.3048
+                        left_axle_load += self.container_load(container[0].gross_weight, dist, dictionairy[key][3])
+                    else:
+                        dist = container[1] * 0.3048 - middle
+                        right_axle_load += self.container_load(container[0].gross_weight, dist, dictionairy[key][3])
+                    middle_axle_load = total_load - right_axle_load - left_axle_load
+                return [left_axle_load / 2, middle_axle_load / 2, right_axle_load / 2], total_load
+            else:
+                return [200000, 200000, 200000], 0
         elif self.number_of_axles == 8:
-            # define middle
-            middle = dictionairy[key][2] + dictionairy[key][3]
-            # setting the basic load over the axles (assumption: all load is devided equally)
-            right_axle_load = right_axle1_load = self.wagon_weight / 4
-            for container in containerList: # splitting front and back to find relative load
-                if container[1] < self.length_capacity / 2:
-                    dist = container[1] * 0.3048 - dictionairy[key][2]
-                    right_axle_load += self.container_load(container[0].gross_weight, dist, dictionairy[key][3])
-                else:
-                    dist = container[1] * 0.3048 - (dictionairy[key][2] + middle)
-                    right_axle1_load += self.container_load(container[0].gross_weight, dist, dictionairy[key][3])
-                axle_1 = total_load / 2 - right_axle_load
-                axle_3 = total_load / 2 - right_axle1_load
-            return [axle_1 / 2, right_axle_load / 2, axle_3 / 2, right_axle1_load / 2], total_load
+            if hinge_splittable:
+                # define middle
+                middle = dictionairy[key][2] + dictionairy[key][3]
+                # setting the basic load over the axles (assumption: all load is devided equally)
+                right_axle_load = right_axle1_load = self.wagon_weight / 4
+                for container in containerList: # splitting front and back to find relative load
+                    if container[1] < self.length_capacity / 2:
+                        dist = container[1] * 0.3048 - dictionairy[key][2]
+                        right_axle_load += self.container_load(container[0].gross_weight, dist, dictionairy[key][3])
+                    else:
+                        dist = container[1] * 0.3048 - (dictionairy[key][2] + middle)
+                        right_axle1_load += self.container_load(container[0].gross_weight, dist, dictionairy[key][3])
+                    axle_1 = total_load / 2 - right_axle_load
+                    axle_3 = total_load / 2 - right_axle1_load
+                return [axle_1 / 2, right_axle_load / 2, axle_3 / 2, right_axle1_load / 2], total_load
+            else:
+                return [200000, 200000, 200000], 0
         else:
             print('this is a very weird wagon')
             return []
@@ -226,8 +235,8 @@ class Wagon():
         if self.length_capacity - occupied_length > 0:
             empty_length = self.length_capacity - occupied_length
             dummy_length = math.floor(empty_length/2)
-            dummy_container1 = Container.Container("Empty Space 1", 0, -1, dummy_length, None, None, None, None, None)
-            dummy_container2 = Container.Container("Empty Space 2", 0, -1, dummy_length, None, None, None, None, None)
+            dummy_container1 = Container.Container("", 0, -1, dummy_length, None, None, None, None, None)
+            dummy_container2 = Container.Container("", 0, -1, dummy_length, None, None, None, None, None)
             container_copy.append(dummy_container1)
             container_copy.append(dummy_container2)
 
