@@ -227,12 +227,14 @@ class Wagon():
 
         for i, container_list in enumerate(it.permutations(container_copy)):
             axle_load, _ = self.get_axle_load(container_list)
-            #print(self.get_axle_load(combination))
+            print(self.get_axle_load(combination))
             container_list = list(container_list)
             # Get score and update best_found if better
             if(max(axle_load) < axle_load_score):
                 axle_best_found_permutation = container_list
                 axle_load_score = max(axle_load)
+
+        # print("Wagon:", self.wagonID, "Axle Load:", axle_load_score)
 
         if axle_load_score < 22500:
 
