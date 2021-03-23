@@ -76,6 +76,9 @@ def main(train, objective_value_limit = None):
             model.Add(
                 sum(x[(c_i, w_j)] for w_j, _ in enumerate(train.wagons)) <= 1
                 )
+     # All containers in the priority list need to be loaded on the train, no matter what.
+    for c_i in priority_list:
+        model.Add(sum(x[(c_i,w_j)] for w_j, _ in enumerate(train.wagons)) == 1)
 
     # Each wagon has at least one container
     # Only enforce if there are enough containers
@@ -86,10 +89,6 @@ def main(train, objective_value_limit = None):
         model.Add(
             sum(x[(c_i, w_j)] for c_i, _ in enumerate(containers)) >= 1 # Each wagon has at least one container
         ).OnlyEnforceIf(spreadContainers)
-
-    # All containers in the priority list need to be loaded on the train, no matter what.
-    for c_i in priority_list:
-        model.Add(sum(x[(c_i,w_j)] for w_j, _ in enumerate(train.wagons)) == 1)
 
     # The amount packed in each wagon cannot exceed its weight capacity.
     for w_j, wagon in enumerate(train.wagons):
@@ -158,6 +157,20 @@ def main(train, objective_value_limit = None):
             model.Add(
                 position  <= -2 + position_2
             ).OnlyEnforceIf(direction.Not())
+
+    # Bogie in middle of wagon constraint
+    for w_j, wagon in enumerate(train.wagons):
+        if wagon.number_of_axles > 4:
+            # get the number of 30ft containers on the wagon
+            number_of_30ft = model.NewIntVar(0, 2, 'wagon_%i' % w_j)
+
+            model.Add(number_of_30ft == sum(x[c_i, w_j] for c_i, container in enumerate(containers) if container.get_length() == 30))
+
+            #model.Add(sum(x[c_i, w_j] for c_i, container in enumerate(containers) if container.get_length() == 30))
+            
+            # for c_i, container in enumerate(containers):
+            #     model.Add(x[c_i, w_j] * container.get_length() <= int((wagon.get_length_capacity() / 2)))
+            #model.Add(sum(x[c_i, w_j] * container.get_length() for c_i, container in enumerate(containers)))
     
 
     # Axle load constraint
