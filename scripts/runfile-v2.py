@@ -6,7 +6,6 @@ import math
 import tkinter as tk
 import pandas as pd
 from tkinter import filedialog
-from functions import getTravelDistance
 from model.Wagon import Wagon
 from model.Train import Train
 from model.Container import Container
@@ -156,7 +155,7 @@ def calculate_distances_1(containers, wagons):
             dist_list = []
             for wagon in wagons:
                 w_location = wagon.get_location()
-                dist_list.append((wagon.wagonID, getTravelDistance(c_location, w_location)))
+                dist_list.append((wagon.wagonID, Container.getTravelDistance(c_location, w_location)))
             distances[container.get_containerID()] = min(dist_list, key= lambda t: t[1])
             #distances[container.get_containerID()] = dist_list
         else:
@@ -1250,7 +1249,7 @@ import functions
 
 def main(train):
     start = timer()
-    containers = train.get_containers_for_call()
+    containers = train.get_containers()
     # Define the cp model
     model = cp_model.CpModel()
     priority_list = []

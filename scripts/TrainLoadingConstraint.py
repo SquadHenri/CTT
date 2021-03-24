@@ -9,17 +9,18 @@ import pandas as pd
 import numpy as np
 # Our files
 from colors import Color
-from model import *
+from model.Container import Container
+from model.Train import Train
+from model.Wagon import Wagon
 from data import getContainersFromCSV
-import functions
 
 
 
 
 def main(train, objective_value_limit = None):
-    testing = True
+    testing = False
     start = timer()
-    containers = train.get_containers_for_call()
+    containers = train.get_containers()
     # Define the cp model
     model = cp_model.CpModel()
     priority_list = []
@@ -43,6 +44,8 @@ def main(train, objective_value_limit = None):
                 VARIABLES
     """
 
+    #region variables
+
     # x[c_i, w_j] = 1 if container c_i is packed in wagon w_j
     x = {}
     for c_i, _ in enumerate(containers):    
@@ -52,6 +55,12 @@ def main(train, objective_value_limit = None):
     # This value of this is: spreadContainers == (len(containers) > len(train.wagons))
     # This is added as a constraint
     spreadContainers = model.NewBoolVar('spreadContainers')
+
+    container_positions = {}
+    for c_i, _ in enumerate(containers):
+        # Assume maximum number of positions is 5
+        # Might need to calculate/change this depending on the wagon
+        container_positions[c_i] = model.NewIntVar(0, 5, 'container_pos(c_i:%i)' % c_i)
 
     # y = {}
     # for w_j, wagon in enumerate(train.wagons):
@@ -66,10 +75,13 @@ def main(train, objective_value_limit = None):
     # for c_i, container in enumerate(containers):
     #     c_start[(c_i)] = model.NewIntVar(0, 10, 'c_start_%i' % c_i)
 
+    #endregion 
+
     """
                 CONSTRAINTS
     """
 
+    #region train-wagon-constraints
 
     # Each container can be in at most one wagon.
     for c_i, container in enumerate(containers):
@@ -109,14 +121,8 @@ def main(train, objective_value_limit = None):
                     int(wagon.get_length_capacity())
             )
 
-    print("amount of containers on terminal with right coordinates")
-    print(len([container for container in train.containers 
-                        if (len(container.get_position()) == 3) and 
-                        (container.get_position()[0] <= 52) and 
-                        (container.get_position()[1] <= 7)]))
-
     #Travel distance constraint for total distance.
-    model.Add(sum(x[(c_i, w_j)] * int(functions.getTravelDistance(container.get_position(), wagon.get_location()))
+    model.Add(sum(x[(c_i, w_j)] * int(Container.getTravelDistance(container.get_position(), wagon.get_location()))
                     for c_i, container in enumerate(containers) 
                     for w_j, wagon in enumerate(train.wagons) 
                     if (len(container.get_position()) == 3) and 
@@ -170,20 +176,87 @@ def main(train, objective_value_limit = None):
             ).OnlyEnforceIf(direction.Not())
 
     # Bogie in middle of wagon constraint
-    for w_j, wagon in enumerate(train.wagons):
-        if wagon.number_of_axles > 4:
-            # get the number of 30ft containers on the wagon
-            number_of_30ft = model.NewIntVar(0, 2, 'wagon_%i' % w_j)
+    # for w_j, wagon in enumerate(train.wagons):
+    #     if wagon.number_of_axles > 4:
+    #         # get the number of 30ft containers on the wagon
+    #         number_of_30ft = model.NewIntVar(0, 2, 'wagon_%i' % w_j)
 
-            model.Add(number_of_30ft == sum(x[c_i, w_j] for c_i, container in enumerate(containers) if container.get_length() == 30))
+    #         model.Add(number_of_30ft == sum(x[c_i, w_j] for c_i, container in enumerate(containers) if container.get_length() == 30))
 
             #model.Add(sum(x[c_i, w_j] for c_i, container in enumerate(containers) if container.get_length() == 30))
             
             # for c_i, container in enumerate(containers):
             #     model.Add(x[c_i, w_j] * container.get_length() <= int((wagon.get_length_capacity() / 2)))
             #model.Add(sum(x[c_i, w_j] * container.get_length() for c_i, container in enumerate(containers)))
-    
 
+    #endregion
+
+    #region axle-load-constraints
+
+    # Containers cant occupy the same position on the wagon
+    # for w_j, wagon in enumerate(train.wagons):
+    #     for c_i, container in enumerate(containers):
+    #         model.Add(
+    #             sum(x[c_i, w_j] * container_positions[c_i]) == container_positions[c_i]
+    #         )
+    
+    #endregion
+
+    """t
+                OBJECTIVE
+    """
+
+
+    objective_length = model.NewIntVar(0, int(train.get_total_length_capacity()), 'length')
+    model.Add(
+        objective_length == sum(
+            x[(c_i, w_j)] * container.get_length() 
+                for c_i, container in enumerate(containers) 
+                for w_j, _ in enumerate(train.wagons)
+            )
+        )
+
+    objective_weight = model.NewIntVar(0, int(train.get_total_weight_capacity()), 'weight')
+    model.Add(
+        objective_weight == sum(
+            x[(c_i, w_j)] * container.get_gross_weight() 
+                for c_i, container in enumerate(containers) 
+                for w_j, _ in enumerate(train.wagons)
+            )
+        )  
+
+
+    # Add objective_value_limit if is is defined
+    if(objective_value_limit):
+        model.Add(objective_length < int(objective_value_limit))
+
+    model.Maximize(objective_length)
+
+    """"
+                Solving & Printing Solution
+    """
+
+    print("Starting Solve...")
+    solver = cp_model.CpSolver()
+    status = solver.Solve(model)
+
+    if status == cp_model.OPTIMAL:
+        print('Objective Value:', solver.ObjectiveValue())
+        for w_j, wagon in enumerate(train.wagons):
+            for c_i, container in enumerate(containers):
+                if solver.Value(x[c_i,w_j]) > 0:
+                    train.wagons[w_j].add_container(container)
+
+        axle_load_success = train.set_optimal_axle_load()
+        print("Calculation time", timer() - start)
+        return train, axle_load_success, solver.ObjectiveValue()
+        # print(solver.ResponseStats())
+    elif status == cp_model.FEASIBLE:
+        print('status == cp_model.FEASIBLE')
+    else:
+        print("Solution Not found. Stats: ", solver.ResponseStats())
+
+#Temporary place, this code might still be useful
     # Axle load constraint
     # print("Axle Load")
     # for w_j, wagon in enumerate(train.wagons):
@@ -230,87 +303,3 @@ def main(train, objective_value_limit = None):
     # print("added axle load constraint")
 
     #model.AddMaxEquality(wagon.set_optimal_axle_load() <= 22500, wagon for wagon in train.wagons)
-
-    """t
-                OBJECTIVE
-    """
-
-    # objective_terms = []
-
-    # for w_j, wagon in enumerate(train.wagons):
-    #     for c_i, container in enumerate(containers):
-    #         objective_terms.append(x[c_i,w_j] * container.get_length())
-    
-    # for w_j, wagon in enumerate(train.wagons):
-    #     for c_i, container in enumerate(containers):
-    #         objective_terms.append(x[c_i,w_j] * container.get_gross_weight())
-
-    # model.Maximize(sum(objective_terms))
-
-    objective_length = model.NewIntVar(0, int(train.get_total_length_capacity()), 'length')
-    model.Add(
-        objective_length == sum(
-            x[(c_i, w_j)] * container.get_length() 
-                for c_i, container in enumerate(containers) 
-                for w_j, _ in enumerate(train.wagons)
-            )
-        )
-    # model.Maximize(objective_length)
-
-    objective_weight = model.NewIntVar(0, int(train.get_total_weight_capacity()), 'weight')
-    model.Add(
-        objective_weight == sum(
-            x[(c_i, w_j)] * container.get_gross_weight() 
-                for c_i, container in enumerate(containers) 
-                for w_j, _ in enumerate(train.wagons)
-            )
-        )  
-    model.Maximize(objective_weight)
-
-    # Add objective_value_limit if is is defined
-    if(objective_value_limit):
-        model.Add(objective_length < int(objective_value_limit))
-
-    model.Maximize(objective_length)
-
-    """"
-                Solving & Printing Solution
-    """
-
-    print("Starting Solve...")
-    solver = cp_model.CpSolver()
-    status = solver.Solve(model)
-
-    if status == cp_model.OPTIMAL:
-        print('Objective Value:', solver.ObjectiveValue())
-        for w_j, wagon in enumerate(train.wagons):
-            for c_i, container in enumerate(containers):
-                if solver.Value(x[c_i,w_j]) > 0:
-                    train.wagons[w_j].add_container(container)
-
-        axle_load_success = train.set_optimal_axle_load()
-        print("Calculation time", timer() - start)
-        return train, axle_load_success, solver.ObjectiveValue()
-        # print(solver.ResponseStats())
-    elif status == cp_model.FEASIBLE:
-        print('hoi, status == cp_model.FEASIBLE')
-    else:
-        print("Solution Not found. Stats: ", solver.ResponseStats())
-    
-class SolutionPrinter(cp_model.CpSolverSolutionCallback):
-    """Prints intermediate solutions"""
-
-    def __init__(self, variables):
-        cp_model.CpSolverSolutionCallback.__init__(self)
-        self.__variables = variables
-        self.__solution_count = 0
-    
-    def OnSolutionCallback(self):
-        self.__solution_count += 1
-        print('SOlutuin cakkbaafos')
-        for v in self.__variables:
-            print('%s = %i' % (v, self.Value(v)), end = ' ')
-        print()
-    
-    def SolutionCount(self):
-        return self.__solution_count
