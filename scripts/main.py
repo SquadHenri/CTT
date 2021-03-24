@@ -110,8 +110,6 @@ def setup(dataset):
         
         containerObj = Container(containerID, gross_weight, net_weight, foot, position, goods, priority, typeid, hazard_class)
         containers.append(containerObj)
-    
-    print("Split", split)
     return Train(wagons, containers, wrong_wagons, split, isReversed, max_traveldistance)
 
 if __name__ == '__main__':

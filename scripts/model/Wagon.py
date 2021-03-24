@@ -123,38 +123,40 @@ class Wagon():
         hinge_splittable = False
         containerList = []
         for container in containers:
-            containerList.append([container, container.get_length() / 2 + fillrate])
+            containerList.append([container, container.get_length() / 2 + fillrate]) # containers , position of container on wagon
             fillrate += container.get_length()
             total_load += container.get_gross_weight()
             if fillrate == (self.length_capacity / 2):
                 hinge_splittable = True
         key = str(self.length_capacity).split('.')[0] + str(self.number_of_axles).split('.')[0]
         dictionairy = get_wagons("data/Wagons.csv")
+        axleshift = dictionairy[key][2]
+        axledist = dictionairy[key][3]
         # Starting with all the Wagons that have 2 bogies and so have 4 axles
         if self.number_of_axles == 4:
             right_axle_load = 0.5 * self.wagon_weight
             # Adding the containers to the load on the Right bogie
             for container in containerList:
-                dist = container[1] * 0.3048 - float(dictionairy[key][2])
-                right_axle_load += self.container_load(container[0].gross_weight, dist, dictionairy[key][3])
+                dist = container[1] * 0.3048 - float(axleshift)
+                left_axle_load += self.container_load(container[0].gross_weight, dist, axledist)
             # calculating the left axle by taking the total and subtracting the load on the right axle
-            left_axle_load = total_load - right_axle_load
+            right_axle_load = total_load - left_axle_load
             # Returning the data: left axle, right axle, total load
             return [left_axle_load / 2, right_axle_load / 2], total_load
         # Setting The right numbers for the wagons with 3 bogies
         elif self.number_of_axles == 6:
             if hinge_splittable:
-                middle = dictionairy[key][2] + dictionairy[key][3]
+                middle = axleshift + axledist
                 # Setting the basic load on the axles to add the containers later, given the load is equal on all bogies
-                left_axle_load = right_axle_load = self.wagon_weight / 3
+                left_axle_load = right_axle_load = self.wagon_we    ight / 3
                 # Adding the weight of the containers
                 for container in containerList: # splitting the train to calculate load on different parts
                     if container[1] < (self.length_capacity / 2):
                         dist = middle - container[1] * 0.3048
-                        left_axle_load += self.container_load(container[0].gross_weight, dist, dictionairy[key][3])
+                        left_axle_load += self.container_load(container[0].gross_weight, dist, axledist)
                     else:
                         dist = container[1] * 0.3048 - middle
-                        right_axle_load += self.container_load(container[0].gross_weight, dist, dictionairy[key][3])
+                        right_axle_load += self.container_load(container[0].gross_weight, dist, axledist)
                     middle_axle_load = total_load - right_axle_load - left_axle_load
                 return [left_axle_load / 2, middle_axle_load / 2, right_axle_load / 2], total_load
             else:
@@ -162,16 +164,16 @@ class Wagon():
         elif self.number_of_axles == 8:
             if hinge_splittable:
                 # define middle
-                middle = dictionairy[key][2] + dictionairy[key][3]
+                middle = axleshift + axledist
                 # setting the basic load over the axles (assumption: all load is devided equally)
                 right_axle_load = right_axle1_load = self.wagon_weight / 4
                 for container in containerList: # splitting front and back to find relative load
                     if container[1] < self.length_capacity / 2:
-                        dist = container[1] * 0.3048 - dictionairy[key][2]
-                        right_axle_load += self.container_load(container[0].gross_weight, dist, dictionairy[key][3])
+                        dist = container[1] * 0.3048 - axleshift
+                        right_axle_load += self.container_load(container[0].gross_weight, dist, axledist)
                     else:
-                        dist = container[1] * 0.3048 - (dictionairy[key][2] + middle)
-                        right_axle1_load += self.container_load(container[0].gross_weight, dist, dictionairy[key][3])
+                        dist = container[1] * 0.3048 - (axleshift + middle)
+                        right_axle1_load += self.container_load(container[0].gross_weight, dist, axledist)
                     axle_1 = total_load / 2 - right_axle_load
                     axle_3 = total_load / 2 - right_axle1_load
                 return [axle_1 / 2, right_axle_load / 2, axle_3 / 2, right_axle1_load / 2], total_load
