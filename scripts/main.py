@@ -99,7 +99,7 @@ def setup(dataset):
         containerID = container['containerID']
         gross_weight = int(container['nettWeight']) + int(container['containerTarra'])
         net_weight = container['nettWeight']
-        foot = 20 * int(container['containerTEU'])
+        foot = int(20 * container['containerTEU'])
         position = str(container['containerPosition'])
         goods = container['unKlasse']
         priority = 1
