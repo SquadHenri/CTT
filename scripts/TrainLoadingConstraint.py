@@ -242,11 +242,26 @@ def main(train, objective_value_limit = None):
 
     if status == cp_model.OPTIMAL:
         print('Objective Value:', solver.ObjectiveValue())
+
+        added_containers_indices = []
+        placed_containers = []
         for w_j, wagon in enumerate(train.wagons):
             for c_i, container in enumerate(containers):
                 if solver.Value(x[c_i,w_j]) > 0:
                     train.wagons[w_j].add_container(container)
+                    added_containers_indices.append(c_i)
+                    placed_containers.append(container)
 
+
+        unplaced_containers = []
+        for c_i, container in enumerate(containers):
+            if(c_i not in added_containers_indices):
+                unplaced_containers.append(container)
+
+        train.set_placed_containers(placed_containers)
+        train.set_unplaced_containers(unplaced_containers)
+
+        
         axle_load_success = train.set_optimal_axle_load()
         print("Calculation time", timer() - start)
         return train, axle_load_success, solver.ObjectiveValue()

@@ -23,7 +23,9 @@ class Train():
         self.max_traveldistance = max_traveldistance
         self.isReversed = isReversed
 
-        self.set_location()        
+        self.set_location()
+        self.placed_containers = []
+        self.unplaced_containers = []        
     
 
     # Create some wagons, to use for testing
@@ -162,10 +164,16 @@ class Train():
     
     # Returns the list of containers placed on a wagon
     def get_placed_containers(self):
-        result = []
-        for wagon in self.wagons:
-            result.append(wagon.get_containers())
-        return result
+        return self.placed_containers
+
+    def get_unplaced_containers(self):
+        return self.unplaced_containers
+
+    def set_placed_containers(self, placed_containers):
+        self.placed_containers = placed_containers
+
+    def set_unplaced_containers(self, unplaced_containers):
+        self.unplaced_containers = unplaced_containers
 
     # Set the weight capacities of the wagons to a value between min and max
     def set_random_weight_capacities(self, min, max):

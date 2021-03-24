@@ -4,9 +4,7 @@ import pandas
 from model.Wagon import Wagon
 from model.Train import Train
 from model.Container import Container
-import TrainLoadingClasses
 import TrainLoadingConstraint
-from data import getContainersFromCSV
 
 
 
@@ -123,14 +121,15 @@ if __name__ == '__main__':
     #     train, axle_load_success, objective_value = TrainLoadingConstraint.main(train, objective_value)
     #     print("axle_load_success: ", axle_load_success, ", objective_value: ", objective_value)
     
+
     placed_containers = train.get_placed_containers()
     containers = train.get_containers()
-    unplaced_containers =  [container for container in containers if(container not in placed_containers)]
-
+    unplaced_containers = train.get_unplaced_containers()
+    
     train.to_JSON(callcode=train.wagons[1].call, weight=train.get_total_packed_weight(), length=train.get_total_packed_length(), distance=train.get_total_travel_distance(), amount=len(placed_containers), wagons=[])
     train.to_CSV()
     
-    #train.print_solution()
+    train.print_solution()
 
     trainplanning_plot = train.get_tableplot(unplaced_containers)
     trainplanning_plot.show()
