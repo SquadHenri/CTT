@@ -47,6 +47,8 @@ class Wagon():
         self.location = None 
         self.number_of_axles = number_of_axles
         self.wagon_weight = wagon_weight
+        
+        self.is_copy = False
 
         # Can be None
         self.containers = containers
@@ -230,7 +232,7 @@ class Wagon():
                 axle_load_score = max(axle_load)
 
         # print("Wagon:", self.wagonID, "Axle Load:", axle_load_score)
-
+        print("Wagon", self.wagonID, "max load: ", axle_load_score)
         if axle_load_score < 22500:
 
             # If dummy_container1 is in there, dummy_container2 is also there
