@@ -13,11 +13,11 @@ def getAllDistances():
     # loop through all containers and wagons, and store the distances in a dictionary
     for i, container in enumerate(containers):
         for j, wagon in enumerate(wagons):
-            dist = getTravelDistance(container, wagon)
+            dist = get_travel_distance(container, wagon)
             dist_dict[(i, j)] = dist
     return dist_dict
 
-def getTravelDistance(c_cord, w_cord):
+def get_travel_distance(c_cord, w_cord):
 
     # factorize the difference in length of x and y
     x_fact = 6.5
@@ -201,7 +201,7 @@ class Train():
     #             # If the container is on the wagon, add the constraint.
     #             if y[(c_i, w_j, s_k)] == 1:
     #                 # The difference in position between the container and the wagon may not be larger than 50 metres.
-    #                 return functions.getTravelDistance(container.get_position(), wagon.get_location()) < 50
+    #                 return functions.get_travel_distance(container.get_position(), wagon.get_location()) < 50
 
 
 
@@ -722,7 +722,7 @@ def main(containers, train):
         )
     
     # Travel distance constraint for total distance.
-    # solver.Add(sum(x[(c_i, w_j)] * functions.getTravelDistance(container.get_position(), wagon.get_location()) 
+    # solver.Add(sum(x[(c_i, w_j)] * functions.get_travel_distance(container.get_position(), wagon.get_location()) 
     #     for c_i, container in enumerate(containers) 
     #     for w_j, wagon in enumerate(train.wagons) 
     #     if (len(container.get_position()) == 3) and 
@@ -734,7 +734,7 @@ def main(containers, train):
         # For every container add the travel distance constraint.
         c_location = container.get_position()
         if (len(c_location) == 3) and (c_location[0] <= 52) and (c_location[1] <= 7):
-            solver.Add( sum(x[(c_i, w_j)] * functions.getTravelDistance(c_location, wagon.get_location()) for w_j, wagon in enumerate(train.wagons)) <= 10000)
+            solver.Add( sum(x[(c_i, w_j)] * functions.get_travel_distance(c_location, wagon.get_location()) for w_j, wagon in enumerate(train.wagons)) <= 10000)
 
 
     # A train may not surpass a maximum weight, based on the destination of the train.
@@ -912,7 +912,7 @@ def main(containers, train):
                         wagon_weight += container.get_gross_weight()
                         wagon_length += container.get_length()
                         if (len(container.get_position()) == 3) and (container.get_position()[0] <= 52) and (container.get_position()[1] <= 7):
-                            wagon_distance += functions.getTravelDistance(container.get_position(), wagon.get_location())
+                            wagon_distance += functions.get_travel_distance(container.get_position(), wagon.get_location())
                         container_count += 1
 
                           

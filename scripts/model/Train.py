@@ -1,12 +1,14 @@
-import random
-from model.Wagon import Wagon
-import functions
-import numpy as np
 import matplotlib.pyplot as plt
+
+import math
+import random
+import numpy as np
 import json
 import pandas as pd
 from datetime import date, datetime
 
+from model.Wagon import Wagon
+from colors import Color
 
 class Train():
 
@@ -19,7 +21,11 @@ class Train():
         self.containers = containers
         self.split = split
         self.max_traveldistance = max_traveldistance
-        self.isReversed = isReversed        
+        self.isReversed = isReversed
+
+        self.set_location()
+        self.placed_containers = []
+        self.unplaced_containers = []        
     
 
     # Create some wagons, to use for testing
@@ -41,8 +47,24 @@ class Train():
     
     # Print the wagon values with the containers that filled them
     def print_solution(self):
+        total_length_packed = self.get_total_packed_length()
+        total_weight_packed = self.get_total_packed_weight()
+        total_travel_distance = self.get_total_travel_distance()
+
         for wagon in self.wagons:
-            wagon.print_solution()
+            packed_length = wagon.wagon_length_load()
+            packed_weight = wagon.wagon_weight_load()
+            travel_distance = wagon.wagon_travel_distance()
+            print('Packed wagon weight:', Color.GREEN, packed_weight, Color.END, ' Wagon weight capacity: ', wagon.get_weight_capacity())
+            print('Packed wagon length:', Color.GREEN, packed_length, Color.END, ' Wagon length capacity: ', wagon.get_length_capacity())
+            print('Wagon travel distance:', travel_distance)
+        
+        print()
+        print('Total packed weight:', total_weight_packed, '(',round(total_weight_packed / self.get_total_weight_capacity() * 100,1),'%)')
+        print('Total packed length:', total_length_packed, '(',round(total_length_packed / self.get_total_length_capacity() * 100,1),'%)')
+        print('Total distance travelled:', total_travel_distance)
+
+
 
     # Maybe check for success, but this is fine for now
     def set_optimal_axle_load(self):
@@ -64,7 +86,7 @@ class Train():
         with open('data/train.json', 'w') as output:
             json.dump(result, output)
         
-    def to_CSV(self, total_weight, total_length):
+    def to_CSV(self):
         data = []
         for wagon in self.wagons:
             if not wagon.containers:
@@ -93,7 +115,7 @@ class Train():
         df = pd.DataFrame(data)
         df.to_excel("planning.xlsx")    
     
-    def get_containers_for_call(self):
+    def get_containers(self):
         return self.containers
 
     def get_split(self):
@@ -105,24 +127,27 @@ class Train():
     def get_reversed_status(self):
         return self.isReversed
 
-    # Maybe split this up, but for now this is fine
-    def get_total_capacity(self):
-        total_length = 0
-        total_weight = 0
+    def get_total_packed_length(self):
+        length_packed = 0
         for wagon in self.wagons:
-            total_length += wagon.length_capacity
-            total_weight += wagon.weight_capacity
-        return total_length, total_weight
+            if wagon.containers is None:
+                   continue
+            length_packed += wagon.wagon_length_load()
+        return length_packed
+
+    def get_total_travel_distance(self):
+        total_travel_distance = 0
+        for wagon in self.wagons:
+            total_travel_distance += wagon.wagon_travel_distance()
+        return total_travel_distance
 
     def get_total_packed_weight(self):
         weight_packed = 0
         
-        
         for wagon in self.wagons:
             if wagon.containers is None:
                    return 0
-            for i, container in enumerate(wagon.containers):
-                    weight_packed += container.gross_weight
+            weight_packed += wagon.wagon_weight_load()
         return weight_packed
     
     def get_total_weight_capacity(self):
@@ -136,7 +161,20 @@ class Train():
         for wagon in self.wagons:
             total_length += wagon.length_capacity
         return total_length
-        
+    
+    # Returns the list of containers placed on a wagon
+    def get_placed_containers(self):
+        return self.placed_containers
+
+    def get_unplaced_containers(self):
+        return self.unplaced_containers
+
+    def set_placed_containers(self, placed_containers):
+        self.placed_containers = placed_containers
+
+    def set_unplaced_containers(self, unplaced_containers):
+        self.unplaced_containers = unplaced_containers
+
     # Set the weight capacities of the wagons to a value between min and max
     def set_random_weight_capacities(self, min, max):
         for wagon in self.wagons:
@@ -156,19 +194,6 @@ class Train():
     def set_length_capacities(self, value):
         for wagon in self.wagons:
             wagon.set_weight_capacity(value)
-
-    
-    def get_total_length(self):
-        total_length = 0
-        for wagon in self.wagons:
-            total_length += wagon.wagon_length_load()
-        return total_length
-
-    def get_total_weight(self):
-        total_weight = 0
-        for wagon in self.wagons:
-            total_weight += wagon.wagon_weight_load()
-        return total_weight
 
 
 
@@ -197,7 +222,7 @@ class Train():
 
             #Give value to the table cells
             for i, container in enumerate(containers):
-                datarow[i] = 'ID: ' + str(container.get_containerID()) + ' | Type: ' + str(container.get_type()) +  ' | Position: ' + str(container.get_position()) + ' | Gross (kg): ' + str(container.get_gross_weight()) 
+                datarow[i] = 'ID: ' + str(container.get_containerID()) + ' | Type: ' + str(container.get_type()) +  ' | Position: ' + str(container.get_position()) + ' | Gross (kg): ' + str(container.get_gross_weight()) + ' | Container Lenght: ' + str(container.get_length()) 
                 if container.hazard_class == 1 or container.hazard_class == 2 or container.hazard_class == 3:
                     cellRowColour[i] = '#11aae1'
 
@@ -207,10 +232,10 @@ class Train():
     # Make a table to that represents a train planning
     def get_planning_plot(self):
 
-        total_length = self.get_total_length()
-        total_weight = self.get_total_weight()
         # total_length = total length of containers planned on train.
         # total_weight = total weight of containers planned on tainr.
+        total_length = self.get_total_packed_length()
+        total_weight = self.get_total_packed_weight()
         
         # The amount of containers of the wagon with the most containers. Starts at 0.
         maxContainers = 0
@@ -270,7 +295,7 @@ class Train():
                 datarow[i] = container.containerID + " (" + str(container.get_length() / 20) + ")"
                 # orange #ff6153
                 # dark green #498499
-                if container.hazard_class == 1 or container.hazard_class == 2 or container.hazard_class == 3:
+                if str(container.hazard_class).startswith("1") or str(container.hazard_class).startswith("2") or str(container.hazard_class).startswith("3"):
                     cellRowColour[i] = '#11aae1'
 
             # Calculate the packed weight and length of a wagon.
@@ -401,7 +426,7 @@ class Train():
                 color='#ff0000'
             )
         else:
-            plt.figtext(0.8, 0.01, "The train is split between wagon " + str(self.split) + " and wagon " + str(int(self.split) + 1) + '.',
+            plt.figtext(0.8, 0.01, "The train is split between wagon " + str(int(self.split) - 1) + " and wagon " + str(int(self.split)) + '.',
                 horizontalalignment='right',
                 size=7,
                 weight='light',
@@ -414,7 +439,65 @@ class Train():
         plt.savefig(title + '-planning-' + currentdate, bbox_inches='tight', dpi=150)
         return plt
         
+    # Sets the location of the wagon takes a list of all the containers in the train
+    def set_location(self):
+                
+        xlen = 0
+        y_val = 0
+        result = []
 
+        if len(self.wagons) == 0:
+            raise TypeError("No wagons")
+
+        for wagon in self.wagons:
+            if self.split != None:
+
+                if wagon.position < self.split:
+                    wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6.1), y_val]
+                    xlen += wagon.total_length
+                    if wagon.location[1] == 0:
+                        splitshift = wagon
+                
+                else:
+                    xlen = 0
+                    self.split = 100
+                    y_val = -1
+                    wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6.1), y_val]
+                    xlen += wagon.total_length
+
+            else:
+                if (xlen + wagon.total_length) < 320:
+                    wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6.1), y_val]
+                    xlen += wagon.total_length
+
+                else:
+                    xlen = 0
+                    y_val = -1
+                    wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6.1), y_val]
+                    xlen += wagon.total_length
+
+            result.append(wagon)
+    # See where the last wagon in located to calculate the shift the 2nd row of wagons hast to make
+
+        shift_wagon = splitshift
+        shift_wagon_xloc = shift_wagon.location[0]
+        shift_wagon_length = shift_wagon.total_length
+        x_shift = (52 - math.ceil(shift_wagon_length / 2 / 6.1)) - shift_wagon_xloc
+
+        for wagon in self.wagons:
+            if wagon.location[1] == 0:
+                wagon.location[0] += x_shift
+
+        shift_wagon = self.wagons[len(self.wagons)-1]
+        shift_wagon_xloc = shift_wagon.location[0]
+        shift_wagon_length = shift_wagon.total_length
+        x_shift = (52 - math.ceil(shift_wagon_length / 2 / 6.1)) - shift_wagon_xloc
+
+        for wagon in self.wagons:
+            if wagon.location[1] == -1:
+                wagon.location[0] += x_shift
+
+        return result
 
     # CONSTRAINTS
 
@@ -427,7 +510,7 @@ class Train():
     #             # If the container is on the wagon, add the constraint.
     #             if y[(c_i, w_j, s_k)] == 1:
     #                 # The difference in position between the container and the wagon may not be larger than 50 metres.
-    #                 return functions.getTravelDistance(container.get_position(), wagon.get_location()) < 50
+    #                 return Container.get_travel_distance(container.get_position(), wagon.get_location()) < 50
 
 
 
@@ -465,16 +548,6 @@ class Train():
     #                 print(c2_pos)
     #     # make sure that the wagon positions >= 2, so that there is 1 wagon in between.
     #     return abs(c1_pos - c2_pos) >= 2
-
-
-def get_random_value(min, max):
-    if min == max:
-        return min
-    elif min > max:
-        return random.randint(max * 2, min * 2) / 2
-    elif max > min:
-        return random.randint(min * 2, max * 2) / 2
-
 
 
     

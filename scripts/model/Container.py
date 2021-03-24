@@ -1,3 +1,5 @@
+import math
+
 class Container():
     def __init__(self, containerID, gross_weight, net_weight, foot, position, goods, priority, typeid, hazard_class):
         self.containerID = containerID # name of the container
@@ -32,7 +34,7 @@ class Container():
     # Transform the position of the container into a list with coordinates.
     def calc_pos(self, position):
         if position is None:
-            return -1
+            return []
         position = position.split(" ")
         position = position[0].split(".")
 
@@ -40,6 +42,22 @@ class Container():
             return [int(x) for x in position]
         except ValueError:
             return position
+
+    def get_travel_distance(c_cord, w_cord):
+
+        # factorize the difference in length of x and y
+        x_fact = 6.5
+        y_fact = 3
+
+        # calculate the distance over the x-axis between a container and a wagon
+        x_dist = (c_cord[0] - w_cord[0]) * x_fact
+        # calculate the distance over the y-axis between a container and a wagon
+        y_dist = (c_cord[1] - w_cord[1]) * y_fact
+
+        # calculate the distance using Pythagoras
+        dist = math.sqrt(math.pow(x_dist, 2) + math.pow(y_dist, 2))
+
+        return dist
 
     # Getter for container position coordinates
     # Container ID used to identify the container at hand

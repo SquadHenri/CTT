@@ -2,7 +2,8 @@ import itertools as it
 import math
 
 from statistics import mean
-from . import Container
+from model.Container import Container
+
 from data.getWagonsFromCSV import get_wagons
 
 class Wagon():
@@ -67,7 +68,8 @@ class Wagon():
              f'length_capacity: {self.length_capacity}, contents: {self.contents}, '\
              f'position: {self.position}, location: {self.location}'
 
-    # Prints relevant wagon information for the solution, expects self.containers to be filled
+    # Prints relevant wagon information for the solution, expects self.containers to be filled'
+    # Returns the weight, length and travel distance of the containers
     def print_solution(self):
         if not self.containers:
             print(self)
@@ -79,6 +81,7 @@ class Wagon():
         for container in self.containers:
             print(offset, '-', offset+container.get_length(),':\t', container)
             offset += container.get_length()
+        
 
     def to_JSON(self):
         wagon_dict = {}
@@ -178,42 +181,19 @@ class Wagon():
 
     def container_load(self, weight, dist, axledist):
         load = weight * dist / axledist
-        return load            
+        return load         
+
+    def get_axle_load_cp(self, containers):
+        res = ""
+        for container in containers:
+            res += f'({container.get_containerID()})'
+        print(res)
+        axle_load, _ = self.get_axle_load(containers)
+        for i in range(len(axle_load)):
+            axle_load[i] = int(axle_load[i])
+        print(axle_load)
+        return axle_load
         
-    # Returns True for the first acceptable axle load found
-    # If an acceptable axle load is found, it will reorder self.containers to reflect that
-    # def c_has_acceptable_axle_load(self, x, w_j, containers):
-
-    #     # Get all containers on wagon and the length they occupy
-    #     containers_on_wagon = []
-    #     total_length_containers = 0
-    #     for c_i, container in enumerate(containers):
-    #         if(x[c_i, w_j] == 1):
-    #             containers_on_wagon.append(container)
-    #             total_length_containers += container.get_length()
-
-    #     if(self.get_length_capacity() > total_length_containers):
-
-    #         # a container with all blank values except the leftover length
-    #         container = Container.Container(0, 0, 0, self.get_length_capacity() - total_length_containers, 0,0,0,0)
-    #         containers_on_wagon.append(container)       
-
-    #     for combination in it.permutations(containers_on_wagon):
-    #         axle_load = self.get_axle_load(combination)
-            
-    #         if(not bool(axle_load)):
-    #             continue
-
-            
-    #         if max(axle_load) < 220000000:
-    #             return True
-
-    #         # Is axle load fine?
-    #         # If axle load fine:
-    #             # return true
-
-    #     # Return False if no correct axle load if found
-    #     return False
 
     # Sets the optimal axle load by reordering self.containers
     # Returns False if it does not find one. Which should not happen if
@@ -235,22 +215,21 @@ class Wagon():
         if self.length_capacity - occupied_length > 0:
             empty_length = self.length_capacity - occupied_length
             dummy_length = math.floor(empty_length/2)
-            dummy_container1 = Container.Container("", 0, -1, dummy_length, None, None, None, None, None)
-            dummy_container2 = Container.Container("", 0, -1, dummy_length, None, None, None, None, None)
+            dummy_container1 = Container("", 0, -1, dummy_length, None, None, None, None, None)
+            dummy_container2 = Container("", 0, -1, dummy_length, None, None, None, None, None)
             container_copy.append(dummy_container1)
             container_copy.append(dummy_container2)
 
         for i, container_list in enumerate(it.permutations(container_copy)):
             axle_load, _ = self.get_axle_load(container_list)
-            #print(self.get_axle_load(combination))
+            # print(self.get_axle_load(combination))
             container_list = list(container_list)
             # Get score and update best_found if better
             if(max(axle_load) < axle_load_score):
                 axle_best_found_permutation = container_list
                 axle_load_score = max(axle_load)
 
-        print("Wagon:", self.wagonID, "Axle Load:", axle_load_score)
-        # print("Axle load list: ", self.get_axle_load(axle_best_found_permutation))
+        # print("Wagon:", self.wagonID, "Axle Load:", axle_load_score)
 
         if axle_load_score < 22500:
 
@@ -264,19 +243,85 @@ class Wagon():
             return True
             
         return False
-    
+
     def wagon_weight_load(self):
+        if(self.containers is None):
+            return 0
         load = 0
         for container in self.containers:
             load += container.get_gross_weight()
         return load
     
     def wagon_length_load(self):
+        if(self.containers is None):
+            return 0
         load = 0
         for container in self.containers:
             if container.get_gross_weight() != 0:
                 load += container.get_length()
         return load
+    
+    def wagon_travel_distance(self):
+        if(self.containers is None):
+            return 0
+        travel_distance = 0
+        for container in self.containers:
+            if (len(container.get_position()) == 3) and (container.get_position()[0] <= 52) and (container.get_position()[1] <= 7):
+                travel_distance += Container.get_travel_distance(container.get_position(), self.get_location())
+        return travel_distance
+
+
+    # Getters
+    def get_position(self):
+        return self.position
+
+    def get_weight_capacity(self):
+        return self.weight_capacity
+
+    def get_length_capacity(self):
+        return self.length_capacity
+
+    def get_total_length(self):
+        return self.total_length
+
+    def get_contents(self):
+        return self.contents
+
+    def get_location(self):
+        return self.location
+
+    def get_slots(self):
+        return self.slots
+
+    def get_containers(self):
+        return self.containers
+    
+    def get_number_of_axles(self):
+        return self.number_of_axles
+    
+    def get_wagon_weight(self):
+        return self.wagon_weight
+    
+    # Setters
+    
+    def set_length_capacity(self, length_capacity):
+        self.length_capacity = length_capacity
+
+    def set_weight_capacity(self, weight_capacity):
+        self.weight_capacity = weight_capacity
+    
+    def set_containers(self, containers):
+        self.containers = containers
+
+    # Used to add one or multiple containers
+    def add_container(self, container):
+        if self.containers:
+            self.containers.append(container)
+        else:
+            self.containers = []
+            self.containers.append(container)
+
+
 
     # UNUSED/UNFINISHED CONSTRAINTS
     
@@ -312,49 +357,3 @@ class Wagon():
     #             if y[(c_i, w_j, s_k)] == 1:
     #                 containers_on_wagon.append((container, s_k))
     #     return self.calculateLoad(containers_on_wagon, maxLoad) 
-
-
-    # Getters
-    def get_position(self):
-        return self.position
-
-    def get_weight_capacity(self):
-        return self.weight_capacity
-
-    def get_length_capacity(self):
-        return self.length_capacity
-
-    def get_total_length(self):
-        return self.total_length
-
-    def get_contents(self):
-        return self.contents
-
-    def get_location(self):
-        return self.location
-
-    def get_slots(self):
-        return self.slots
-
-    def get_containers(self):
-        return self.containers
-    
-    # Setters
-    
-    def set_length_capacity(self, length_capacity):
-        self.length_capacity = length_capacity
-
-    def set_weight_capacity(self, weight_capacity):
-        self.weight_capacity = weight_capacity
-    
-    def set_containers(self, containers):
-        self.containers = containers
-
-    # Used to add one or multiple containers
-    def add_container(self, container):
-        if self.containers:
-            self.containers.append(container)
-        else:
-            self.containers = []
-            self.containers.append(container)
-

@@ -6,7 +6,6 @@ import math
 import tkinter as tk
 import pandas as pd
 from tkinter import filedialog
-from functions import getTravelDistance
 from model.Wagon import Wagon
 from model.Train import Train
 from model.Container import Container
@@ -156,7 +155,7 @@ def calculate_distances_1(containers, wagons):
             dist_list = []
             for wagon in wagons:
                 w_location = wagon.get_location()
-                dist_list.append((wagon.wagonID, getTravelDistance(c_location, w_location)))
+                dist_list.append((wagon.wagonID, Container.get_travel_distance(c_location, w_location)))
             distances[container.get_containerID()] = min(dist_list, key= lambda t: t[1])
             #distances[container.get_containerID()] = dist_list
         else:
@@ -193,7 +192,7 @@ def calculate_distances(containers, wagons):
         position = containers[key]
         dist_list = []
         for wagon in wagons.keys():
-            dist_list.append((wagon, getTravelDistance(position, wagons[wagon])))
+            dist_list.append((wagon, get_travel_distance(position, wagons[wagon])))
         distances[key] = min(dist_list, key= lambda t: t[1])
     return distances
 
@@ -303,11 +302,11 @@ def getAllDistances():
     # loop through all containers and wagons, and store the distances in a dictionary
     for i, container in enumerate(containers):
         for j, wagon in enumerate(wagons):
-            dist = getTravelDistance(container, wagon)
+            dist = get_travel_distance(container, wagon)
             dist_dict[(i, j)] = dist
     return dist_dict
 
-def getTravelDistance(c_cord, w_cord):
+def get_travel_distance(c_cord, w_cord):
 
 
     # factorize the difference in length of x and y
@@ -839,7 +838,7 @@ class Train():
     #             # If the container is on the wagon, add the constraint.
     #             if y[(c_i, w_j, s_k)] == 1:
     #                 # The difference in position between the container and the wagon may not be larger than 50 metres.
-    #                 return functions.getTravelDistance(container.get_position(), wagon.get_location()) < 50
+    #                 return functions.get_travel_distance(container.get_position(), wagon.get_location()) < 50
 
 
 
@@ -1250,7 +1249,7 @@ import functions
 
 def main(train):
     start = timer()
-    containers = train.get_containers_for_call()
+    containers = train.get_containers()
     # Define the cp model
     model = cp_model.CpModel()
     priority_list = []
@@ -1339,7 +1338,7 @@ def main(train):
             )
 
     #Travel distance constraint for total distance.
-    model.Add(sum(x[(c_i, w_j)] * int(functions.getTravelDistance(container.get_position(), wagon.get_location()))
+    model.Add(sum(x[(c_i, w_j)] * int(functions.get_travel_distance(container.get_position(), wagon.get_location()))
                     for c_i, container in enumerate(containers) 
                     for w_j, wagon in enumerate(train.wagons) 
                     if (len(container.get_position()) == 3) and 
@@ -1438,7 +1437,7 @@ def main(train):
                         wagon_weight += container.get_gross_weight()
                         wagon_length += container.get_length()
                         if (len(container.get_position()) == 3) and (container.get_position()[0] <= 52) and (container.get_position()[1] <= 7):
-                            wagon_distance += functions.getTravelDistance(container.get_position(), wagon.get_location())
+                            wagon_distance += functions.get_travel_distance(container.get_position(), wagon.get_location())
                         container_count += 1
 
             

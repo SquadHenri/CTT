@@ -3,7 +3,6 @@ import math
 import tkinter as tk
 import pandas as pd
 from tkinter import filedialog
-from functions import getTravelDistance
 from model.Wagon import Wagon
 from model.Train import Train
 from model.Container import Container
@@ -133,16 +132,16 @@ def get_wagons_prompt(reverse):
 
 # creates a list that represents the coordinates of a container.
 # it takes "##.##.##" as an input and returns [##, ##, ##]
-def get_pos(position):
-    if position is None:
-        return -1
-    position = position.split(" ")
-    position = position[0].split(".")
+# def get_pos(position):
+#     if position is None:
+#         return []
+#     position = position.split(" ")
+#     position = position[0].split(".")
 
-    try:
-        return [int(x) for x in position]
-    except ValueError:
-        return position
+#     try:
+#         return [int(x) for x in position]
+#     except ValueError:
+#         return position
 
 # does almost the same as calculate_distances, but this time it works for the real data.
 def calculate_distances_1(containers, wagons):
@@ -153,7 +152,7 @@ def calculate_distances_1(containers, wagons):
             dist_list = []
             for wagon in wagons:
                 w_location = wagon.get_location()
-                dist_list.append((wagon.wagonID, getTravelDistance(c_location, w_location)))
+                dist_list.append((wagon.wagonID, Container.get_travel_distance(c_location, w_location)))
             distances[container.get_containerID()] = min(dist_list, key= lambda t: t[1])
             #distances[container.get_containerID()] = dist_list
         else:
@@ -190,80 +189,12 @@ def calculate_distances(containers, wagons):
         position = containers[key]
         dist_list = []
         for wagon in wagons.keys():
-            dist_list.append((wagon, getTravelDistance(position, wagons[wagon])))
+            dist_list.append((wagon, Container.get_travel_distance(position, wagons[wagon])))
         distances[key] = min(dist_list, key= lambda t: t[1])
     return distances
 
-#containers_data = get_containers()
-#wagons_data = get_wagons()
-#print(calculate_distances(containers_data, wagons_data))
 
-# Sets the location of the wagon takes a list of all the containers in the train
-def set_location(wagons, split):
 
-    # # sort the wagon list on position
-    # l = len(wagons)
-    # for i in range(0, l): 
-    #     for j in range(0, l-i-1): 
-    #         if (wagons[j].position > wagons[j + 1].position): 
-    #             tempo = wagons[j] 
-    #             wagons[j]= wagons[j + 1] 
-    #             wagons[j + 1]= tempo 
-            
-    xlen = 0
-    y_val = 0
-    result = []
-
-    if len(wagons) == 0:
-        raise TypeError("No wagons")
-
-    for wagon in wagons:
-        if split != None:
-
-            if wagon.position < split:
-                wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6.1), y_val]
-                xlen += wagon.total_length
-                splitshift = wagon
-            
-            else:
-                xlen = 0
-                split = 100
-                y_val = -1
-                wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6.1), y_val]
-                xlen += wagon.total_length
-
-        else:
-            if (xlen + wagon.total_length) < 320:
-                wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6.1), y_val]
-                xlen += wagon.total_length
-
-            else:
-                xlen = 0
-                y_val = -1
-                wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6.1), y_val]
-                xlen += wagon.total_length
-
-        result.append(wagon)
-# See where the last wagon in located to calculate the shift the 2nd row of wagons hast to make
-    shift_wagon = splitshift
-    shift_wagon_xloc = shift_wagon.location[0]
-    shift_wagon_length = shift_wagon.total_length
-    x_shift = (52 - math.ceil(shift_wagon_length / 2 / 6.1)) - shift_wagon_xloc
-
-    for wagon in wagons:
-        if wagon.location[1] == 0:
-            wagon.location[0] += x_shift
-
-    shift_wagon = wagons[len(wagons)-1]
-    shift_wagon_xloc = shift_wagon.location[0]
-    shift_wagon_length = shift_wagon.total_length
-    x_shift = (52 - math.ceil(shift_wagon_length / 2 / 6.1)) - shift_wagon_xloc
-
-    for wagon in wagons:
-        if wagon.location[1] == -1:
-            wagon.location[0] += x_shift
-
-    return result
 
 # converts the file located at 'path' to a csv file.
 # === REQUIRES pip install openpyxl ===

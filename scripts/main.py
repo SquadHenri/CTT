@@ -1,11 +1,14 @@
-from model import Wagon, Train, Container
-import TrainLoadingClasses
-import TrainLoadingConstraint
-from data import getContainersFromCSV
-
+from numpy.lib.function_base import place
 import pandas
 
-dataset = pandas.read_csv('data\input_with_parameters.csv')
+from model.Wagon import Wagon
+from model.Train import Train
+from model.Container import Container
+import TrainLoadingConstraint
+
+
+
+dataset = pandas.read_csv('data\input_cttrot202110323pol.csv')
 
 def setup(dataset):
     containerlist = []
@@ -72,7 +75,7 @@ def setup(dataset):
     wagons = []
     containers = []
     wrong_wagons = []    
-
+    null_containers = []
     for index, wagon in wagondf.iterrows():
         if pandas.notna(wagon['wagonSizeft']) and pandas.notna(wagon['wagonLength']) and pandas.notna(wagon['wagonPosition']) and pandas.notna(wagon['wagonPayload']) and pandas.notna(wagon['wagonTare']) and pandas.notna(wagon['wagonNoAxes']): 
             wagonID = wagon['wagonID']
@@ -83,11 +86,14 @@ def setup(dataset):
             number_of_axles = wagon['wagonNoAxes']
             wagon_weight = wagon['wagonTare']
             call = wagon['wagonCall']
-            wagonObj = Wagon.Wagon(wagonID, weight_capacity, length_capacity, 0, position, number_of_axles, total_length, wagon_weight, call)
+            wagonObj = Wagon(wagonID, weight_capacity, length_capacity, 0, position, number_of_axles, total_length, wagon_weight, call)
             wagons.append(wagonObj)
         else:
-            print("Wagon", index, "contained null values.")
+            # print("Wagon", index, "contained null values.")
+            null_containers.append(index)
             wrong_wagons.append(wagon)
+
+    print("Containers with indices: ", null_containers, " contain null values.")
 
     for index, container in containerdf.iterrows():
         containerID = container['containerID']
@@ -100,23 +106,33 @@ def setup(dataset):
         typeid = container['containerType']
         hazard_class = container['unKlasse']
         
-        containerObj = Container.Container(containerID, gross_weight, net_weight, foot, position, goods, priority, typeid, hazard_class)
+        containerObj = Container(containerID, gross_weight, net_weight, foot, position, goods, priority, typeid, hazard_class)
         containers.append(containerObj)
-  
-    wagons = getContainersFromCSV.set_location(wagons, split)
-    train = Train.Train(wagons, containers, wrong_wagons, split, isReversed, max_traveldistance)
-
-    for i, container in enumerate(containers):
-        print("Container", i, container)
     
-    for i, wagon in enumerate(wagons):
-        print("Wagon", i, wagon)
-
-    return train
+    return Train(wagons, containers, wrong_wagons, split, isReversed, max_traveldistance)
 
 if __name__ == '__main__':
     train = setup(dataset)
-    #TrainLoadingClasses.main(containers, train)
-    TrainLoadingConstraint.main(train)
+    train, axle_load_success, objective_value = TrainLoadingConstraint.main(train)
+    print("axle_load_success: ", axle_load_success, ", objective_value: ", objective_value)
+
+    # This needs to be tested
+    # while(axle_load_success is False):
+    #     train, axle_load_success, objective_value = TrainLoadingConstraint.main(train, objective_value)
+    #     print("axle_load_success: ", axle_load_success, ", objective_value: ", objective_value)
+    
+
+    placed_containers = train.get_placed_containers()
+    containers = train.get_containers()
+    unplaced_containers = train.get_unplaced_containers()
+    
+    train.to_JSON(callcode=train.wagons[1].call, weight=train.get_total_packed_weight(), length=train.get_total_packed_length(), distance=train.get_total_travel_distance(), amount=len(placed_containers), wagons=[])
+    train.to_CSV()
+    
+    train.print_solution()
+
+    trainplanning_plot = train.get_tableplot(unplaced_containers)
+    trainplanning_plot.show()
+
 
 
