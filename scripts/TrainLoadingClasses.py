@@ -87,7 +87,7 @@ def main(containers, train):
         )
     
     #Travel distance constraint for total distance.
-    solver.Add(sum(x[(c_i, w_j)] * Container.getTravelDistance(container.get_position(), wagon.get_location()) 
+    solver.Add(sum(x[(c_i, w_j)] * Container.get_travel_distance(container.get_position(), wagon.get_location()) 
                     for c_i, container in enumerate(containers) 
                     for w_j, wagon in enumerate(train.wagons) 
                     if (len(container.get_position()) == 3) and 
@@ -99,7 +99,7 @@ def main(containers, train):
     #     # For every container add the travel distance constraint.
     #     c_location = container.get_position()
     #     if (len(c_location) == 3) and (c_location[0] <= 52) and (c_location[1] <= 7):
-    #         solver.Add( sum(x[(c_i, w_j)] * Container.getTravelDistance(c_location, wagon.get_location()) for w_j, wagon in enumerate(train.wagons)) <= 10000)
+    #         solver.Add( sum(x[(c_i, w_j)] * Container.get_travel_distance(c_location, wagon.get_location()) for w_j, wagon in enumerate(train.wagons)) <= 10000)
 
 
     # A train may not surpass a maximum weight, based on the destination of the train.
@@ -220,7 +220,7 @@ def main(containers, train):
                         wagon_weight += container.get_gross_weight()
                         wagon_length += container.get_length()
                         if (len(container.get_position()) == 3) and (container.get_position()[0] <= 52) and (container.get_position()[1] <= 7):
-                            wagon_distance += Container.getTravelDistance(container.get_position(), wagon.get_location())
+                            wagon_distance += Container.get_travel_distance(container.get_position(), wagon.get_location())
                         container_count += 1
 
             

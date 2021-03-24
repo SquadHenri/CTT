@@ -152,7 +152,7 @@ def calculate_distances_1(containers, wagons):
             dist_list = []
             for wagon in wagons:
                 w_location = wagon.get_location()
-                dist_list.append((wagon.wagonID, Container.getTravelDistance(c_location, w_location)))
+                dist_list.append((wagon.wagonID, Container.get_travel_distance(c_location, w_location)))
             distances[container.get_containerID()] = min(dist_list, key= lambda t: t[1])
             #distances[container.get_containerID()] = dist_list
         else:
@@ -189,7 +189,7 @@ def calculate_distances(containers, wagons):
         position = containers[key]
         dist_list = []
         for wagon in wagons.keys():
-            dist_list.append((wagon, Container.getTravelDistance(position, wagons[wagon])))
+            dist_list.append((wagon, Container.get_travel_distance(position, wagons[wagon])))
         distances[key] = min(dist_list, key= lambda t: t[1])
     return distances
 

@@ -122,7 +122,7 @@ def main(train, objective_value_limit = None):
             )
 
     #Travel distance constraint for total distance.
-    model.Add(sum(x[(c_i, w_j)] * int(Container.getTravelDistance(container.get_position(), wagon.get_location()))
+    model.Add(sum(x[(c_i, w_j)] * int(Container.get_travel_distance(container.get_position(), wagon.get_location()))
                     for c_i, container in enumerate(containers) 
                     for w_j, wagon in enumerate(train.wagons) 
                     if (len(container.get_position()) == 3) and 

@@ -8,7 +8,6 @@ import pandas as pd
 from datetime import date, datetime
 
 from model.Wagon import Wagon
-import functions
 from colors import Color
 
 class Train():
@@ -503,7 +502,7 @@ class Train():
     #             # If the container is on the wagon, add the constraint.
     #             if y[(c_i, w_j, s_k)] == 1:
     #                 # The difference in position between the container and the wagon may not be larger than 50 metres.
-    #                 return Container.getTravelDistance(container.get_position(), wagon.get_location()) < 50
+    #                 return Container.get_travel_distance(container.get_position(), wagon.get_location()) < 50
 
 
 

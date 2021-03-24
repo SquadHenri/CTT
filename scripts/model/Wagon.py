@@ -5,7 +5,6 @@ from statistics import mean
 from model.Container import Container
 
 from data.getWagonsFromCSV import get_wagons
-import functions
 
 class Wagon():
     """
@@ -268,7 +267,7 @@ class Wagon():
         travel_distance = 0
         for container in self.containers:
             if (len(container.get_position()) == 3) and (container.get_position()[0] <= 52) and (container.get_position()[1] <= 7):
-                travel_distance += Container.getTravelDistance(container.get_position(), self.get_location())
+                travel_distance += Container.get_travel_distance(container.get_position(), self.get_location())
         return travel_distance
 
 

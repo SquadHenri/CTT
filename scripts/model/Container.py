@@ -43,7 +43,7 @@ class Container():
         except ValueError:
             return position
 
-    def getTravelDistance(c_cord, w_cord):
+    def get_travel_distance(c_cord, w_cord):
 
         # factorize the difference in length of x and y
         x_fact = 6.5
