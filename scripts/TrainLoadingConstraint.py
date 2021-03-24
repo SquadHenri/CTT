@@ -133,7 +133,7 @@ def main(train, objective_value_limit = None):
             sum(x[(c_i, w_j)] * container.get_gross_weight()
                 for c_i, container in enumerate(containers))
                 <=
-                int(wagon.get_weight_capacity())
+                int(wagon.get_weight_capacity() * 0.85)
         )
 
     # The length of the containers cannot exceed the length of the wagon
@@ -170,7 +170,7 @@ def main(train, objective_value_limit = None):
                     if wagon1.wagonID == wagon2.wagonID:
                         model.Add(sum(x[c_i, w_j] * container.get_gross_weight() + x[c_i, w_jj] * container.get_gross_weight() 
                         for c_i, container in enumerate(containers))
-                        <= int(wagon1.get_weight_capacity()))
+                        <= int(wagon1.get_weight_capacity() * 0.85))
 
     # The distance between two hazardous containers should be at least one wagon
     for c_i, container_i in enumerate(containers):
@@ -209,19 +209,19 @@ def main(train, objective_value_limit = None):
                 position  <= -2 + position_2
             ).OnlyEnforceIf(direction.Not())
 
-    # Bogie in middle of wagon constraint
-    for w_j, wagon in enumerate(train.wagons):
-        if wagon.number_of_axles > 4:
-            # get the number of 30ft containers on the wagon
-            number_of_30ft = model.NewIntVar(0, 2, 'wagon_%i' % w_j)
+    # # Bogie in middle of wagon constraint
+    # for w_j, wagon in enumerate(train.wagons):
+    #     if wagon.number_of_axles > 4:
+    #         # get the number of 30ft containers on the wagon
+    #         number_of_30ft = model.NewIntVar(0, 2, 'wagon_%i' % w_j)
 
-            model.Add(number_of_30ft == sum(x[c_i, w_j] for c_i, container in enumerate(containers) if container.get_length() > 22 and container.get_length() <= 30))
+    #         model.Add(number_of_30ft == sum(x[c_i, w_j] for c_i, container in enumerate(containers) if container.get_length() > 22 and container.get_length() <= 30))
 
-            # model.Add(sum(x[c_i, w_j] for c_i, container in enumerate(containers) if container.get_length() == 30))
+    #         # model.Add(sum(x[c_i, w_j] for c_i, container in enumerate(containers) if container.get_length() == 30))
             
-            # for c_i, container in enumerate(containers):
-            #     model.Add(x[c_i, w_j] * container.get_length() <= int((wagon.get_length_capacity() / 2)))
-            # model.Add(sum(x[c_i, w_j] * container.get_length() for c_i, container in enumerate(containers)))
+    #         # for c_i, container in enumerate(containers):
+    #         #     model.Add(x[c_i, w_j] * container.get_length() <= int((wagon.get_length_capacity() / 2)))
+    #         # model.Add(sum(x[c_i, w_j] * container.get_length() for c_i, container in enumerate(containers)))
 
     #endregion
 
@@ -296,6 +296,9 @@ def main(train, objective_value_limit = None):
         train.set_unplaced_containers(unplaced_containers)
 
 
+        for wagon in train.wagons:
+            wagon.add_dummies()
+
         # Combine the split wagons\
         visited_list = []
         final_list = []
@@ -324,6 +327,22 @@ def main(train, objective_value_limit = None):
             print(wagon)
         
         axle_load_success = train.set_optimal_axle_load()
+
+        # for wagon in train.wagons:
+        #     new_containers = []
+        #     container_list = wagon.containers
+        #     if container_list is not None:
+        #         i = 0
+        #         while i < len(container_list) - 2:
+        #             if container_list[i].get_gross_weight() == -1 and container_list[i+1].get_gross_weight() == -1:
+        #                 merged_container = Container("", 0, -1, container_list[i].get_length() * 2, None, None, None, None, None)
+        #                 new_containers.append(merged_container)
+        #                 i += 2
+        #             else:
+        #                 new_containers.append(container_list[i])
+        #                 i += 1
+        #     wagon.containers = new_containers
+
         print("Calculation time", timer() - start)
         return train, axle_load_success, solver.ObjectiveValue()
         # print(solver.ResponseStats())
