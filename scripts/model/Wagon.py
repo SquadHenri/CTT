@@ -1,6 +1,6 @@
 import itertools as it
 import math
-
+import json
 from statistics import mean
 from model.Container import Container
 
@@ -47,8 +47,8 @@ class Wagon():
         self.location = None 
         self.number_of_axles = number_of_axles
         self.wagon_weight = wagon_weight
-        
         self.is_copy = False
+        self.wagon_dictionairy = self.get_wagon_dictionairy()
 
         # Can be None
         self.containers = containers
@@ -84,6 +84,72 @@ class Wagon():
             print(offset, '-', offset+container.get_length(),':\t', container)
             offset += container.get_length()
         
+    def get_wagon_dictionairy(self):
+        dictionairy_json_string = """{
+                                        "404": {
+                                            "lenght": 40,
+                                            "nr of axles": 4,
+                                            "shift dist(m)": 2.15,
+                                            "axle dist": 8.07
+                                        },
+                                        "474": {
+                                            "lenght": 47,
+                                            "nr of axles": 4,
+                                            "shift dist(m)": 2.1,
+                                            "axle dist": 10.2
+                                        },
+                                        "604": {
+                                            "lenght": 60,
+                                            "nr of axles": 4,
+                                            "shift dist(m)": 2.1,
+                                            "axle dist": 14.2
+                                        },
+                                        "804": {
+                                            "lenght": 80,
+                                            "nr of axles": 4,
+                                            "shift dist(m)": 2.7,
+                                            "axle dist": 19.3
+                                        },
+                                        "806": {
+                                            "lenght": 80,
+                                            "nr of axles": 6,
+                                            "shift dist(m)": 2.18,
+                                            "axle dist": 10.395
+                                        },
+                                        "906": {
+                                            "lenght": 90,
+                                            "nr of axles": 6,
+                                            "shift dist(m)": 2.18,
+                                            "axle dist": 11.995
+                                        },
+                                        "908": {
+                                            "lenght": 90,
+                                            "nr of axles": 8,
+                                            "shift dist(m)": 2.43,
+                                            "axle dist": 11.985
+                                        },
+                                        "1046": {
+                                            "lenght": 104,
+                                            "nr of axles": 6,
+                                            "shift dist(m)": 2.28,
+                                            "axle dist": 14.2
+                                        },
+                                        "1048": {
+                                            "lenght": 104,
+                                            "nr of axles": 8,
+                                            "shift dist(m)": 2.3,
+                                            "axle dist": 13.08
+                                        },
+                                        "1068": {
+                                            "lenght": 106,
+                                            "nr of axles": 8,
+                                            "shift dist(m)": 2.3,
+                                            "axle dist": 13.5
+                                        }
+                                        }"""
+
+        dictionairy = json.loads(dictionairy_json_string)
+        return dictionairy
 
     def to_JSON(self):
         wagon_dict = {}
@@ -129,9 +195,14 @@ class Wagon():
             if fillrate == (self.length_capacity / 2):
                 hinge_splittable = True
         key = str(self.length_capacity).split('.')[0] + str(self.number_of_axles).split('.')[0]
-        dictionairy = get_wagons("data/Wagons.csv")
-        axleshift = dictionairy[key][2]
-        axledist = dictionairy[key][3]
+        dictionairy = self.wagon_dictionairy
+    
+        axleshift = dictionairy[key]['shift dist(m)']
+        axledist = dictionairy[key]['axle dist']
+
+
+
+
         # Starting with all the Wagons that have 2 bogies and so have 4 axles
         if self.number_of_axles == 4:
             left_axle_load = 0.5 * self.wagon_weight
