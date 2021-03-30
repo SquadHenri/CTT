@@ -38,8 +38,32 @@ def main(train, objective_value_limit = None):
             containers[i].set_hazard_class(1)
         print("These containers are hazardous:", [i for i, container in enumerate(containers) if(container.get_hazard_class() is not None and container.get_hazard_class() > 0)])
 
-    
 
+    # Split wagons that have a mid bogie
+    wagon_list = []
+    for wagon in train.wagons:
+        if wagon.number_of_axles > 4:
+            wagonA = Wagon(wagon.wagonID, wagon.weight_capacity, wagon.length_capacity * 0.5, wagon.contents, wagon.position, wagon.number_of_axles, wagon.total_length, wagon.wagon_weight, wagon.call)
+            wagonB = Wagon(wagon.wagonID, wagon.weight_capacity, wagon.length_capacity * 0.5, wagon.contents, wagon.position, wagon.number_of_axles, wagon.total_length, wagon.wagon_weight, wagon.call)
+
+            wagonA.is_copy = True
+            wagonA.location = wagon.location
+            wagonB.is_copy = True
+            wagonB.location = wagon.location
+
+            wagon_list.append(wagonA)
+            wagon_list.append(wagonB)
+            # print("A", wagonA)
+            # print("B", wagonB)
+        else:
+            wagon_list.append(wagon)
+
+
+    
+    for wagon in wagon_list:
+        print(wagon)
+    
+    train.wagons = wagon_list
     """
                 VARIABLES
     """
@@ -111,7 +135,7 @@ def main(train, objective_value_limit = None):
             sum(x[(c_i, w_j)] * container.get_gross_weight()
                 for c_i, container in enumerate(containers))
                 <=
-                int(wagon.get_weight_capacity())
+                int(wagon.get_weight_capacity() * 0.85)
         )
 
     # The length of the containers cannot exceed the length of the wagon
@@ -139,6 +163,16 @@ def main(train, objective_value_limit = None):
     model.Add(sum(x[(c_i, w_j)] * container.get_gross_weight() 
                     for c_i, container in enumerate(containers) 
                     for w_j, wagon in enumerate(train.wagons)) <= train.maxWeight)
+    
+    # Two halfs of the split wagon may not surpass total weight
+    for w_j, wagon1 in enumerate(train.wagons):
+        for w_jj, wagon2 in enumerate(train.wagons):
+            if w_j != w_jj:
+                if wagon1.is_copy == True and wagon2.is_copy == True:
+                    if wagon1.wagonID == wagon2.wagonID:
+                        model.Add(sum(x[c_i, w_j] * container.get_gross_weight() + x[c_i, w_jj] * container.get_gross_weight() 
+                        for c_i, container in enumerate(containers))
+                        <= int(wagon1.get_weight_capacity() * 0.85))
 
     # The distance between two hazardous containers should be at least one wagon
     for c_i, container_i in enumerate(containers):
@@ -177,19 +211,19 @@ def main(train, objective_value_limit = None):
                 position  <= -2 + position_2
             ).OnlyEnforceIf(direction.Not())
 
-    # Bogie in middle of wagon constraint
+    # # Bogie in middle of wagon constraint
     # for w_j, wagon in enumerate(train.wagons):
     #     if wagon.number_of_axles > 4:
     #         # get the number of 30ft containers on the wagon
     #         number_of_30ft = model.NewIntVar(0, 2, 'wagon_%i' % w_j)
 
-    #         model.Add(number_of_30ft == sum(x[c_i, w_j] for c_i, container in enumerate(containers) if container.get_length() == 30))
+    #         model.Add(number_of_30ft == sum(x[c_i, w_j] for c_i, container in enumerate(containers) if container.get_length() > 22 and container.get_length() <= 30))
 
-            #model.Add(sum(x[c_i, w_j] for c_i, container in enumerate(containers) if container.get_length() == 30))
+    #         # model.Add(sum(x[c_i, w_j] for c_i, container in enumerate(containers) if container.get_length() == 30))
             
-            # for c_i, container in enumerate(containers):
-            #     model.Add(x[c_i, w_j] * container.get_length() <= int((wagon.get_length_capacity() / 2)))
-            #model.Add(sum(x[c_i, w_j] * container.get_length() for c_i, container in enumerate(containers)))
+    #         # for c_i, container in enumerate(containers):
+    #         #     model.Add(x[c_i, w_j] * container.get_length() <= int((wagon.get_length_capacity() / 2)))
+    #         # model.Add(sum(x[c_i, w_j] * container.get_length() for c_i, container in enumerate(containers)))
 
     #endregion
 
@@ -270,8 +304,54 @@ def main(train, objective_value_limit = None):
         train.set_placed_containers(placed_containers)
         train.set_unplaced_containers(unplaced_containers)
 
+
+        for wagon in train.wagons:
+            wagon.add_dummies()
+
+        # Combine the split wagons\
+        visited_list = []
+        final_list = []
+        for wagon in train.wagons:
+            if wagon.is_copy == True:
+                if wagon.wagonID not in visited_list:
+                    combined_wagon = Wagon(wagon.wagonID, wagon.weight_capacity, wagon.length_capacity * 2, wagon.contents, wagon.position, wagon.number_of_axles, wagon.total_length, wagon.wagon_weight, wagon.call)
+                    combined_wagon.is_copy = False
+                    combined_wagon.location = wagon.location
+                    combined_wagon.containers = wagon.containers
+                    visited_list.append(wagon.wagonID)
+                    final_list.append(combined_wagon)
+                else:
+                    for final_wagon in final_list:
+                        if final_wagon.wagonID == wagon.wagonID:
+                            try:
+                                final_wagon.containers += wagon.containers
+                            except:
+                                continue
+            else:
+                final_list.append(wagon)
+        
+        train.wagons = final_list
+
+        for wagon in train.wagons:
+            print(wagon)
         
         axle_load_success = train.set_optimal_axle_load()
+
+        # for wagon in train.wagons:
+        #     new_containers = []
+        #     container_list = wagon.containers
+        #     if container_list is not None:
+        #         i = 0
+        #         while i < len(container_list) - 2:
+        #             if container_list[i].get_gross_weight() == -1 and container_list[i+1].get_gross_weight() == -1:
+        #                 merged_container = Container("", 0, -1, container_list[i].get_length() * 2, None, None, None, None, None)
+        #                 new_containers.append(merged_container)
+        #                 i += 2
+        #             else:
+        #                 new_containers.append(container_list[i])
+        #                 i += 1
+        #     wagon.containers = new_containers
+
         print("Calculation time", timer() - start)
         return train, axle_load_success, solver.ObjectiveValue()
         # print(solver.ResponseStats())

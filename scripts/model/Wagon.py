@@ -1,6 +1,6 @@
 import itertools as it
 import math
-
+import json
 from statistics import mean
 from model.Container import Container
 
@@ -47,6 +47,8 @@ class Wagon():
         self.location = None 
         self.number_of_axles = number_of_axles
         self.wagon_weight = wagon_weight
+        self.is_copy = False
+        self.wagon_dictionairy = self.get_wagon_dictionairy()
 
         # Can be None
         self.containers = containers
@@ -82,6 +84,72 @@ class Wagon():
             print(offset, '-', offset+container.get_length(),':\t', container)
             offset += container.get_length()
         
+    def get_wagon_dictionairy(self):
+        dictionairy_json_string = """{
+                                        "404": {
+                                            "lenght": 40,
+                                            "nr of axles": 4,
+                                            "shift dist(m)": 2.15,
+                                            "axle dist": 8.07
+                                        },
+                                        "474": {
+                                            "lenght": 47,
+                                            "nr of axles": 4,
+                                            "shift dist(m)": 2.1,
+                                            "axle dist": 10.2
+                                        },
+                                        "604": {
+                                            "lenght": 60,
+                                            "nr of axles": 4,
+                                            "shift dist(m)": 2.1,
+                                            "axle dist": 14.2
+                                        },
+                                        "804": {
+                                            "lenght": 80,
+                                            "nr of axles": 4,
+                                            "shift dist(m)": 2.7,
+                                            "axle dist": 19.3
+                                        },
+                                        "806": {
+                                            "lenght": 80,
+                                            "nr of axles": 6,
+                                            "shift dist(m)": 2.18,
+                                            "axle dist": 10.395
+                                        },
+                                        "906": {
+                                            "lenght": 90,
+                                            "nr of axles": 6,
+                                            "shift dist(m)": 2.18,
+                                            "axle dist": 11.995
+                                        },
+                                        "908": {
+                                            "lenght": 90,
+                                            "nr of axles": 8,
+                                            "shift dist(m)": 2.43,
+                                            "axle dist": 11.985
+                                        },
+                                        "1046": {
+                                            "lenght": 104,
+                                            "nr of axles": 6,
+                                            "shift dist(m)": 2.28,
+                                            "axle dist": 14.2
+                                        },
+                                        "1048": {
+                                            "lenght": 104,
+                                            "nr of axles": 8,
+                                            "shift dist(m)": 2.3,
+                                            "axle dist": 13.08
+                                        },
+                                        "1068": {
+                                            "lenght": 106,
+                                            "nr of axles": 8,
+                                            "shift dist(m)": 2.3,
+                                            "axle dist": 13.5
+                                        }
+                                        }"""
+
+        dictionairy = json.loads(dictionairy_json_string)
+        return dictionairy
 
     def to_JSON(self):
         wagon_dict = {}
@@ -121,38 +189,45 @@ class Wagon():
         hinge_splittable = False
         containerList = []
         for container in containers:
-            containerList.append([container, container.get_length() / 2 + fillrate])
+            containerList.append([container, container.get_length() / 2 + fillrate]) # containers , position of container on wagon
             fillrate += container.get_length()
             total_load += container.get_gross_weight()
             if fillrate == (self.length_capacity / 2):
                 hinge_splittable = True
         key = str(self.length_capacity).split('.')[0] + str(self.number_of_axles).split('.')[0]
-        dictionairy = get_wagons("data/Wagons.csv")
+        dictionairy = self.wagon_dictionairy
+    
+        axleshift = dictionairy[key]['shift dist(m)']
+        axledist = dictionairy[key]['axle dist']
+
+
+
+
         # Starting with all the Wagons that have 2 bogies and so have 4 axles
         if self.number_of_axles == 4:
-            right_axle_load = 0.5 * self.wagon_weight
+            left_axle_load = 0.5 * self.wagon_weight
             # Adding the containers to the load on the Right bogie
             for container in containerList:
-                dist = container[1] * 0.3048 - float(dictionairy[key][2])
-                right_axle_load += self.container_load(container[0].gross_weight, dist, dictionairy[key][3])
+                dist = container[1] * 0.3048 - float(axleshift)
+                left_axle_load += self.container_load(container[0].gross_weight, dist, axledist)
             # calculating the left axle by taking the total and subtracting the load on the right axle
-            left_axle_load = total_load - right_axle_load
+            right_axle_load = total_load - left_axle_load
             # Returning the data: left axle, right axle, total load
             return [left_axle_load / 2, right_axle_load / 2], total_load
         # Setting The right numbers for the wagons with 3 bogies
         elif self.number_of_axles == 6:
             if hinge_splittable:
-                middle = dictionairy[key][2] + dictionairy[key][3]
+                middle = axleshift + axledist
                 # Setting the basic load on the axles to add the containers later, given the load is equal on all bogies
                 left_axle_load = right_axle_load = self.wagon_weight / 3
                 # Adding the weight of the containers
                 for container in containerList: # splitting the train to calculate load on different parts
                     if container[1] < (self.length_capacity / 2):
                         dist = middle - container[1] * 0.3048
-                        left_axle_load += self.container_load(container[0].gross_weight, dist, dictionairy[key][3])
+                        left_axle_load += self.container_load(container[0].gross_weight, dist, axledist)
                     else:
                         dist = container[1] * 0.3048 - middle
-                        right_axle_load += self.container_load(container[0].gross_weight, dist, dictionairy[key][3])
+                        right_axle_load += self.container_load(container[0].gross_weight, dist, axledist)
                     middle_axle_load = total_load - right_axle_load - left_axle_load
                 return [left_axle_load / 2, middle_axle_load / 2, right_axle_load / 2], total_load
             else:
@@ -160,16 +235,16 @@ class Wagon():
         elif self.number_of_axles == 8:
             if hinge_splittable:
                 # define middle
-                middle = dictionairy[key][2] + dictionairy[key][3]
+                middle = axleshift + axledist
                 # setting the basic load over the axles (assumption: all load is devided equally)
                 right_axle_load = right_axle1_load = self.wagon_weight / 4
                 for container in containerList: # splitting front and back to find relative load
                     if container[1] < self.length_capacity / 2:
-                        dist = container[1] * 0.3048 - dictionairy[key][2]
-                        right_axle_load += self.container_load(container[0].gross_weight, dist, dictionairy[key][3])
+                        dist = container[1] * 0.3048 - axleshift
+                        right_axle_load += self.container_load(container[0].gross_weight, dist, axledist)
                     else:
-                        dist = container[1] * 0.3048 - (dictionairy[key][2] + middle)
-                        right_axle1_load += self.container_load(container[0].gross_weight, dist, dictionairy[key][3])
+                        dist = container[1] * 0.3048 - (axleshift + middle)
+                        right_axle1_load += self.container_load(container[0].gross_weight, dist, axledist)
                     axle_1 = total_load / 2 - right_axle_load
                     axle_3 = total_load / 2 - right_axle1_load
                 return [axle_1 / 2, right_axle_load / 2, axle_3 / 2, right_axle1_load / 2], total_load
@@ -206,21 +281,23 @@ class Wagon():
         axle_load_score = math.inf
         axle_best_found_permutation = []
         
-        occupied_weight = self.wagon_weight_load()
-        occupied_length = self.wagon_length_load()
-        dummy_container1 = None
-        dummy_container2 = None
-        container_copy = self.containers
+        #occupied_weight = self.wagon_weight_load()
+        # occupied_length = self.wagon_length_load()
+        # dummy_container1 = None
+        # dummy_container2 = None
+        # container_copy = self.containers
         
-        if self.length_capacity - occupied_length > 0:
-            empty_length = self.length_capacity - occupied_length
-            dummy_length = math.floor(empty_length/2)
-            dummy_container1 = Container("", 0, -1, dummy_length, None, None, None, None, None)
-            dummy_container2 = Container("", 0, -1, dummy_length, None, None, None, None, None)
-            container_copy.append(dummy_container1)
-            container_copy.append(dummy_container2)
+        # if self.length_capacity - occupied_length > 0:
+        #     empty_length = self.length_capacity - occupied_length
+        #     dummy_length = math.floor(empty_length/2)
+        #     dummy_container1 = Container("", 0, -1, dummy_length, None, None, None, None, None)
+        #     dummy_container2 = Container("", 0, -1, dummy_length, None, None, None, None, None)
+        #     container_copy.append(dummy_container1)
+        #     container_copy.append(dummy_container2)
 
-        for i, container_list in enumerate(it.permutations(container_copy)):
+        
+
+        for i, container_list in enumerate(it.permutations(self.containers)):
             axle_load, _ = self.get_axle_load(container_list)
             # print(self.get_axle_load(combination))
             container_list = list(container_list)
@@ -230,7 +307,7 @@ class Wagon():
                 axle_load_score = max(axle_load)
 
         # print("Wagon:", self.wagonID, "Axle Load:", axle_load_score)
-
+        print("Wagon", self.wagonID, "max load: ", axle_load_score)
         if axle_load_score < 22500:
 
             # If dummy_container1 is in there, dummy_container2 is also there
@@ -243,6 +320,28 @@ class Wagon():
             return True
             
         return False
+
+    def add_dummies(self):
+        if(self.containers is None):
+            print("The wagon is empty, so axile load is fine.")
+            pass
+    
+        occupied_weight = self.wagon_weight_load()
+        occupied_length = self.wagon_length_load()
+        dummy_container1 = None
+        dummy_container2 = None
+        container_copy = self.containers
+        
+        if self.length_capacity - occupied_length > 0:
+            empty_length = self.length_capacity - occupied_length
+            dummy_length = round((empty_length/2), 1)
+            dummy_container1 = Container("", 0, -1, dummy_length, None, None, None, None, None)
+            dummy_container2 = Container("", 0, -1, dummy_length, None, None, None, None, None)
+            container_copy.append(dummy_container1)
+            container_copy.append(dummy_container2)
+
+        self.containers = container_copy
+        
 
     def wagon_weight_load(self):
         if(self.containers is None):
