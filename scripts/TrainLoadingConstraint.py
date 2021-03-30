@@ -70,21 +70,23 @@ def main(train, objective_value_limit = None):
 
     #region variables
 
+    positions = list(range(5))
+
     # x[c_i, w_j] = 1 if container c_i is packed in wagon w_j
     x = {}
     for c_i, _ in enumerate(containers):    
         for w_j, wagon in enumerate(train.wagons):
             x[(c_i,w_j)] = model.NewIntVar(0, 1, 'cont:%i,wagon%i' % (c_i, w_j))
     
+    # c_pos = {}
+    # for w_j, wagon in enumerate(train.wagons):
+    #     for position in range(5):
+    #         c_pos[w_j, position] = model.NewIntVar(0, len(containers), 'c_pos:(%i,%i)' % (w_j, position))
+
+
     # This value of this is: spreadContainers == (len(containers) > len(train.wagons))
     # This is added as a constraint
     spreadContainers = model.NewBoolVar('spreadContainers')
-
-    container_positions = {}
-    for c_i, _ in enumerate(containers):
-        # Assume maximum number of positions is 5
-        # Might need to calculate/change this depending on the wagon
-        container_positions[c_i] = model.NewIntVar(0, 5, 'container_pos(c_i:%i)' % c_i)
 
     # y = {}
     # for w_j, wagon in enumerate(train.wagons):
@@ -227,16 +229,23 @@ def main(train, objective_value_limit = None):
 
     #region axle-load-constraints
 
-    # Containers cant occupy the same position on the wagon
-    # for w_j, wagon in enumerate(train.wagons):
-    #     for c_i, container in enumerate(containers):
-    #         model.Add(
-    #             sum(x[c_i, w_j] * container_positions[c_i]) == container_positions[c_i]
+    # If a container is in a wagon, then the container has a position on that wagon too
+    # for c_i, _ in enumerate(containers):
+    #     for w_j, _ in enumerate(train.wagons):
+    #         model.AddImplication(
+    #             x[c_i,w_j] == 1,
+    #             sum(c_pos[w_j, position] == c_i for position in positions) == 1
     #         )
-    
+
+    # # Each container can only have one position
+    # for w_j, _ in enumerate(train.wagons):
+    #     model.AddAllDifferent(
+    #         c_pos[w_j, position] for position in positions
+    #     )
+
     #endregion
 
-    """t
+    """
                 OBJECTIVE
     """
 
@@ -398,3 +407,31 @@ def main(train, objective_value_limit = None):
     # print("added axle load constraint")
 
     #model.AddMaxEquality(wagon.set_optimal_axle_load() <= 22500, wagon for wagon in train.wagons)
+
+
+
+# Axle load try 2:
+    # for c_i, container in enumerate(containers):
+    #     for w_j, wagon in enumerate(train.wagons):
+    #         c = model.NewBoolVar("")
+    #         model.Add(
+    #             (x[c_i, w_j] == 1)
+    #         ).OnlyEnforceIf(c)
+    #         model.Add(
+    #             x[c_i,w_j] == 0
+    #             ).OnlyEnforceIf(c.Not())
+    #         model.Add(
+    #             c_position[c_i,w_j] > 0
+    #         ).OnlyEnforceIf(c)
+    #         model.Add(
+    #             c_position[c_i, w_j] == 0
+    #         ).OnlyEnforceIf(c.Not())
+
+   
+    # # Each position can only be occupied by one container
+    # for w_j, wagon in enumerate(train.wagons):
+    #     c=model.NewBoolVar("")
+
+    #     model.AddAllDifferent(
+    #         c_position[c_i, w_j] for c_i, _ in enumerate(containers)
+    #     )
