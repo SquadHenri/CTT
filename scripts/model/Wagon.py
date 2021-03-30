@@ -134,7 +134,7 @@ class Wagon():
         axledist = dictionairy[key][3]
         # Starting with all the Wagons that have 2 bogies and so have 4 axles
         if self.number_of_axles == 4:
-            right_axle_load = 0.5 * self.wagon_weight
+            left_axle_load = 0.5 * self.wagon_weight
             # Adding the containers to the load on the Right bogie
             for container in containerList:
                 dist = container[1] * 0.3048 - float(axleshift)
@@ -148,7 +148,7 @@ class Wagon():
             if hinge_splittable:
                 middle = axleshift + axledist
                 # Setting the basic load on the axles to add the containers later, given the load is equal on all bogies
-                left_axle_load = right_axle_load = self.wagon_we    ight / 3
+                left_axle_load = right_axle_load = self.wagon_weight / 3
                 # Adding the weight of the containers
                 for container in containerList: # splitting the train to calculate load on different parts
                     if container[1] < (self.length_capacity / 2):
