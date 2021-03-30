@@ -4,7 +4,6 @@ import json
 from statistics import mean
 from model.Container import Container
 
-from data.getWagonsFromCSV import get_wagons
 
 class Wagon():
     """

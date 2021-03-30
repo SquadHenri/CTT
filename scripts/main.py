@@ -8,7 +8,7 @@ import TrainLoadingConstraint
 
 
 
-dataset = pandas.read_csv('data\input_cttrot202110323pol_compleet.csv')
+dataset = pandas.read_csv('data\input_df_9ed65200-f569-4862-bd87-702562af2377.csv')
 
 def setup(dataset):
     containerlist = []
@@ -23,7 +23,7 @@ def setup(dataset):
     split = None 
     if dataset.TRAINSPLIT[1] is not None:
         split = dataset.TRAINSPLIT[1]
-    split = 14
+
 
     isReversed = False
     if dataset.TRAINREVERSED[1] is not None and dataset.TRAINREVERSED[1] == 1:
@@ -67,7 +67,6 @@ def setup(dataset):
     
     #Reverse wagons if neccesary
     if isReversed:
-        
         wagondf = wagondf[::-1]
         wagondf = wagondf.reset_index(drop=True)
         for i, wagon in wagondf.iterrows():
