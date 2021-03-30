@@ -8,7 +8,7 @@ import TrainLoadingConstraint
 
 
 
-dataset = pandas.read_csv('data\input_cttrot202110323pol.csv')
+dataset = pandas.read_csv('data\input_cttrot202110323pol_compleet.csv')
 
 def setup(dataset):
     containerlist = []
@@ -18,10 +18,12 @@ def setup(dataset):
     max_traveldistance = 50
     if dataset.MAXTRAVELDISTANCE[1] is not None:
         max_traveldistance = dataset.MAXTRAVELDISTANCE[1]
-    
+    max_traveldistance = 11
+
     split = None 
     if dataset.TRAINSPLIT[1] is not None:
         split = dataset.TRAINSPLIT[1]
+    split = 14
 
     isReversed = False
     if dataset.TRAINREVERSED[1] is not None and dataset.TRAINREVERSED[1] == 1:
@@ -60,7 +62,7 @@ def setup(dataset):
     wagondf = pandas.DataFrame(wagonlist, columns =['wagonID', 'wagonType', 'wagonSizeft', 'wagonNoAxes', 'wagonMaxTEU', 'wagonLength', 'wagonPosition', 'wagonPayload', 'wagonCall', 'wagonTare', 'wagonTrack'])
     containerdf = pandas.DataFrame(containerlist, columns =['containerID', 'containerType', 'unNR', 'unKlasse', 'nettWeight', 'terminalWeightNett', 'containerTEU', 'containerPosition', 'containerTarra', 'containerCall'])
     
-    
+    print(wagondf)
     wagondf = wagondf.sort_values(by='wagonPosition')
     
     #Reverse wagons if neccesary

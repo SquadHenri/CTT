@@ -210,21 +210,23 @@ class Wagon():
         axle_load_score = math.inf
         axle_best_found_permutation = []
         
-        occupied_weight = self.wagon_weight_load()
-        occupied_length = self.wagon_length_load()
-        dummy_container1 = None
-        dummy_container2 = None
-        container_copy = self.containers
+        #occupied_weight = self.wagon_weight_load()
+        # occupied_length = self.wagon_length_load()
+        # dummy_container1 = None
+        # dummy_container2 = None
+        # container_copy = self.containers
         
-        if self.length_capacity - occupied_length > 0:
-            empty_length = self.length_capacity - occupied_length
-            dummy_length = math.floor(empty_length/2)
-            dummy_container1 = Container("", 0, -1, dummy_length, None, None, None, None, None)
-            dummy_container2 = Container("", 0, -1, dummy_length, None, None, None, None, None)
-            container_copy.append(dummy_container1)
-            container_copy.append(dummy_container2)
+        # if self.length_capacity - occupied_length > 0:
+        #     empty_length = self.length_capacity - occupied_length
+        #     dummy_length = math.floor(empty_length/2)
+        #     dummy_container1 = Container("", 0, -1, dummy_length, None, None, None, None, None)
+        #     dummy_container2 = Container("", 0, -1, dummy_length, None, None, None, None, None)
+        #     container_copy.append(dummy_container1)
+        #     container_copy.append(dummy_container2)
 
-        for i, container_list in enumerate(it.permutations(container_copy)):
+        
+
+        for i, container_list in enumerate(it.permutations(self.containers)):
             axle_load, _ = self.get_axle_load(container_list)
             # print(self.get_axle_load(combination))
             container_list = list(container_list)
@@ -247,6 +249,28 @@ class Wagon():
             return True
             
         return False
+
+    def add_dummies(self):
+        if(self.containers is None):
+            print("The wagon is empty, so axile load is fine.")
+            pass
+    
+        occupied_weight = self.wagon_weight_load()
+        occupied_length = self.wagon_length_load()
+        dummy_container1 = None
+        dummy_container2 = None
+        container_copy = self.containers
+        
+        if self.length_capacity - occupied_length > 0:
+            empty_length = self.length_capacity - occupied_length
+            dummy_length = round((empty_length/2), 1)
+            dummy_container1 = Container("", 0, -1, dummy_length, None, None, None, None, None)
+            dummy_container2 = Container("", 0, -1, dummy_length, None, None, None, None, None)
+            container_copy.append(dummy_container1)
+            container_copy.append(dummy_container2)
+
+        self.containers = container_copy
+        
 
     def wagon_weight_load(self):
         if(self.containers is None):

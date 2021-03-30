@@ -268,7 +268,7 @@ class Train():
         title = wagons[0].call
         for wagon in wagons:           
             #Add wagonID to first cell of the row
-            columns.append(str(int(wagon.position))+ ". " + wagon.wagonID)
+            columns.append(str(int(wagon.position))+ ". " + wagon.wagonID + " | " + str(wagon.number_of_axles))
             datarow = []
             cellRowColour = []
         
@@ -292,7 +292,7 @@ class Train():
             for i, container in enumerate(wagon.containers):
                 #wagon_weight += container.get_gross_weight()
                 #wagon_length += container.get_length()
-                datarow[i] = container.containerID + " (" + str(container.get_length() / 20) + ")"
+                datarow[i] = container.containerID + " (" + str(container.get_length() / 20) + ") " + str(int(container.get_gross_weight() / 1000))
                 # orange #ff6153
                 # dark green #498499
                 if str(container.hazard_class).startswith("1") or str(container.hazard_class).startswith("2") or str(container.hazard_class).startswith("3"):
@@ -403,7 +403,7 @@ class Train():
         #Formatting planning table
         if planning_table is not None:
             planning_table.auto_set_font_size(False)
-            planning_table.set_fontsize(10)
+            planning_table.set_fontsize(8)
         
         #Plot layout settings
         plt.subplots_adjust(left=0.1, bottom=0.195, right=0.986, top=0.8)
@@ -452,16 +452,20 @@ class Train():
         for wagon in self.wagons:
             if self.split != None:
 
+
                 if wagon.position < self.split:
                     wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6.1), y_val]
                     xlen += wagon.total_length
                     if wagon.location[1] == 0:
                         splitshift = wagon
                 
-                else:
+                elif wagon.position == self.split:
                     xlen = 0
-                    self.split = 100
+                    #self.split = 100
                     y_val = -1
+                    wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6.1), y_val]
+                    xlen += wagon.total_length
+                else:
                     wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6.1), y_val]
                     xlen += wagon.total_length
 
