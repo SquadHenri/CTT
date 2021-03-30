@@ -369,7 +369,9 @@ class Train():
             t2data, t2cellColours = self.get_container_plot(unplaced_containers)
             container_table = axs[0].table(cellText=t2data,
                     cellColours=t2cellColours,
-                    loc='center')
+                    loc='center',
+                    cellLoc='center')
+            container_table.auto_set_column_width(col=list(range(3)))
             #Create planning table
             t1data, t1columns, t1rcolors, t1cellColours, t1ccolors, t1rows, t1title = self.get_planning_plot()
             title = t1title
@@ -379,7 +381,9 @@ class Train():
                     cellColours=t1cellColours,
                     colColours=t1ccolors,
                     colLabels=t1rows,
+                    cellLoc='center',
                     loc='center')
+            planning_table.auto_set_column_width(col=list(range(len(t1rows))))
         #If there are no unplaced containers, only show the planning plot and take full space
         else:
             fig, axs = plt.subplots()
@@ -391,12 +395,15 @@ class Train():
                     cellColours=t1cellColours,
                     colColours=t1ccolors,
                     colLabels=t1rows,
+                    cellLoc='center',
                     loc='center')
+
+            planning_table.auto_set_column_width(col=list(range(len(t1rows))))
 
         #Formatting container table
         if container_table is not None:
             container_table.auto_set_font_size(False)
-            container_table.set_fontsize(10)
+            container_table.set_fontsize(8)
             axs[0].axis('tight')
             axs[0].axis('off')  
 
@@ -404,9 +411,11 @@ class Train():
         if planning_table is not None:
             planning_table.auto_set_font_size(False)
             planning_table.set_fontsize(8)
+            
         
         #Plot layout settings
-        plt.subplots_adjust(left=0.1, bottom=0.195, right=0.986, top=0.8)
+        plt.subplots_adjust(left=0, bottom=0.26, right=0.986, top=0.8)
+        plt.axis('tight')
         plt.axis('off')
         
         # If no current figure exists, a new one is created using figure()
