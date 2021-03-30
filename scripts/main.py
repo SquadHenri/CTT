@@ -18,7 +18,6 @@ def setup(dataset):
     max_traveldistance = 50
     if dataset.MAXTRAVELDISTANCE[1] is not None:
         max_traveldistance = dataset.MAXTRAVELDISTANCE[1]
-    max_traveldistance = 11
 
     split = None 
     if dataset.TRAINSPLIT[1] is not None:
