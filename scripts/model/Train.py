@@ -268,20 +268,22 @@ class Train():
         title = wagons[0].call
         for wagon in wagons:           
             #Add wagonID to first cell of the row
-            columns.append(str(int(wagon.position))+ ". " + wagon.wagonID + " | " + str(wagon.number_of_axles))
+            columns.append(str(int(wagon.position))+ ". " + wagon.wagonID)
             datarow = []
             cellRowColour = []
         
             # Initialize all cells with "empty" and basic grey color
             if 0 < maxContainers: 
                 # We do maxContainers + 2, since we want to add two more columns that contain information.
-                datarow.extend('' for x in range(0, maxContainers + 2))
-                cellRowColour.extend('#fefefe' for x in range(0, maxContainers + 2)) 
+                datarow.extend('' for x in range(0, maxContainers + 4))
+                cellRowColour.extend('#fefefe' for x in range(0, maxContainers + 4)) 
             
             # If the wagon is empty, we set the lengts and weight to 0%
             if wagon.containers is None: 
-                datarow[len(datarow) - 2] = "0/" + str(wagon.get_weight_capacity()).split(".")[0] + " (0%)"
-                datarow[len(datarow) - 1] = "0/" + str(wagon.get_length_capacity()).split(".")[0] + " (0%)"  
+                datarow[len(datarow) - 4] = "0/" + str(wagon.get_weight_capacity()).split(".")[0] + " (0%)"
+                datarow[len(datarow) - 3] = "0/" + str(wagon.get_length_capacity()).split(".")[0] + " (0%)"
+                datarow[len(datarow) - 2] = str(int(wagon.number_of_axles))
+                datarow[len(datarow) - 1] = "0"   
                 data.append(datarow)
                 cellColours.append(cellRowColour) 
                 continue
@@ -292,7 +294,7 @@ class Train():
             for i, container in enumerate(wagon.containers):
                 #wagon_weight += container.get_gross_weight()
                 #wagon_length += container.get_length()
-                datarow[i] = container.containerID + " (" + str(container.get_actual_length() / 20) + ") " + str(int(container.get_gross_weight() / 1000))
+                datarow[i] = container.containerID + " (" + str(container.get_actual_length() / 20) + " | " + str(int(container.get_gross_weight() / 1000)) + ")"
                 # orange #ff6153
                 # dark green #498499
                 if str(container.hazard_class).startswith("1") or str(container.hazard_class).startswith("2") or str(container.hazard_class).startswith("3"):
@@ -303,8 +305,13 @@ class Train():
             length_perc = round((wagon_length/wagon.get_length_capacity()) * 100, 1)
 
             # Set the final two columns to the packed weight and packed length
-            datarow[len(datarow) - 2] = str(wagon_weight) + "/" + str(wagon.get_weight_capacity()).split(".")[0] + " ("+str(weight_perc)+ "%)"
-            datarow[len(datarow) - 1] = str(wagon_length) + "/" + str(wagon.get_length_capacity()).split(".")[0] + " ("+str(length_perc)+ "%)"
+            datarow[len(datarow) - 4] = str(wagon_weight) + "/" + str(wagon.get_weight_capacity()).split(".")[0] + " ("+str(weight_perc)+ "%)"
+            datarow[len(datarow) - 3] = str(wagon_weight) + "/" + str(wagon.get_weight_capacity()).split(".")[0] + " ("+str(weight_perc)+ "%)"
+            datarow[len(datarow) - 2] = str(int(wagon.number_of_axles))
+            datarow[len(datarow) - 1] = str(int(wagon.highest_axle_load))
+
+            if wagon.highest_axle_load > 22000:
+                cellRowColour[maxContainers+3] = '#ff6153'
 
             # If 90% of the weight is used, make the column red.
             if weight_perc > 90:
@@ -318,18 +325,22 @@ class Train():
         datarow = []
         cellRowColour = []
         columns.append("Total")
-        datarow.extend('' for x in range(0, maxContainers + 2))
-        cellRowColour.extend('#fefefe' for x in range(0, maxContainers + 2)) 
-        datarow[len(datarow) - 2] = str(total_weight) + "/" + str(self.get_total_weight_capacity()).split(".")[0] + " ("+str(round((total_weight/self.get_total_weight_capacity()) * 100, 1))+ " %)"
-        datarow[len(datarow) - 1] = str(total_length) + "/" + str(self.get_total_length_capacity()).split(".")[0] + " ("+str(round((total_length/self.get_total_length_capacity()) * 100, 1))+ " %)"
+        datarow.extend('' for x in range(0, maxContainers + 4))
+        cellRowColour.extend('#fefefe' for x in range(0, maxContainers + 4)) 
+        datarow[len(datarow) - 4] = str(total_weight) + "/" + str(self.get_total_weight_capacity()).split(".")[0] + " ("+str(round((total_weight/self.get_total_weight_capacity()) * 100, 1))+ " %)"
+        datarow[len(datarow) - 3] = str(total_length) + "/" + str(self.get_total_length_capacity()).split(".")[0] + " ("+str(round((total_length/self.get_total_length_capacity()) * 100, 1))+ " %)"
+        #datarow[len(datarow) - 2] = ""
+        #datarow[len(datarow) - 1] = "" 
         cellColours.append(cellRowColour)
         data.append(datarow)
 
         # Set the column titles to slot x, and the last two to Wagon Weight and Wagon Length
         n_rows = len(data)
         rows = ['slot %d' % (x+1) for x in range(len(data))]
-        rows[maxContainers] = "Wagon Weight"
+        rows[maxContainers] = "Wagon Gross Weight"
         rows[maxContainers + 1] = "Wagon Length"
+        rows[maxContainers + 2] = "Axles"
+        rows[maxContainers + 3] = "Highest Axle Load"
         
         # Set the text to the cells
         cell_text = []
@@ -343,6 +354,7 @@ class Train():
         #CTT Blue color: #11aae1
         rcolors = np.full(n_rows, '#8bc53d')
         ccolors = np.full(n_rows, '#8bc53d')
+        rcolors[-1] = '#fff'
 
         return data, columns, rcolors, cellColours, ccolors, rows, title
 

@@ -310,7 +310,7 @@ class Wagon():
         print("Wagon", self.wagonID, "max load: ", axle_load_score)
         self.max_axle_load = axle_load_score
         if axle_load_score < 22000:
-
+    
             # If dummy_container1 is in there, dummy_container2 is also there
             # if dummy_container1 in axle_best_found_permutation:
             #     axle_best_found_permutation.remove(dummy_container1)
