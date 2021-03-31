@@ -1,6 +1,7 @@
 from numpy.lib.function_base import place
 import pandas
-
+from tkinter import *
+from PIL import ImageTk,Image
 from model.Wagon import Wagon
 from model.Train import Train
 from model.Container import Container
@@ -8,7 +9,7 @@ import TrainLoadingConstraint
 
 
 
-dataset = pandas.read_csv('data\input_df_4c150a83-346f-4719-89b0-c691242fe383.csv')
+dataset = pandas.read_csv('data\CTTROT20210331POL_compleet.csv')
 
 def setup(dataset):
     containerlist = []
@@ -23,27 +24,27 @@ def setup(dataset):
     split = None 
     if dataset.TRAINSPLIT[1] is not None:
         split = dataset.TRAINSPLIT[1]
-    split = 11
+    split = 14
 
     isReversed = False
     if dataset.TRAINREVERSED[1] is not None and dataset.TRAINREVERSED[1] == 1:
         isReversed = True
     
     maxTrainWeight = 1600
-    if dataset.MaxTrainWeight[1] is not None:
-        maxTrainWeight = dataset.MaxTrainWeight[1]
+    if dataset.MaxTrainWeightValue[1] is not None:
+        maxTrainWeight = dataset.MaxTrainWeightValue[1]
 
     weightPerc = 90
-    if dataset.WeightPerc[1] is not None:
-        maxTrainWeight = dataset.WeightPerc[1]
+    if dataset.WeightPercThresholdValue[1] is not None:
+        maxTrainWeight = dataset.WeightPercThresholdValue[1]
     
     hide_unplaced = False
-    if dataset.HideUnplacedContainers[1] is not None and dataset.HideUnplacedContainers[1] == True:
+    if dataset.HideUnplacedContainersValue[1] is not None and dataset.HideUnplacedContainersValue[1] == True:
         hide_unplaced = True
     
     lengthPerc = 100
-    if dataset.LengthPerc[1] is not None:
-        lengthPerc = dataset.LengthPerc[1]
+    if dataset.LengthPercThresholdValue[1] is not None:
+        lengthPerc = dataset.LengthPercThresholdValue[1]
 
     for i, value in enumerate(dataset.WAGON):
         if pandas.notna(value):
@@ -138,48 +139,77 @@ if __name__ == '__main__':
     x = 15
 
     max_objective = 0
+    wrong_axles = 100
     travel_solutions = []
+    alternative_solutions = []
     while x >= 10:
         train = setup(dataset)
         train.max_traveldistance = x
-        _, axle_load_success, objective_value = TrainLoadingConstraint.main(train, max_objective)
+        try:
+            _, axle_load_success, objective_value, wrong_wagons = TrainLoadingConstraint.main(train, max_objective)
+        except:
+            print("Calculation took too long")
+            axle_load_success = False
+            objective_value = 0
+            wrong_wagons = 1000
 
         if axle_load_success and objective_value >= max_objective:
             travel_solutions.append(x)
             max_objective = objective_value
-        print(travel_solutions)
+        elif not axle_load_success and objective_value >= max_objective and wrong_wagons <= wrong_axles:
+            alternative_solutions.append(x)
+            wrong_axles = wrong_wagons
+            max_objective = objective_value
+
+        print("Right solutions", travel_solutions)
+        print("Alternative solutions", alternative_solutions)
         x -= 1
     
-    weight_solutions = []
-    if len(travel_solutions) == 0:
-        print("In the weight reduction loop")
-        y = 0.05
-        while y <= 0.15:
-            train = setup(dataset)
-            for wagon in train.wagons:
-                wagon.weight_capacity = wagon.weight_capacity * (1 - y)
+    # weight_solutions = []
+    # if len(travel_solutions) == 0:
+    #     print("In the weight reduction loop")
+    #     y = 0.05
+    #     while y <= 0.15:
+    #         train = setup(dataset)
+    #         for wagon in train.wagons:
+    #             wagon.weight_capacity = wagon.weight_capacity * (1 - y)
             
-            _, axle_load_success, objective_value = TrainLoadingConstraint.main(train, max_objective)
+    #         _, axle_load_success, objective_value, wrong_wagons = TrainLoadingConstraint.main(train, max_objective)
 
-            if axle_load_success and objective_value >= max_objective:
-                weight_solutions.append(y)
-                max_objective = objective_value
-            print(weight_solutions)
-            y += 0.05
+    #         if axle_load_success and objective_value >= max_objective:
+    #             weight_solutions.append(y)
+    #             max_objective = objective_value
+    #         print(weight_solutions)
+    #         y += 0.05
     
 
 
 
     train = setup(dataset)
+
+    for wagon in train.wagons:
+        print(wagon)
+
     
     if len(travel_solutions) > 0:
-        train.max_traveldistance = min(travel_solutions) 
+        train.max_traveldistance = min(travel_solutions)
 
-    if len(weight_solutions) > 0:
-        for wagon in train.wagons:
-            wagon.weight_capacity = min(weight_solutions)
+        root = Tk()
+        canvas = Canvas(root, width = 300, height = 300)
+        canvas.pack()
+        img = ImageTk.PhotoImage(Image.open("data\SuccessKid.jpg"))
+        canvas.create_image(20, 20, anchor=NW, image=img)
+        root.mainloop()
 
-    train, axle_load_success, objective_value = TrainLoadingConstraint.main(train, max_objective)
+
+    elif len(alternative_solutions) > 0:
+        train.max_traveldistance = min(alternative_solutions)
+
+    # if len(weight_solutions) > 0:
+    #     for wagon in train.wagons:
+    #         wagon.weight_capacity = min(weight_solutions)
+
+    train, axle_load_success, objective_value, wrong_wagons = TrainLoadingConstraint.main(train, max_objective)
     print("axle_load_success: ", axle_load_success, ", objective_value: ", objective_value)
 
     # This needs to be tested

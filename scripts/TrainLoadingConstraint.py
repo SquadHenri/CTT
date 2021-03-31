@@ -60,8 +60,8 @@ def main(train, max_objective, objective_value_limit = None):
 
 
     
-    for wagon in wagon_list:
-        print(wagon)
+    # for wagon in wagon_list:
+    #     print(wagon)
     
     train.wagons = wagon_list
     """
@@ -174,6 +174,13 @@ def main(train, max_objective, objective_value_limit = None):
                         for c_i, container in enumerate(containers))
                         <= int(wagon1.get_weight_capacity() * 1))
 
+    # Containers that are between 20 and 30 foot, may not be placed on an 80 foot wagon
+    for w_j, wagon in enumerate(train.wagons):
+        #print(wagon.get_length_capacity())
+        if wagon.get_length_capacity() == 40 and wagon.is_copy == True:
+            print("Adding constraint for wagon", wagon.wagonID)
+            model.Add(sum(x[c_i, w_j] for c_i, container in enumerate(containers) if container.get_actual_length() != container.get_length()) < 1)
+
     # The distance between two hazardous containers should be at least one wagon
     for c_i, container_i in enumerate(containers):
         for c_ii, container_ii in enumerate(containers):
@@ -281,13 +288,14 @@ def main(train, max_objective, objective_value_limit = None):
 
     print("Starting Solve...")
     solver = cp_model.CpSolver()
+    solver.parameters.max_time_in_seconds = 10
     status = solver.Solve(model)
 
     if status == cp_model.OPTIMAL:
         print('Objective Value:', solver.ObjectiveValue())
 
         if solver.ObjectiveValue() < max_objective:
-            return train, False, solver.ObjectiveValue()
+            return train, False, solver.ObjectiveValue(), 0
 
         added_containers_indices = []
         placed_containers = []
@@ -335,10 +343,12 @@ def main(train, max_objective, objective_value_limit = None):
         
         train.wagons = final_list
 
-        for wagon in train.wagons:
-            print(wagon)
+        # for wagon in train.wagons:
+        #     print(wagon)
         
         axle_load_success = train.set_optimal_axle_load()
+
+        wrong_wagons = len([wagon.max_axle_load for wagon in train.wagons if wagon.max_axle_load > 22000])
 
         # for wagon in train.wagons:
         #     new_containers = []
@@ -356,7 +366,7 @@ def main(train, max_objective, objective_value_limit = None):
         #     wagon.containers = new_containers
 
         print("Calculation time", timer() - start)
-        return train, axle_load_success, solver.ObjectiveValue()
+        return train, axle_load_success, solver.ObjectiveValue(), wrong_wagons
         # print(solver.ResponseStats())
     elif status == cp_model.FEASIBLE:
         print('status == cp_model.FEASIBLE')
