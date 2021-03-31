@@ -17,7 +17,7 @@ from data import getContainersFromCSV
 
 
 
-def main(train, objective_value_limit = None):
+def main(train, max_objective, objective_value_limit = None):
     testing = False
     start = timer()
     containers = train.get_containers()
@@ -135,7 +135,7 @@ def main(train, objective_value_limit = None):
             sum(x[(c_i, w_j)] * container.get_gross_weight()
                 for c_i, container in enumerate(containers))
                 <=
-                int(wagon.get_weight_capacity() * 0.85)
+                int(wagon.get_weight_capacity() * 1)
         )
 
     # The length of the containers cannot exceed the length of the wagon
@@ -172,7 +172,7 @@ def main(train, objective_value_limit = None):
                     if wagon1.wagonID == wagon2.wagonID:
                         model.Add(sum(x[c_i, w_j] * container.get_gross_weight() + x[c_i, w_jj] * container.get_gross_weight() 
                         for c_i, container in enumerate(containers))
-                        <= int(wagon1.get_weight_capacity() * 0.85))
+                        <= int(wagon1.get_weight_capacity() * 1))
 
     # The distance between two hazardous containers should be at least one wagon
     for c_i, container_i in enumerate(containers):
@@ -285,6 +285,9 @@ def main(train, objective_value_limit = None):
 
     if status == cp_model.OPTIMAL:
         print('Objective Value:', solver.ObjectiveValue())
+
+        if solver.ObjectiveValue() < max_objective:
+            return train, False, solver.ObjectiveValue()
 
         added_containers_indices = []
         placed_containers = []
