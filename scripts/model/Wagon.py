@@ -48,6 +48,7 @@ class Wagon():
         self.wagon_weight = wagon_weight
         self.is_copy = False
         self.wagon_dictionairy = self.get_wagon_dictionairy()
+        self.highest_axle_load = 0
 
         # Can be None
         self.containers = containers
@@ -307,6 +308,8 @@ class Wagon():
 
         # print("Wagon:", self.wagonID, "Axle Load:", axle_load_score)
         print("Wagon", self.wagonID, "max load: ", axle_load_score)
+        self.highest_axle_load = axle_load_score
+
         if axle_load_score < 22500:
 
             # If dummy_container1 is in there, dummy_container2 is also there
