@@ -14,7 +14,7 @@ class Train():
 
     
     # wagons should be a list of wagons
-    def __init__(self, wagons, containers, wrong_wagons, split, isReversed, max_traveldistance):
+    def __init__(self, wagons, containers, wrong_wagons, split, isReversed, max_traveldistance, maxTrainWeight, weightPerc, hide_unplaced, lengthPerc):
         self.wagons = wagons # This is the list of all the wagons on the train
         self.wrong_wagons = wrong_wagons
         self.maxWeight = 100000000000
@@ -294,7 +294,7 @@ class Train():
             for i, container in enumerate(wagon.containers):
                 #wagon_weight += container.get_gross_weight()
                 #wagon_length += container.get_length()
-                datarow[i] = container.containerID + " (" + str(container.get_length() / 20) + " | " + str(int(container.get_gross_weight() / 1000)) + ")"
+                datarow[i] = container.containerID + " (" + str(container.get_actual_length() / 20) + " | " + str(int(container.get_gross_weight() / 1000)) + ")"
                 # orange #ff6153
                 # dark green #498499
                 if str(container.hazard_class).startswith("1") or str(container.hazard_class).startswith("2") or str(container.hazard_class).startswith("3"):

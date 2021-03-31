@@ -1,16 +1,17 @@
 import math
 
 class Container():
-    def __init__(self, containerID, gross_weight, net_weight, foot, position, goods, priority, typeid, hazard_class):
+    def __init__(self, containerID, gross_weight, net_weight, foot, position, goods, priority, typeid, hazard_class, actual_length):
         self.containerID = containerID # name of the container
         self.gross_weight = gross_weight # weight of the container and the goods in kg
-        self.foot = foot # length of the contianer in Foot
+        self.foot = foot # length of the contianer in Foot (This length is adjusted to make sure it's either 20, 30, 40 or 45)
         self.position = self.calc_pos(position) # position of the container (on the dock or train)
         self.goods = goods # What is in the container (used for dangerous goods)
         self.priority = priority # ctt does not set a priority so this might be left unused
         self.net_weight = net_weight # Weight of the goods without the container (do not use this)
         self.typeid = typeid # Type of the container (len in feet and a letter combo)
         self.hazard_class = hazard_class # None means it is not hazardous, 1,2,3 means it is
+        self.actual_length = actual_length # The actual length of the wagon (since foot is normalized to a calculating length)
 
 
     def __str__(self):
@@ -100,3 +101,6 @@ class Container():
 
     def set_hazard_class(self, value):
         self.hazard_class = value
+    
+    def get_actual_length(self):
+        return self.actual_length

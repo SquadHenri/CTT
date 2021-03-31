@@ -308,10 +308,8 @@ class Wagon():
 
         # print("Wagon:", self.wagonID, "Axle Load:", axle_load_score)
         print("Wagon", self.wagonID, "max load: ", axle_load_score)
-        self.highest_axle_load = axle_load_score
-
-        if axle_load_score < 22500:
-
+        if axle_load_score < 22000:
+    
             # If dummy_container1 is in there, dummy_container2 is also there
             # if dummy_container1 in axle_best_found_permutation:
             #     axle_best_found_permutation.remove(dummy_container1)
@@ -337,8 +335,8 @@ class Wagon():
         if self.length_capacity - occupied_length > 0:
             empty_length = self.length_capacity - occupied_length
             dummy_length = round((empty_length/2), 1)
-            dummy_container1 = Container("", 0, -1, dummy_length, None, None, None, None, None)
-            dummy_container2 = Container("", 0, -1, dummy_length, None, None, None, None, None)
+            dummy_container1 = Container("", 0, -1, dummy_length, None, None, None, None, None, dummy_length)
+            dummy_container2 = Container("", 0, -1, dummy_length, None, None, None, None, None, dummy_length)
             container_copy.append(dummy_container1)
             container_copy.append(dummy_container2)
 
