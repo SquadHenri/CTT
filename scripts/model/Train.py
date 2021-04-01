@@ -16,12 +16,27 @@ class Train():
     # wagons should be a list of wagons
     def __init__(self, wagons, containers, wrong_wagons, split, isReversed, max_traveldistance, maxTrainWeight, weightPerc, hide_unplaced, lengthPerc):
         self.wagons = wagons # This is the list of all the wagons on the train
+        #Wagons with null values.
         self.wrong_wagons = wrong_wagons
-        self.maxWeight = 100000000000
+        #Maximum weight for a train, default = 1600000.
+        self.maxWeight = maxTrainWeight
+        #Containers for a call.
         self.containers = containers
+        #Split position of a train, split 11 means split between 10 and 11.
         self.split = split
+        #Max traveldistance per container.
         self.max_traveldistance = max_traveldistance
+        #Boolean value indicating whether the train arrived reversed.
         self.isReversed = isReversed
+
+        #Table settings parameters
+        #Conditional constraint on weight for which a cell gets a color.
+        self.weightPerc = weightPerc
+        #Hide or show unplaced containers table.
+        self.hide_unplaced = hide_unplaced
+        #Conditional constraint to give cell a color at a given threshold.
+        self.lengthPerc = lengthPerc
+
 
         self.set_location()
         self.placed_containers = []
@@ -314,8 +329,11 @@ class Train():
                 cellRowColour[maxContainers+3] = '#ff6153'
 
             # If 90% of the weight is used, make the column red.
-            if weight_perc > 90:
+            if weight_perc > self.weightPerc:
                 cellRowColour[maxContainers] = '#ff6153'
+
+            if length_perc > self.lengthPerc:
+                cellRowColour[maxContainers+1] = '#d3f8d3'
 
             # Add the row for this wagon to the list of all rows.
             cellColours.append(cellRowColour)
@@ -374,7 +392,7 @@ class Train():
             unknown_wagonlist.append(str(int(wagon.wagonPosition)) + ". " + wagon.wagonID)
 
         #Check there are unplaced containers, if yes show in table plot
-        if(len(unplaced_containers) > 0): 
+        if(len(unplaced_containers) > 0) and self.hide_unplaced is not True: 
             #Create figure and 2 axis to stack to tables
             fig, axs = plt.subplots(2,1)
             #Create container table
@@ -436,7 +454,10 @@ class Train():
         fig.suptitle(title + " on " + datetime.now().strftime("%d/%m/%Y %H:%M:%S \n" 
         + " Reversed: " + str(self.isReversed) 
         + ", Split: " + str(self.split) 
-        + ", MaxTravel: " + str(self.max_traveldistance) ), weight='bold', fontsize=12)
+        + ", MaxTravel: " + str(self.max_traveldistance)
+        + "\nWeight Threshold: " + str(self.weightPerc)
+        + ", Length Threshold: " + str(self.lengthPerc)
+        + ", Hide Unplaced containertable: " + str(self.hide_unplaced)), weight='bold', fontsize=10)
 
         # Display all unknown wagons with null values in the footnote, color: red.
         if len(unknown_wagonlist) > 0:

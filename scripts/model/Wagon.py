@@ -305,7 +305,8 @@ class Wagon():
             if(max(axle_load) < axle_load_score):
                 axle_best_found_permutation = container_list
                 axle_load_score = max(axle_load)
-
+                self.highest_axle_load = axle_load_score
+    	
         # print("Wagon:", self.wagonID, "Axle Load:", axle_load_score)
         print("Wagon", self.wagonID, "max load: ", axle_load_score)
         if axle_load_score < 22000:

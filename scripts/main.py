@@ -15,36 +15,41 @@ def setup(dataset):
     wagonlist = []
 
     #Set parameters
-    max_traveldistance = 50
+    max_traveldistance = 25
     if dataset.MAXTRAVELDISTANCE[1] is not None:
         max_traveldistance = dataset.MAXTRAVELDISTANCE[1]
-    max_traveldistance = 15
 
-    split = None 
+    #Set the position where the train is spit
+    split = None
     if dataset.TRAINSPLIT[1] is not None:
         split = dataset.TRAINSPLIT[1]
-    split = 11
 
+    #Set value representing whether the train arrived reversed
     isReversed = False
     if dataset.TRAINREVERSED[1] is not None and dataset.TRAINREVERSED[1] == 1:
         isReversed = True
     
-    maxTrainWeight = 1600
+    #Set value for max weight, default = 1600000, else set to dataset parameter.
+    maxTrainWeight = 1600 * 1000
     if dataset.MaxTrainWeight[1] is not None:
-        maxTrainWeight = dataset.MaxTrainWeight[1]
+        maxTrainWeight = int(dataset.MaxTrainWeight[1]) * 1000   
 
-    weightPerc = 90
+    #Set conditionial parameter, from which weight % the table cell gets a red color
+    weightPerc = 90.0
     if dataset.WeightPerc[1] is not None:
-        maxTrainWeight = dataset.WeightPerc[1]
+        weightPerc = round(float(dataset.WeightPerc[1]) * 100, 1)
+
+    #Set conditionial parameter, from which length % the table cell gets a color
+    lengthPerc = 100.0
+    if dataset.LengthPerc[1] is not None:
+        lengthPerc = round(float(dataset.LengthPerc[1]) * 100, 1)
     
+    #Set paramater to hide/show the unplaced container table
     hide_unplaced = False
     if dataset.HideUnplacedContainers[1] is not None and dataset.HideUnplacedContainers[1] == True:
         hide_unplaced = True
     
-    lengthPerc = 100
-    if dataset.LengthPerc[1] is not None:
-        lengthPerc = dataset.LengthPerc[1]
-
+    #Initialising pandas dataframes from dataset for wagons and containers
     for i, value in enumerate(dataset.WAGON):
         if pandas.notna(value):
             wagonID = value
@@ -74,25 +79,23 @@ def setup(dataset):
             containerTarra = dataset.CONTAINERTARRA[i]
             containerCall = dataset.CALLCODE[i]
             containerlist.append([containerID, containerType, unNR, unKlasse, nettWeight, terminalWeightNett, containerTEU, containerPosition, containerTarra, containerCall])
-    #Creating dataframes from container en wagon lists
+    #Creating dataframes from container en wagon lists and adding columns
     wagondf = pandas.DataFrame(wagonlist, columns =['wagonID', 'wagonType', 'wagonSizeft', 'wagonNoAxes', 'wagonMaxTEU', 'wagonLength', 'wagonPosition', 'wagonPayload', 'wagonCall', 'wagonTare', 'wagonTrack'])
     containerdf = pandas.DataFrame(containerlist, columns =['containerID', 'containerType', 'unNR', 'unKlasse', 'nettWeight', 'terminalWeightNett', 'containerTEU', 'containerPosition', 'containerTarra', 'containerCall'])
-    
-    #print(wagondf)
+    #Sort wagons on wagon position
     wagondf = wagondf.sort_values(by='wagonPosition')
-    
     #Reverse wagons if neccesary
     if isReversed:
         wagondf = wagondf[::-1]
         wagondf = wagondf.reset_index(drop=True)
         for i, wagon in wagondf.iterrows():
             wagondf.at[i, 'wagonPosition'] = i+1
-
     # Remove all wagons and containers that contain Null values
     wagons = []
     containers = []
     wrong_wagons = []    
     null_containers = []
+    #Create wagon objects list from container dataframe
     for index, wagon in wagondf.iterrows():
         if pandas.notna(wagon['wagonSizeft']) and pandas.notna(wagon['wagonLength']) and pandas.notna(wagon['wagonPosition']) and pandas.notna(wagon['wagonPayload']) and pandas.notna(wagon['wagonTare']) and pandas.notna(wagon['wagonNoAxes']): 
             wagonID = wagon['wagonID']
@@ -111,7 +114,7 @@ def setup(dataset):
             wrong_wagons.append(wagon)
 
     print("Containers with indices: ", null_containers, " contain null values.")
-
+    #Create container object list from container dataframe
     for index, container in containerdf.iterrows():
         containerID = container['containerID']
         gross_weight = int(container['nettWeight']) + int(container['containerTarra'])
