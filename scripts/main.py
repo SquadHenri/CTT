@@ -9,7 +9,7 @@ import TrainLoadingConstraint
 
 
 
-dataset = pandas.read_csv('data\CTTROT20210331POL_compleet.csv')
+dataset = pandas.read_csv('data\input_CTTROT20210323POL.csv')
 
 def setup(dataset):
     containerlist = []
@@ -148,17 +148,17 @@ if __name__ == '__main__':
 
     #region looping through possilbe solutions to find a solution that works and is somewhat optimal
 
-    x = 15
+    x = 50
 
     max_objective = 0
     wrong_axles = 100
     travel_solutions = []
     alternative_solutions = []
-    while x >= 10:
+    while x >= 40:
         train = setup(dataset)
         train.max_traveldistance = x
         try:
-            _, axle_load_success, objective_value, wrong_wagons = TrainLoadingConstraint.main(train, max_objective)
+            _, axle_load_success, objective_value, wrong_wagons = TrainLoadingConstraint.main(train, max_objective, False)
         except:
             print("Calculation took too long")
             axle_load_success = False
@@ -206,12 +206,12 @@ if __name__ == '__main__':
     if len(travel_solutions) > 0:
         train.max_traveldistance = min(travel_solutions)
 
-        root = Tk()
-        canvas = Canvas(root, width = 300, height = 300)
-        canvas.pack()
-        img = ImageTk.PhotoImage(Image.open("data\SuccessKid.jpg"))
-        canvas.create_image(20, 20, anchor=NW, image=img)
-        root.mainloop()
+        # root = Tk()
+        # canvas = Canvas(root, width = 300, height = 300)
+        # canvas.pack()
+        # img = ImageTk.PhotoImage(Image.open("data\SuccessKid.jpg"))
+        # canvas.create_image(20, 20, anchor=NW, image=img)
+        # root.mainloop()
 
 
     elif len(alternative_solutions) > 0:
@@ -220,8 +220,8 @@ if __name__ == '__main__':
     # if len(weight_solutions) > 0:
     #     for wagon in train.wagons:
     #         wagon.weight_capacity = min(weight_solutions)
-
-    train, axle_load_success, objective_value, wrong_wagons = TrainLoadingConstraint.main(train, max_objective)
+    final_run = True
+    train, axle_load_success, objective_value, wrong_wagons = TrainLoadingConstraint.main(train, max_objective, final_run)
     print("axle_load_success: ", axle_load_success, ", objective_value: ", objective_value)
 
     # This needs to be tested

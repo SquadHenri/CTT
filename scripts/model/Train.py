@@ -312,7 +312,7 @@ class Train():
 
             # Set the final two columns to the packed weight and packed length
             datarow[len(datarow) - 4] = str(wagon_weight) + "/" + str(wagon.get_weight_capacity()).split(".")[0] + " ("+str(weight_perc)+ "%)"
-            datarow[len(datarow) - 3] = str(wagon_weight) + "/" + str(wagon.get_weight_capacity()).split(".")[0] + " ("+str(weight_perc)+ "%)"
+            datarow[len(datarow) - 3] = str(wagon_length) + "/" + str(wagon.get_length_capacity()).split(".")[0] + " ("+str(length_perc)+ "%)"
             datarow[len(datarow) - 2] = str(int(wagon.number_of_axles))
             datarow[len(datarow) - 1] = str(int(wagon.highest_axle_load))
 

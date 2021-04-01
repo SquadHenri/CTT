@@ -17,7 +17,7 @@ from data import getContainersFromCSV
 
 
 
-def main(train, max_objective, objective_value_limit = None):
+def main(train, max_objective, final_run, objective_value_limit = None):
     testing = False
     start = timer()
     containers = train.get_containers()
@@ -278,7 +278,7 @@ def main(train, max_objective, objective_value_limit = None):
         )  
 
 
-    # Add objective_value_limit if is is defined
+    #Add objective_value_limit if is is defined
     if(objective_value_limit):
         model.Add(objective_length < int(objective_value_limit))
 
