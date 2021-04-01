@@ -17,7 +17,7 @@ from data import getContainersFromCSV
 
 
 
-def main(train, max_objective, objective_value_limit = None):
+def main(train, max_objective, final_run, objective_value_limit = None):
     testing = False
     start = timer()
     containers = train.get_containers()
@@ -276,7 +276,7 @@ def main(train, max_objective, objective_value_limit = None):
         )  
 
 
-    # Add objective_value_limit if is is defined
+    #Add objective_value_limit if is is defined
     if(objective_value_limit):
         model.Add(objective_length < int(objective_value_limit))
 
@@ -288,7 +288,9 @@ def main(train, max_objective, objective_value_limit = None):
 
     print("Starting Solve...")
     solver = cp_model.CpSolver()
-    solver.parameters.max_time_in_seconds = 10
+    if not final_run:
+        solver.parameters.max_time_in_seconds = 10
+    solver.parameters.num_search_workers = 8
     status = solver.Solve(model)
 
     if status == cp_model.OPTIMAL:
