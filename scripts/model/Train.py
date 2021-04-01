@@ -115,6 +115,7 @@ class Train():
         df = pd.DataFrame(data)
         df.to_excel("planning.xlsx")    
     
+    #region getters
     def get_containers(self):
         return self.containers
 
@@ -169,6 +170,9 @@ class Train():
     def get_unplaced_containers(self):
         return self.unplaced_containers
 
+    #endregion
+
+    #region setters
     def set_placed_containers(self, placed_containers):
         self.placed_containers = placed_containers
 
@@ -195,7 +199,9 @@ class Train():
         for wagon in self.wagons:
             wagon.set_weight_capacity(value)
 
+    #endregion
 
+    #region plotters
 
     def get_container_plot(self, containers):
         
@@ -460,6 +466,10 @@ class Train():
         plt.savefig(title + '-planning-' + currentdate, bbox_inches='tight', dpi=150)
         return plt
         
+
+    #endregion
+
+
     # Sets the location of the wagon takes a list of all the containers in the train
     def set_location(self):
                 
@@ -502,7 +512,7 @@ class Train():
                     xlen += wagon.total_length
 
             result.append(wagon)
-    # See where the last wagon in located to calculate the shift the 2nd row of wagons hast to make
+        # See where the last wagon in located to calculate the shift the 2nd row of wagons hast to make
 
         shift_wagon = splitshift
         shift_wagon_xloc = shift_wagon.location[0]
