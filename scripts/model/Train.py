@@ -130,6 +130,7 @@ class Train():
         df = pd.DataFrame(data)
         df.to_excel("planning.xlsx")    
     
+    #region getters
     def get_containers(self):
         return self.containers
 
@@ -184,6 +185,9 @@ class Train():
     def get_unplaced_containers(self):
         return self.unplaced_containers
 
+    #endregion
+
+    #region setters
     def set_placed_containers(self, placed_containers):
         self.placed_containers = placed_containers
 
@@ -210,7 +214,9 @@ class Train():
         for wagon in self.wagons:
             wagon.set_weight_capacity(value)
 
+    #endregion
 
+    #region plotters
 
     def get_container_plot(self, containers):
         
@@ -321,18 +327,19 @@ class Train():
 
             # Set the final two columns to the packed weight and packed length
             datarow[len(datarow) - 4] = str(wagon_weight) + "/" + str(wagon.get_weight_capacity()).split(".")[0] + " ("+str(weight_perc)+ "%)"
-            datarow[len(datarow) - 3] = str(wagon_weight) + "/" + str(wagon.get_weight_capacity()).split(".")[0] + " ("+str(weight_perc)+ "%)"
+            datarow[len(datarow) - 3] = str(wagon_length) + "/" + str(wagon.get_length_capacity()).split(".")[0] + " ("+str(length_perc)+ "%)"
             datarow[len(datarow) - 2] = str(int(wagon.number_of_axles))
             datarow[len(datarow) - 1] = str(int(wagon.highest_axle_load))
 
-            if wagon.highest_axle_load > 22000:
+            if wagon.highest_axle_load >= 22000:
                 cellRowColour[maxContainers+3] = '#ff6153'
 
             # If 90% of the weight is used, make the column red.
-            if weight_perc > self.weightPerc:
+            
+            if weight_perc >= self.weightPerc:
                 cellRowColour[maxContainers] = '#ff6153'
-
-            if length_perc > self.lengthPerc:
+            
+            if length_perc >= self.lengthPerc:
                 cellRowColour[maxContainers+1] = '#d3f8d3'
 
             # Add the row for this wagon to the list of all rows.
@@ -347,6 +354,7 @@ class Train():
         cellRowColour.extend('#fefefe' for x in range(0, maxContainers + 4)) 
         datarow[len(datarow) - 4] = str(total_weight) + "/" + str(self.get_total_weight_capacity()).split(".")[0] + " ("+str(round((total_weight/self.get_total_weight_capacity()) * 100, 1))+ " %)"
         datarow[len(datarow) - 3] = str(total_length) + "/" + str(self.get_total_length_capacity()).split(".")[0] + " ("+str(round((total_length/self.get_total_length_capacity()) * 100, 1))+ " %)"
+        
         #datarow[len(datarow) - 2] = ""
         #datarow[len(datarow) - 1] = "" 
         cellColours.append(cellRowColour)
@@ -481,6 +489,10 @@ class Train():
         plt.savefig(title + '-planning-' + currentdate, bbox_inches='tight', dpi=150)
         return plt
         
+
+    #endregion
+
+
     # Sets the location of the wagon takes a list of all the containers in the train
     def set_location(self):
                 
@@ -523,7 +535,7 @@ class Train():
                     xlen += wagon.total_length
 
             result.append(wagon)
-    # See where the last wagon in located to calculate the shift the 2nd row of wagons hast to make
+        # See where the last wagon in located to calculate the shift the 2nd row of wagons hast to make
 
         shift_wagon = splitshift
         shift_wagon_xloc = shift_wagon.location[0]

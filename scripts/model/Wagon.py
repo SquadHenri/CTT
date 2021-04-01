@@ -168,7 +168,7 @@ class Wagon():
 
 
     # CONSTRAINTS
-
+    #region
     # The weight of the containers cannot exceed the weight capacity of the wagon
     def c_weight_capacity(self, containers, x, w_j):
         return sum(x[(c_i, w_j)] * container.get_gross_weight()
@@ -179,6 +179,7 @@ class Wagon():
         return sum(x[(c_i, w_j)] * container.get_length()
                 for c_i, container in enumerate(containers)) <= self.get_length_capacity()  
 
+    #endregion
 
     # Input for this funciton is the wagon and a list with the containers. The list of containers contains the container and the spots it takes in the wagon
     def get_axle_load(self, containers):
@@ -309,6 +310,7 @@ class Wagon():
     	
         # print("Wagon:", self.wagonID, "Axle Load:", axle_load_score)
         print("Wagon", self.wagonID, "max load: ", axle_load_score)
+        self.max_axle_load = axle_load_score
         if axle_load_score < 22000:
     
             # If dummy_container1 is in there, dummy_container2 is also there
@@ -322,8 +324,10 @@ class Wagon():
             
         return False
 
+    # Dummies are used to fill the empty spaces on a wagon so the calculation on axle load can be done
+
     def add_dummies(self):
-        if(self.containers is None):
+        if(self.containers is None): # if empty do nothing
             print("The wagon is empty, so axile load is fine.")
             pass
     
@@ -333,7 +337,7 @@ class Wagon():
         dummy_container2 = None
         container_copy = self.containers
         
-        if self.length_capacity - occupied_length > 0:
+        if self.length_capacity - occupied_length > 0: # if not empty, create 2 dummies that both have halve the remaining space.
             empty_length = self.length_capacity - occupied_length
             dummy_length = round((empty_length/2), 1)
             dummy_container1 = Container("", 0, -1, dummy_length, None, None, None, None, None, dummy_length)
@@ -371,7 +375,7 @@ class Wagon():
         return travel_distance
 
 
-    # Getters
+    #region Getters
     def get_position(self):
         return self.position
 
@@ -402,7 +406,9 @@ class Wagon():
     def get_wagon_weight(self):
         return self.wagon_weight
     
-    # Setters
+    #endregion
+
+    #region Setters
     
     def set_length_capacity(self, length_capacity):
         self.length_capacity = length_capacity
@@ -420,7 +426,7 @@ class Wagon():
         else:
             self.containers = []
             self.containers.append(container)
-
+    #endregion
 
 
     # UNUSED/UNFINISHED CONSTRAINTS
