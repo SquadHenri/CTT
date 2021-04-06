@@ -10,7 +10,7 @@ import TrainLoadingConstraint
 
 
 
-dataset = pandas.read_csv('data\input_CTTROT20210323POL.csv')
+dataset = pandas.read_csv('data\CTTROT20210331POL_compleet.csv')
 
 def setup(dataset):
     containerlist = []
@@ -33,22 +33,22 @@ def setup(dataset):
     
     #Set value for max weight, default = 1600000, else set to dataset parameter.
     maxTrainWeight = 1600 * 1000
-    if dataset.MaxTrainWeight[1] is not None:
-        maxTrainWeight = int(dataset.MaxTrainWeight[1]) * 1000   
+    if dataset.MaxTrainWeightValue[1] is not None:
+        maxTrainWeight = int(dataset.MaxTrainWeightValue[1]) * 1000   
 
     #Set conditionial parameter, from which weight % the table cell gets a red color
     weightPerc = 90.0
-    if math.isnan(dataset.WeightPerc[1]) == False:
-        weightPerc = round(float(dataset.WeightPerc[1]) * 100, 1)
+    if math.isnan(dataset.WeightPercThresholdValue[1]) == False:
+        weightPerc = round(float(dataset.WeightPercThresholdValue[1]) * 100, 1)
 
     #Set conditionial parameter, from which length % the table cell gets a color
     lengthPerc = 100.0
-    if math.isnan(dataset.LengthPerc[1]) == False:
-        lengthPerc = round(float(dataset.LengthPerc[1]) * 100, 1)
+    if math.isnan(dataset.LengthPercThresholdValue[1]) == False:
+        lengthPerc = round(float(dataset.LengthPercThresholdValue[1]) * 100, 1)
     
     #Set paramater to hide/show the unplaced container table
     hide_unplaced = False
-    if dataset.HideUnplacedContainers[1] is not None and dataset.HideUnplacedContainers[1] == True:
+    if dataset.HideUnplacedContainersValue[1] is not None and dataset.HideUnplacedContainersValue[1] == True:
         hide_unplaced = True
     
     #Initialising pandas dataframes from dataset for wagons and containers
