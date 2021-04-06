@@ -16,12 +16,27 @@ class Train():
     # wagons should be a list of wagons
     def __init__(self, wagons, containers, wrong_wagons, split, isReversed, max_traveldistance, maxTrainWeight, weightPerc, hide_unplaced, lengthPerc):
         self.wagons = wagons # This is the list of all the wagons on the train
+        #Wagons with null values.
         self.wrong_wagons = wrong_wagons
-        self.maxWeight = 100000000000
+        #Maximum weight for a train, default = 1600000.
+        self.maxWeight = maxTrainWeight
+        #Containers for a call.
         self.containers = containers
+        #Split position of a train, split 11 means split between 10 and 11.
         self.split = split
+        #Max traveldistance per container.
         self.max_traveldistance = max_traveldistance
+        #Boolean value indicating whether the train arrived reversed.
         self.isReversed = isReversed
+
+        #Table settings parameters
+        #Conditional constraint on weight for which a cell gets a color.
+        self.weightPerc = weightPerc
+        #Hide or show unplaced containers table.
+        self.hide_unplaced = hide_unplaced
+        #Conditional constraint to give cell a color at a given threshold.
+        self.lengthPerc = lengthPerc
+
 
         self.set_location()
         self.placed_containers = []
@@ -192,6 +207,9 @@ class Train():
     def get_unplaced_containers(self):
         return self.unplaced_containers
 
+    #endregion
+
+    #region setters
     def set_placed_containers(self, placed_containers):
         self.placed_containers = placed_containers
 
@@ -218,7 +236,9 @@ class Train():
         for wagon in self.wagons:
             wagon.set_weight_capacity(value)
 
+    #endregion
 
+    #region plotters
 
     def get_container_plot(self, containers):
         
@@ -333,12 +353,16 @@ class Train():
             datarow[len(datarow) - 2] = str(int(wagon.number_of_axles))
             datarow[len(datarow) - 1] = str(int(wagon.highest_axle_load))
 
-            if wagon.highest_axle_load > 22000:
+            if wagon.highest_axle_load >= 22000:
                 cellRowColour[maxContainers+3] = '#ff6153'
 
             # If 90% of the weight is used, make the column red.
-            if weight_perc > 90:
+            
+            if weight_perc >= self.weightPerc:
                 cellRowColour[maxContainers] = '#ff6153'
+            
+            if length_perc >= self.lengthPerc:
+                cellRowColour[maxContainers+1] = '#d3f8d3'
 
             # Add the row for this wagon to the list of all rows.
             cellColours.append(cellRowColour)
@@ -352,6 +376,7 @@ class Train():
         cellRowColour.extend('#fefefe' for x in range(0, maxContainers + 4)) 
         datarow[len(datarow) - 4] = str(total_weight) + "/" + str(self.get_total_weight_capacity()).split(".")[0] + " ("+str(round((total_weight/self.get_total_weight_capacity()) * 100, 1))+ " %)"
         datarow[len(datarow) - 3] = str(total_length) + "/" + str(self.get_total_length_capacity()).split(".")[0] + " ("+str(round((total_length/self.get_total_length_capacity()) * 100, 1))+ " %)"
+        
         #datarow[len(datarow) - 2] = ""
         #datarow[len(datarow) - 1] = "" 
         cellColours.append(cellRowColour)
@@ -397,7 +422,7 @@ class Train():
             unknown_wagonlist.append(str(int(wagon.wagonPosition)) + ". " + wagon.wagonID)
 
         #Check there are unplaced containers, if yes show in table plot
-        if(len(unplaced_containers) > 0): 
+        if(len(unplaced_containers) > 0) and self.hide_unplaced is not True: 
             #Create figure and 2 axis to stack to tables
             fig, axs = plt.subplots(2,1)
             #Create container table
@@ -459,7 +484,10 @@ class Train():
         fig.suptitle(title + " on " + datetime.now().strftime("%d/%m/%Y %H:%M:%S \n" 
         + " Reversed: " + str(self.isReversed) 
         + ", Split: " + str(self.split) 
-        + ", MaxTravel: " + str(self.max_traveldistance) ), weight='bold', fontsize=12)
+        + ", MaxTravel: " + str(self.max_traveldistance)
+        + "\nWeight Threshold: " + str(self.weightPerc)
+        + ", Length Threshold: " + str(self.lengthPerc)
+        + ", Hide Unplaced containertable: " + str(self.hide_unplaced)), weight='bold', fontsize=10)
 
         # Display all unknown wagons with null values in the footnote, color: red.
         if len(unknown_wagonlist) > 0:
@@ -483,6 +511,10 @@ class Train():
         plt.savefig(title + '-planning-' + currentdate, bbox_inches='tight', dpi=150)
         return plt
         
+
+    #endregion
+
+
     # Sets the location of the wagon takes a list of all the containers in the train
     def set_location(self):
                 
@@ -525,7 +557,7 @@ class Train():
                     xlen += wagon.total_length
 
             result.append(wagon)
-    # See where the last wagon in located to calculate the shift the 2nd row of wagons hast to make
+        # See where the last wagon in located to calculate the shift the 2nd row of wagons hast to make
 
         shift_wagon = splitshift
         shift_wagon_xloc = shift_wagon.location[0]

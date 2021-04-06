@@ -39,7 +39,9 @@ def main(train, max_objective, final_run, objective_value_limit = None):
         print("These containers are hazardous:", [i for i, container in enumerate(containers) if(container.get_hazard_class() is not None and container.get_hazard_class() > 0)])
 
 
-    # Split wagons that have a mid bogie
+    #region Split wagons that have a mid bogie
+    # this prevents the model to plan a container over the hinge of the wagon
+    # creates 2 dummie wagons with both halve the length, the same positions and a boolean that tells it is a copy
     wagon_list = []
     for wagon in train.wagons:
         if wagon.number_of_axles > 4:
@@ -58,7 +60,7 @@ def main(train, max_objective, final_run, objective_value_limit = None):
         else:
             wagon_list.append(wagon)
 
-
+    #endregion
     
     # for wagon in wagon_list:
     #     print(wagon)
@@ -256,7 +258,7 @@ def main(train, max_objective, final_run, objective_value_limit = None):
     """
                 OBJECTIVE
     """
-
+    #region objectives
 
     objective_length = model.NewIntVar(0, int(train.get_total_length_capacity()), 'length')
     model.Add(
@@ -283,23 +285,23 @@ def main(train, max_objective, final_run, objective_value_limit = None):
 
     model.Maximize(objective_length)
 
+    #endregion
     """"
                 Solving & Printing Solution
     """
 
     print("Starting Solve...")
-    solver = cp_model.CpSolver()
-    if not final_run:
-        solver.parameters.max_time_in_seconds = 10
-    solver.parameters.num_search_workers = 8
-    status = solver.Solve(model)
+    solver = cp_model.CpSolver()    # setting solver
+    solver.parameters.max_time_in_seconds = 10  # setting max timout for solver in seconds
+    status = solver.Solve(model)    # solve the model
 
     if status == cp_model.OPTIMAL:
-        print('Objective Value:', solver.ObjectiveValue())
+        print('Objective Value:', solver.ObjectiveValue())  # printing the objective value for testing purpose
 
-        if solver.ObjectiveValue() < max_objective:
+        if solver.ObjectiveValue() < max_objective: # if the objective is lower the case is not considered
             return train, False, solver.ObjectiveValue(), 0
 
+        #region creating lists that show what containers are placed and which are unplaced
         added_containers_indices = []
         placed_containers = []
         for w_j, wagon in enumerate(train.wagons):
@@ -317,16 +319,18 @@ def main(train, max_objective, final_run, objective_value_limit = None):
 
         train.set_placed_containers(placed_containers)
         train.set_unplaced_containers(unplaced_containers)
-
+        #endregion
 
         for wagon in train.wagons:
             wagon.add_dummies()
 
         # Combine the split wagons\
+        # once all the containers have been placed the split containers are put together so axle load can be determined
+        #region
         visited_list = []
         final_list = []
         for wagon in train.wagons:
-            if wagon.is_copy == True:
+            if wagon.is_copy == True: # if copy combine and add to final list
                 if wagon.wagonID not in visited_list:
                     combined_wagon = Wagon(wagon.wagonID, wagon.weight_capacity, wagon.length_capacity * 2, wagon.contents, wagon.position, wagon.number_of_axles, wagon.total_length, wagon.wagon_weight, wagon.call)
                     combined_wagon.is_copy = False
@@ -342,17 +346,19 @@ def main(train, max_objective, final_run, objective_value_limit = None):
                             except:
                                 continue
             else:
-                final_list.append(wagon)
+                final_list.append(wagon) # if not a copy, but an original, add to the final list
         
         train.wagons = final_list
-
+        #endregion
         # for wagon in train.wagons:
         #     print(wagon)
         
-        axle_load_success = train.set_optimal_axle_load()
+        axle_load_success = train.set_optimal_axle_load() # returns a boolean that tells if axle load is not to high
 
-        wrong_wagons = len([wagon.max_axle_load for wagon in train.wagons if wagon.max_axle_load > 22000])
-
+        # The amount of wagons that exeeds the max weight
+        wrong_wagons = len([wagon.max_axle_load for wagon in train.wagons if wagon.max_axle_load > 22000]) 
+        
+        #region
         # for wagon in train.wagons:
         #     new_containers = []
         #     container_list = wagon.containers
@@ -367,12 +373,13 @@ def main(train, max_objective, final_run, objective_value_limit = None):
         #                 new_containers.append(container_list[i])
         #                 i += 1
         #     wagon.containers = new_containers
+        #endregion
 
         print("Calculation time", timer() - start)
         return train, axle_load_success, solver.ObjectiveValue(), wrong_wagons
         # print(solver.ResponseStats())
     elif status == cp_model.FEASIBLE:
-        print('status == cp_model.FEASIBLE')
+        print('status == cp_model.FEASIBLE, no optimal solution found')
     else:
         print("Solution Not found. Stats: ", solver.ResponseStats())
 

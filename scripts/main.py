@@ -1,5 +1,6 @@
 from numpy.lib.function_base import place
 import pandas
+import math
 from tkinter import *
 from PIL import ImageTk,Image
 from model.Wagon import Wagon
@@ -16,36 +17,41 @@ def setup(dataset):
     wagonlist = []
 
     #Set parameters
-    max_traveldistance = 50
+    max_traveldistance = 50 #max traveldistance as set
     if dataset.MAXTRAVELDISTANCE[1] is not None:
         max_traveldistance = dataset.MAXTRAVELDISTANCE[1]
-    max_traveldistance = 15
 
-    split = None 
+    #Set the position where the train is spit
+    split = None
     if dataset.TRAINSPLIT[1] is not None:
         split = dataset.TRAINSPLIT[1]
-    split = 14
 
+    #Set value representing whether the train arrived reversed
     isReversed = False
     if dataset.TRAINREVERSED[1] is not None and dataset.TRAINREVERSED[1] == 1:
         isReversed = True
     
-    maxTrainWeight = 1600
-    if dataset.MaxTrainWeightValue[1] is not None:
-        maxTrainWeight = dataset.MaxTrainWeightValue[1]
+    #Set value for max weight, default = 1600000, else set to dataset parameter.
+    maxTrainWeight = 1600 * 1000
+    if dataset.MaxTrainWeight[1] is not None:
+        maxTrainWeight = int(dataset.MaxTrainWeight[1]) * 1000   
 
-    weightPerc = 90
-    if dataset.WeightPercThresholdValue[1] is not None:
-        maxTrainWeight = dataset.WeightPercThresholdValue[1]
+    #Set conditionial parameter, from which weight % the table cell gets a red color
+    weightPerc = 90.0
+    if math.isnan(dataset.WeightPerc[1]) == False:
+        weightPerc = round(float(dataset.WeightPerc[1]) * 100, 1)
+
+    #Set conditionial parameter, from which length % the table cell gets a color
+    lengthPerc = 100.0
+    if math.isnan(dataset.LengthPerc[1]) == False:
+        lengthPerc = round(float(dataset.LengthPerc[1]) * 100, 1)
     
+    #Set paramater to hide/show the unplaced container table
     hide_unplaced = False
-    if dataset.HideUnplacedContainersValue[1] is not None and dataset.HideUnplacedContainersValue[1] == True:
+    if dataset.HideUnplacedContainers[1] is not None and dataset.HideUnplacedContainers[1] == True:
         hide_unplaced = True
     
-    lengthPerc = 100
-    if dataset.LengthPercThresholdValue[1] is not None:
-        lengthPerc = dataset.LengthPercThresholdValue[1]
-
+    #Initialising pandas dataframes from dataset for wagons and containers
     for i, value in enumerate(dataset.WAGON):
         if pandas.notna(value):
             wagonID = value
@@ -75,25 +81,25 @@ def setup(dataset):
             containerTarra = dataset.CONTAINERTARRA[i]
             containerCall = dataset.CALLCODE[i]
             containerlist.append([containerID, containerType, unNR, unKlasse, nettWeight, terminalWeightNett, containerTEU, containerPosition, containerTarra, containerCall])
-    #Creating dataframes from container en wagon lists
+    #Creating dataframes from container en wagon lists and adding columns
     wagondf = pandas.DataFrame(wagonlist, columns =['wagonID', 'wagonType', 'wagonSizeft', 'wagonNoAxes', 'wagonMaxTEU', 'wagonLength', 'wagonPosition', 'wagonPayload', 'wagonCall', 'wagonTare', 'wagonTrack'])
     containerdf = pandas.DataFrame(containerlist, columns =['containerID', 'containerType', 'unNR', 'unKlasse', 'nettWeight', 'terminalWeightNett', 'containerTEU', 'containerPosition', 'containerTarra', 'containerCall'])
-    
-    #print(wagondf)
+    #Sort wagons on wagon position
     wagondf = wagondf.sort_values(by='wagonPosition')
-    
     #Reverse wagons if neccesary
     if isReversed:
         wagondf = wagondf[::-1]
         wagondf = wagondf.reset_index(drop=True)
         for i, wagon in wagondf.iterrows():
             wagondf.at[i, 'wagonPosition'] = i+1
-
     # Remove all wagons and containers that contain Null values
+    # to be safe all the containers and wagons that have null values are not taken into account to make sure the train is not to haeavy.
+    #region all the containers and wagons are written to the train
     wagons = []
     containers = []
     wrong_wagons = []    
     null_containers = []
+    #Create wagon objects list from container dataframe
     for index, wagon in wagondf.iterrows():
         if pandas.notna(wagon['wagonSizeft']) and pandas.notna(wagon['wagonLength']) and pandas.notna(wagon['wagonPosition']) and pandas.notna(wagon['wagonPayload']) and pandas.notna(wagon['wagonTare']) and pandas.notna(wagon['wagonNoAxes']): 
             wagonID = wagon['wagonID']
@@ -112,7 +118,7 @@ def setup(dataset):
             wrong_wagons.append(wagon)
 
     print("Containers with indices: ", null_containers, " contain null values.")
-
+    #Create container object list from container dataframe
     for index, container in containerdf.iterrows():
         containerID = container['containerID']
         gross_weight = int(container['nettWeight']) + int(container['containerTarra'])
@@ -129,12 +135,17 @@ def setup(dataset):
         
         containerObj = Container(containerID, gross_weight, net_weight, foot, position, goods, priority, typeid, hazard_class, actual_length)
         containers.append(containerObj)
+    
     return Train(wagons, containers, wrong_wagons, split, isReversed, max_traveldistance, maxTrainWeight, weightPerc, hide_unplaced, lengthPerc)
+    #endregion
+
 
 if __name__ == '__main__':
     # train = setup(dataset)
     # train, axle_load_success, objective_value = TrainLoadingConstraint.main(train)
     # print("axle_load_success: ", axle_load_success, ", objective_value: ", objective_value)
+
+    #region looping through possilbe solutions to find a solution that works and is somewhat optimal
 
     x = 50
 
@@ -164,7 +175,7 @@ if __name__ == '__main__':
         print("Right solutions", travel_solutions)
         print("Alternative solutions", alternative_solutions)
         x -= 1
-    
+    #endregion
     # weight_solutions = []
     # if len(travel_solutions) == 0:
     #     print("In the weight reduction loop")
