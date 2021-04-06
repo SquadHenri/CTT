@@ -1696,7 +1696,8 @@ def setup(dataset):
     wagonlist = []
 
     #Set parameters
-    max_traveldistance = 50 #max traveldistance as set
+    #max traveldistance as set
+    max_traveldistance = 50 
     if dataset.MAXTRAVELDISTANCE[1] is not None:
         max_traveldistance = dataset.MAXTRAVELDISTANCE[1]
 
@@ -1825,14 +1826,15 @@ if __name__ == '__main__':
     # print("axle_load_success: ", axle_load_success, ", objective_value: ", objective_value)
 
     #region looping through possilbe solutions to find a solution that works and is somewhat optimal
-
-    x = 50
+    train = setup(dataset)
+    x = train.max_traveldistance
 
     max_objective = 0
     wrong_axles = 100
     travel_solutions = []
     alternative_solutions = []
-    while x >= 50:
+    boundary = train.max_traveldistance
+    while x >= boundary-10:
         train = setup(dataset)
         train.max_traveldistance = x
         try:
