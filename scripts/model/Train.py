@@ -6,7 +6,7 @@ import numpy as np
 import json
 import pandas as pd
 from datetime import date, datetime
-
+from model.Container import Container
 from model.Wagon import Wagon
 from colors import Color
 
@@ -76,8 +76,11 @@ class Train():
             print('Wagon travel distance:', travel_distance)
             print('Wagon position:', wagon.get_position(), "Wagon location:", wagon.get_location())
             for container in wagon.get_containers():
-                print("Container_ID:", container.get_containerID(), "Location:", container.get_position())
-        
+                if (len(container.get_position()) == 3) and (container.get_position()[0] <= 52) and (container.get_position()[1] <= 7):
+                        print(container.get_containerID())
+                        print("Container_ID:", container.get_containerID(), "Location:", container.get_position(), "Distance", Container.get_travel_distance(container.get_position(), wagon.get_location()))
+            print()
+
         print()
         print('Total packed weight:', total_weight_packed, '(',round(total_weight_packed / self.get_total_weight_capacity() * 100,1),'%)')
         print('Total packed length:', total_length_packed, '(',round(total_length_packed / self.get_total_length_capacity() * 100,1),'%)')

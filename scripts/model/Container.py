@@ -65,8 +65,7 @@ class Container():
         # calculate the distance using Pythagoras
         dist = math.sqrt(math.pow(x_dist, 2) + math.pow(y_dist, 2))
 
-        return dist
-
+        return abs(x_dist)
     # Getter for container position coordinates
     # Container ID used to identify the container at hand
     def get_containerID(self):
