@@ -162,8 +162,9 @@ class Wagon():
             return wagon_dict
         else:
             for container in self.get_containers():
-                container_json = container.to_JSON()
-                wagon_dict["containers"].append(container_json)
+                if container.get_containerID() != "":
+                    container_json = container.to_JSON()
+                    wagon_dict["containers"].append(container_json)
             return wagon_dict
 
 

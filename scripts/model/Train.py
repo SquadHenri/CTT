@@ -14,7 +14,7 @@ class Train():
 
     
     # wagons should be a list of wagons
-    def __init__(self, wagons, containers, wrong_wagons, split, isReversed, max_traveldistance, maxTrainWeight, weightPerc, hide_unplaced, lengthPerc):
+    def __init__(self, wagons, containers, wrong_wagons, split, isReversed, max_traveldistance, maxTrainWeight, weightPerc, hide_unplaced, lengthPerc, callcode):
         self.wagons = wagons # This is the list of all the wagons on the train
         #Wagons with null values.
         self.wrong_wagons = wrong_wagons
@@ -40,7 +40,8 @@ class Train():
 
         self.set_location()
         self.placed_containers = []
-        self.unplaced_containers = []        
+        self.unplaced_containers = []  
+        self.callcode = callcode      
     
 
     # Create some wagons, to use for testing
@@ -73,6 +74,9 @@ class Train():
             print('Packed wagon weight:', Color.GREEN, packed_weight, Color.END, ' Wagon weight capacity: ', wagon.get_weight_capacity())
             print('Packed wagon length:', Color.GREEN, packed_length, Color.END, ' Wagon length capacity: ', wagon.get_length_capacity())
             print('Wagon travel distance:', travel_distance)
+            print('Wagon position:', wagon.get_position(), "Wagon location:", wagon.get_location())
+            for container in wagon.get_containers():
+                print("Container_ID:", container.get_containerID(), "Location:", container.get_position())
         
         print()
         print('Total packed weight:', total_weight_packed, '(',round(total_weight_packed / self.get_total_weight_capacity() * 100,1),'%)')
@@ -98,7 +102,9 @@ class Train():
             wagon_json = wagon.to_JSON()
             result["train"]["wagons"].append(wagon_json)
 
-        with open('data/train.json', 'w') as output:
+        filename = self.callcode + " " + str(datetime.now().strftime("%d-%m-%Y %H%M"))
+
+        with open('data/' + filename + ".json", 'w') as output:
             json.dump(result, output)
         
     def to_CSV(self):

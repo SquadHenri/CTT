@@ -1,4 +1,5 @@
 import math
+import pandas as pd
 
 class Container():
     def __init__(self, containerID, gross_weight, net_weight, foot, position, goods, priority, typeid, hazard_class, actual_length):
@@ -32,7 +33,10 @@ class Container():
         container_dict["container_id"] = self.get_containerID()
         container_dict["gross_weight"] = self.get_gross_weight()
         container_dict["length"] = self.get_length()
-        container_dict["hazard_class"] = self.get_hazard_class()
+        if not pd.isna(self.get_hazard_class()):
+            container_dict["hazard_class"] = self.get_hazard_class()
+        else:
+            container_dict["hazard_class"] = None
         return container_dict
 
     # Transform the position of the container into a list with coordinates.

@@ -10,7 +10,7 @@ import TrainLoadingConstraint
 
 
 
-dataset = pandas.read_csv('data\CTTROT20210331POL_compleet.csv')
+dataset = pandas.read_csv('data\input_df_f2375f54-0cf8-43d4-b882-754d3e5c3ca5.csv')
 
 def setup(dataset):
     containerlist = []
@@ -95,6 +95,7 @@ def setup(dataset):
     # Remove all wagons and containers that contain Null values
     # to be safe all the containers and wagons that have null values are not taken into account to make sure the train is not to haeavy.
     #region all the containers and wagons are written to the train
+    callcode_train = ""
     wagons = []
     containers = []
     wrong_wagons = []    
@@ -112,6 +113,7 @@ def setup(dataset):
             call = wagon['wagonCall']
             wagonObj = Wagon(wagonID, weight_capacity, length_capacity, 0, position, number_of_axles, total_length, wagon_weight, call)
             wagons.append(wagonObj)
+            callcode_train = call
         else:
             # print("Wagon", index, "contained null values.")
             null_containers.append(index)
@@ -136,7 +138,7 @@ def setup(dataset):
         containerObj = Container(containerID, gross_weight, net_weight, foot, position, goods, priority, typeid, hazard_class, actual_length)
         containers.append(containerObj)
     
-    return Train(wagons, containers, wrong_wagons, split, isReversed, max_traveldistance, maxTrainWeight, weightPerc, hide_unplaced, lengthPerc)
+    return Train(wagons, containers, wrong_wagons, split, isReversed, max_traveldistance, maxTrainWeight, weightPerc, hide_unplaced, lengthPerc, callcode_train)
     #endregion
 
 
@@ -147,13 +149,13 @@ if __name__ == '__main__':
 
     #region looping through possilbe solutions to find a solution that works and is somewhat optimal
 
-    x = 50
+    x = 20
 
     max_objective = 0
     wrong_axles = 100
     travel_solutions = []
     alternative_solutions = []
-    while x >= 50:
+    while x >= 10:
         train = setup(dataset)
         train.max_traveldistance = x
         try:
