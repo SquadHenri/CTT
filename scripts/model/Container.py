@@ -24,6 +24,9 @@ class Container():
                 f'foot: {self.foot}, position: {self.position}, goods: {self.goods},'\
                 f'net_weight: {self.net_weight}, typeid: {self.typeid}'
 
+    def __eq__(self, other):
+        return self.containerID == other.containerID
+
     def to_JSON(self):
         container_dict = {}
         container_dict["container_id"] = self.get_containerID()

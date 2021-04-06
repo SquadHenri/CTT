@@ -121,6 +121,7 @@ def main(train, max_objective, final_run, objective_value_limit = None):
 
     # Each wagon has at least one container
     # Only enforce if there are enough containers
+    # TODO: If the max weight of the train is lower than the weight of the minimum amount of containers, we get an error.
     model.Add( 
         spreadContainers == (len(containers) > len(train.wagons)) # Check if there are enough containers to spread them out over wagons
         )

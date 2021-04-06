@@ -142,7 +142,7 @@ if __name__ == '__main__':
     wrong_axles = 100
     travel_solutions = []
     alternative_solutions = []
-    while x >= 40:
+    while x >= 50:
         train = setup(dataset)
         train.max_traveldistance = x
         try:

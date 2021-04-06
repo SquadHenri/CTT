@@ -88,6 +88,8 @@ class Train():
         
     def to_CSV(self):
         data = []
+        unplaced_containers = self.containers
+        print(len(unplaced_containers))
         for wagon in self.wagons:
             if not wagon.containers:
                 wagon_dict = {}
@@ -102,6 +104,9 @@ class Train():
                 data.append(wagon_dict)
                 continue
             for container in wagon.containers:
+                for unplaced in unplaced_containers:
+                    if unplaced == container:
+                        unplaced_containers.remove(container)
                 wagon_dict = {}
                 wagon_dict["wagon_id"] = wagon.wagonID
                 wagon_dict["weight_capacity"] = wagon.get_weight_capacity()
@@ -112,9 +117,27 @@ class Train():
                 wagon_dict["length"] = container.get_length()
                 wagon_dict["hazard_class"] = container.get_hazard_class()
                 data.append(wagon_dict)
+        
+        unplaced_dict = []
+        for container in unplaced_containers:
+            container_dict = {}
+            container_dict["container_id"] = container.get_containerID()
+            container_dict["gross_weight"] = container.get_gross_weight()
+            container_dict["length"] = container.get_length()
+            container_dict["hazard_class"] = container.get_hazard_class()
+            unplaced_dict.append(container_dict)
+
+
         df = pd.DataFrame(data)
-        df.to_excel("planning.xlsx")    
-    
+        unplaced_df = pd.DataFrame(unplaced_dict)
+
+        writer = pd.ExcelWriter('planning.xlsx', engine="xlsxwriter")
+
+        df.to_excel(writer, sheet_name="Planning")    
+        unplaced_df.to_excel(writer, sheet_name="Unplaced Containers")
+        
+        writer.save()
+
     def get_containers(self):
         return self.containers
 
