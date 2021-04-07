@@ -23,7 +23,7 @@ def setup(dataset):
 
     #Set the position where the train is spit
     split = None
-    if dataset.TRAINSPLIT[1] is not None:
+    if dataset.TRAINSPLIT[1] is not None and pandas.notna(dataset.TRAINSPLIT[1]):
         split = dataset.TRAINSPLIT[1]
 
     #Set value representing whether the train arrived reversed
@@ -231,8 +231,8 @@ if __name__ == '__main__':
     containers = train.get_containers()
     unplaced_containers = train.get_unplaced_containers()
 
-    #train.to_JSON(callcode=train.wagons[1].call, weight=train.get_total_packed_weight(), length=train.get_total_packed_length(), distance=train.get_total_travel_distance(), amount=len(placed_containers), wagons=[])
-    #train.to_CSV()
+    train.to_JSON(callcode=train.wagons[1].call, weight=train.get_total_packed_weight(), length=train.get_total_packed_length(), distance=train.get_total_travel_distance(), amount=len(placed_containers), wagons=[])
+    train.to_CSV()
 
     train.print_solution()
 

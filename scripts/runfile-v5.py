@@ -17,7 +17,10 @@ import pandas
 import math
 from tkinter import *
 from PIL import ImageTk,Image
+import os 
 
+
+PATH_OUTPUT = str(os.environ.get('USERPROFILE')) + '\Desktop\CTT\\'
 
 class Color:
    PURPLE = '\033[95m'
@@ -664,7 +667,7 @@ class Train():
 
         filename = self.callcode + " " + str(datetime.now().strftime("%d-%m-%Y %H%M"))
 
-        with open('data/' + filename + ".json", 'w') as output:
+        with open(PATH_OUTPUT + filename + ".json", 'w') as output:
             json.dump(result, output)
         
     def to_CSV(self):
@@ -711,8 +714,8 @@ class Train():
 
         df = pd.DataFrame(data)
         unplaced_df = pd.DataFrame(unplaced_dict)
-
-        writer = pd.ExcelWriter('planning.xlsx', engine="xlsxwriter")
+        filename = self.callcode + " " + str(datetime.now().strftime("%d-%m-%Y %H%M"))
+        writer = pd.ExcelWriter(PATH_OUTPUT + filename + 'planning.xlsx', engine="xlsxwriter")
 
         df.to_excel(writer, sheet_name="Planning")    
         unplaced_df.to_excel(writer, sheet_name="Unplaced Containers")
@@ -1090,11 +1093,9 @@ class Train():
 
         if len(self.wagons) == 0:
             raise TypeError("No wagons")
-
+        
         for wagon in self.wagons:
-            if self.split != None:
-
-
+            if pd.notna(self.split) and self.split != None:
                 if wagon.position < self.split:
                     wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6.1), y_val]
                     xlen += wagon.total_length
@@ -1110,7 +1111,6 @@ class Train():
                 else:
                     wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6.1), y_val]
                     xlen += wagon.total_length
-
             else:
                 if (xlen + wagon.total_length) < 320:
                     wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6.1), y_val]
@@ -1741,8 +1741,8 @@ if __name__ == '__main__':
     containers = train.get_containers()
     unplaced_containers = train.get_unplaced_containers()
     
-    #train.to_JSON(callcode=train.wagons[1].call, weight=train.get_total_packed_weight(), length=train.get_total_packed_length(), distance=train.get_total_travel_distance(), amount=len(placed_containers), wagons=[])
-    #train.to_CSV()
+    train.to_JSON(callcode=train.wagons[1].call, weight=train.get_total_packed_weight(), length=train.get_total_packed_length(), distance=train.get_total_travel_distance(), amount=len(placed_containers), wagons=[])
+    train.to_CSV()
     
     train.print_solution()
 
