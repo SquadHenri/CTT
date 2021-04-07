@@ -19,7 +19,6 @@ from tkinter import *
 from PIL import ImageTk,Image
 
 
-
 class Color:
    PURPLE = '\033[95m'
    CYAN = '\033[96m'
@@ -31,8 +30,6 @@ class Color:
    BOLD = '\033[1m'
    UNDERLINE = '\033[4m'
    END = '\033[0m'
-
-
 
 
 class Container():
@@ -67,7 +64,10 @@ class Container():
         container_dict["container_id"] = self.get_containerID()
         container_dict["gross_weight"] = self.get_gross_weight()
         container_dict["length"] = self.get_length()
-        container_dict["hazard_class"] = self.get_hazard_class()
+        if not pd.isna(self.get_hazard_class()):
+            container_dict["hazard_class"] = self.get_hazard_class()
+        else:
+            container_dict["hazard_class"] = None
         return container_dict
 
     # Transform the position of the container into a list with coordinates.
@@ -96,8 +96,7 @@ class Container():
         # calculate the distance using Pythagoras
         dist = math.sqrt(math.pow(x_dist, 2) + math.pow(y_dist, 2))
 
-        return dist
-
+        return abs(x_dist)
     # Getter for container position coordinates
     # Container ID used to identify the container at hand
     def get_containerID(self):
@@ -142,7 +141,6 @@ class Container():
     
     def get_actual_length(self):
         return self.actual_length
-
 
 
 class Wagon():
@@ -302,8 +300,9 @@ class Wagon():
             return wagon_dict
         else:
             for container in self.get_containers():
-                container_json = container.to_JSON()
-                wagon_dict["containers"].append(container_json)
+                if container.get_containerID() != "":
+                    container_json = container.to_JSON()
+                    wagon_dict["containers"].append(container_json)
             return wagon_dict
 
 
@@ -568,50 +567,11 @@ class Wagon():
             self.containers.append(container)
     #endregion
 
-
-    # UNUSED/UNFINISHED CONSTRAINTS
-    
-    # # Constraint that a container has to be put on the wagon as a whole
-    # # y is the variable used in TrainLoadingX.py
-    # # w_j is the index of the wagon
-    # # TODO If people can optimize this, go ahead. This function will be called very often
-    # def c_container_is_whole(self, y, num_containers, w_j):
-    #     # Create a dictionairy of all containers c_i and the slots
-    #     # They occupy in the wagon
-    #     containers = {}
-    #     for c_i in range(num_containers):
-    #         for s_k in range(len(self.slots)):
-    #             if(y[(c_i, w_j, s_k)] == 1):
-    #                 if(c_i in containers):
-    #                     containers[c_i].append(s_k)
-    #                 else:
-    #                     containers[c_i] = [s_k]
-    #     # Now check for each container if the slots they occupy are in order
-    #     for c_i in containers:
-    #         containers[c_i].sort()
-    #         # Since the list is ordered, the following means the container is ordered
-    #         return containers[c_i][-1] - containers[c_i][0] == len(containers[c_i]) - 1
-
-   
-    # Possible constraint for the axle load
-    # The function self.calculateLoad calculcates the axle load based on a container list, we still need to make this.
-    # @TODO make calculateLoad function
-    # def c_axle_load(self, y, containers, w_j):
-    #     containers_on_wagon = []
-    #     for c_i, container in enumerate(containers):
-    #         for s_k in range(len(self.slots)):
-    #             if y[(c_i, w_j, s_k)] == 1:
-    #                 containers_on_wagon.append((container, s_k))
-    #     return self.calculateLoad(containers_on_wagon, maxLoad) 
-
-
-
-
 class Train():
-
+    
     
     # wagons should be a list of wagons
-    def __init__(self, wagons, containers, wrong_wagons, split, isReversed, max_traveldistance, maxTrainWeight, weightPerc, hide_unplaced, lengthPerc):
+    def __init__(self, wagons, containers, wrong_wagons, split, isReversed, max_traveldistance, maxTrainWeight, weightPerc, hide_unplaced, lengthPerc, callcode):
         self.wagons = wagons # This is the list of all the wagons on the train
         #Wagons with null values.
         self.wrong_wagons = wrong_wagons
@@ -637,7 +597,8 @@ class Train():
 
         self.set_location()
         self.placed_containers = []
-        self.unplaced_containers = []        
+        self.unplaced_containers = []  
+        self.callcode = callcode      
     
 
     # Create some wagons, to use for testing
@@ -670,7 +631,13 @@ class Train():
             print('Packed wagon weight:', Color.GREEN, packed_weight, Color.END, ' Wagon weight capacity: ', wagon.get_weight_capacity())
             print('Packed wagon length:', Color.GREEN, packed_length, Color.END, ' Wagon length capacity: ', wagon.get_length_capacity())
             print('Wagon travel distance:', travel_distance)
-        
+            print('Wagon position:', wagon.get_position(), "Wagon location:", wagon.get_location())
+            for container in wagon.get_containers():
+                if (len(container.get_position()) == 3) and (container.get_position()[0] <= 52) and (container.get_position()[1] <= 7):
+                        print(container.get_containerID())
+                        print("Container_ID:", container.get_containerID(), "Location:", container.get_position(), "Distance", Container.get_travel_distance(container.get_position(), wagon.get_location()))
+            print()
+
         print()
         print('Total packed weight:', total_weight_packed, '(',round(total_weight_packed / self.get_total_weight_capacity() * 100,1),'%)')
         print('Total packed length:', total_length_packed, '(',round(total_length_packed / self.get_total_length_capacity() * 100,1),'%)')
@@ -695,7 +662,9 @@ class Train():
             wagon_json = wagon.to_JSON()
             result["train"]["wagons"].append(wagon_json)
 
-        with open('data/train.json', 'w') as output:
+        filename = self.callcode + " " + str(datetime.now().strftime("%d-%m-%Y %H%M"))
+
+        with open('data/' + filename + ".json", 'w') as output:
             json.dump(result, output)
         
     def to_CSV(self):
@@ -804,7 +773,7 @@ class Train():
     def get_unplaced_containers(self):
         return self.unplaced_containers
 
-    #endregion
+
 
     #region setters
     def set_placed_containers(self, placed_containers):
@@ -1146,6 +1115,8 @@ class Train():
                 if (xlen + wagon.total_length) < 320:
                     wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6.1), y_val]
                     xlen += wagon.total_length
+                    if wagon.location[1] == 0:
+                        splitshift = wagon
 
                 else:
                     xlen = 0
@@ -1175,59 +1146,6 @@ class Train():
                 wagon.location[0] += x_shift
 
         return result
-
-    # CONSTRAINTS
-
-    # UNUSED/UNFINISHED CONSTRAINTS
-
-    # Travel distance constraint
-    # def c_container_travel_distance(self, y, c_i, container):
-    #     for w_j, wagon in enumerate(self.wagons):
-    #         for s_k, _ in enumerate(wagon.get_slots()):
-    #             # If the container is on the wagon, add the constraint.
-    #             if y[(c_i, w_j, s_k)] == 1:
-    #                 # The difference in position between the container and the wagon may not be larger than 50 metres.
-    #                 return Container.get_travel_distance(container.get_position(), wagon.get_location()) < 50
-
-
-
-    #Total weight of train may not surpass the maximum allowed weight on the track.
-    #Later on we need to replace 100000000 with the max weight of the location of the train.
-    # def c_max_train_weight(self, y, containers):
-    #     slot_found = False
-    #     total_weight = 0
-    #     for c_i, container in enumerate(containers):
-    #         for w_j, wagon in enumerate(self.wagons):
-    #             for s_k, _ in enumerate(wagon.get_slots()):
-    #                 if y[(c_i, w_j, s_k)] == 1:
-    #                     print(container.get_gross_weight())
-    #                     total_weight += container.get_gross_weight()
-    #                     slot_found = True
-    #                     break
-    #         if slot_found:
-    #             break
-    #     print(total_weight)
-    #     return total_weight < self.maxWeight
-
-    # Contents constraint
-    # def c_container_location_valid(self, x, c1_i, c2_i, container_1, container_2):
-    #     c1_pos = 0
-    #     c2_pos = 0
-    #     #print(c1_i)
-    #     #print(c2_i)
-    #     for w_j, wagon in enumerate(self.wagons):
-    #             # get the positions of both wagons
-    #             if(x[(c1_i, w_j)] == 1):
-    #                 c1_pos = wagon.get_position()
-    #                 print(c1_pos)
-    #             elif(x[(c2_i, w_j)] == 1):
-    #                 c2_pos = wagon.get_position()
-    #                 print(c2_pos)
-    #     # make sure that the wagon positions >= 2, so that there is 1 wagon in between.
-    #     return abs(c1_pos - c2_pos) >= 2
-
-
-
 
 
 def main(train, max_objective, final_run, objective_value_limit = None):
@@ -1596,96 +1514,15 @@ def main(train, max_objective, final_run, objective_value_limit = None):
     else:
         print("Solution Not found. Stats: ", solver.ResponseStats())
 
-#Temporary place, this code might still be useful
-    # Axle load constraint
-    # print("Axle Load")
-    # for w_j, wagon in enumerate(train.wagons):
-        # number_of_axles = wagon.get_number_of_axles()
-        # total_load = int(wagon.get_wagon_weight())
-        # total_load += sum(x[c_i, w_j] * int(container.get_gross_weight()) for c_i, container in enumerate(containers))
-        # axle_load = model.NewIntVar(0, total_load, 'axle_load(w_j:%i)' % w_j)
-        
-        # if(number_of_axles == 4):
-        #     model.AddMaxEquality(
-        #         axle_load,
-        #         [sum(x[c_i,w_j] * container.get_gross_weight()),2]
-        #     )
-        # axle_load = model.NewIntVar(0, 100000, 'axle_load(wagon %i)' %w_j)
 
-    # # Axle load constraint
-    # for w_j, wagon in enumerate(train.wagons):
-    #     print("c_IIIS:fjjso ", [c_i for c_i, container in enumerate(containers) if(x[(c_i, w_j)] == 1)])
-    #     c_list = []
-    #     for c_ii, container_i in enumerate(containers):
-    #         if(x[(c_ii, w_j)] == 1):
-    #             c_list.append(c_ii)
-    #     print("c_list: ", c_list)
-    #     axle_load = model.NewIntVar(0, 1000000, 'axle_load')
-    #     model.AddMaxEquality(
-    #         axle_load,
-    #         wagon.get_axle_load_cp([container for c_i, container in enumerate(containers) if x[(c_i, w_j)] == 1])
-    #     )
-    #     model.Add(
-    #         axle_load <= 22500
-    #         )
-    #     model.Add(
-    #         max(wagon.get_axle_load_cp([container for c_i, container in enumerate(containers) if x[(c_i, w_j)] == 1])) 
-    #         <= 22500
-    #     )
-    #     max_axle_load = model.NewIntVar(0, 100000, 'axle_load(wagon %i)' %w_j)
-    #     model.AddMaxEquality(
-    #         max_axle_load, 
-    #         wagon.get_axle_load_cp([container for c_i, container in enumerate(containers) if(x[c_i, w_j] == 1)])
-    #     )
-    #     model.Add(
-    #         max_axle_load < 66879180
-    #         )
-    # print("added axle load constraint")
-
-    #model.AddMaxEquality(wagon.set_optimal_axle_load() <= 22500, wagon for wagon in train.wagons)
-
-
-
-# Axle load try 2:
-    # for c_i, container in enumerate(containers):
-    #     for w_j, wagon in enumerate(train.wagons):
-    #         c = model.NewBoolVar("")
-    #         model.Add(
-    #             (x[c_i, w_j] == 1)
-    #         ).OnlyEnforceIf(c)
-    #         model.Add(
-    #             x[c_i,w_j] == 0
-    #             ).OnlyEnforceIf(c.Not())
-    #         model.Add(
-    #             c_position[c_i,w_j] > 0
-    #         ).OnlyEnforceIf(c)
-    #         model.Add(
-    #             c_position[c_i, w_j] == 0
-    #         ).OnlyEnforceIf(c.Not())
-
-   
-    # # Each position can only be occupied by one container
-    # for w_j, wagon in enumerate(train.wagons):
-    #     c=model.NewBoolVar("")
-
-    #     model.AddAllDifferent(
-    #         c_position[c_i, w_j] for c_i, _ in enumerate(containers)
-    #     )
-    
-
-
-
-
-
-dataset = pandas.read_csv('data/input_6april2021.csv')
+dataset = pandas.read_csv('data\input_df_f2375f54-0cf8-43d4-b882-754d3e5c3ca5.csv')
 
 def setup(dataset):
     containerlist = []
     wagonlist = []
 
     #Set parameters
-    #max traveldistance as set
-    max_traveldistance = 50 
+    max_traveldistance = 50 #max traveldistance as set
     if dataset.MAXTRAVELDISTANCE[1] is not None:
         max_traveldistance = dataset.MAXTRAVELDISTANCE[1]
 
@@ -1763,6 +1600,7 @@ def setup(dataset):
     # Remove all wagons and containers that contain Null values
     # to be safe all the containers and wagons that have null values are not taken into account to make sure the train is not to haeavy.
     #region all the containers and wagons are written to the train
+    callcode_train = ""
     wagons = []
     containers = []
     wrong_wagons = []    
@@ -1780,6 +1618,7 @@ def setup(dataset):
             call = wagon['wagonCall']
             wagonObj = Wagon(wagonID, weight_capacity, length_capacity, 0, position, number_of_axles, total_length, wagon_weight, call)
             wagons.append(wagonObj)
+            callcode_train = call
         else:
             # print("Wagon", index, "contained null values.")
             null_containers.append(index)
@@ -1804,7 +1643,7 @@ def setup(dataset):
         containerObj = Container(containerID, gross_weight, net_weight, foot, position, goods, priority, typeid, hazard_class, actual_length)
         containers.append(containerObj)
     
-    return Train(wagons, containers, wrong_wagons, split, isReversed, max_traveldistance, maxTrainWeight, weightPerc, hide_unplaced, lengthPerc)
+    return Train(wagons, containers, wrong_wagons, split, isReversed, max_traveldistance, maxTrainWeight, weightPerc, hide_unplaced, lengthPerc, callcode_train)
     #endregion
 
 
@@ -1814,15 +1653,14 @@ if __name__ == '__main__':
     # print("axle_load_success: ", axle_load_success, ", objective_value: ", objective_value)
 
     #region looping through possilbe solutions to find a solution that works and is somewhat optimal
-    train = setup(dataset)
-    x = train.max_traveldistance
+
+    x = 20
 
     max_objective = 0
     wrong_axles = 100
     travel_solutions = []
     alternative_solutions = []
-    boundary = train.max_traveldistance
-    while x >= boundary-10:
+    while x >= 10:
         train = setup(dataset)
         train.max_traveldistance = x
         try:
@@ -1902,13 +1740,16 @@ if __name__ == '__main__':
     containers = train.get_containers()
     unplaced_containers = train.get_unplaced_containers()
     
-    #train.to_JSON(callcode=train.wagons[1].call, weight=train.get_total_packed_weight(), length=train.get_total_packed_length(), distance=train.get_total_travel_distance(), amount=len(placed_containers), wagons=[])
-    #train.to_CSV()
+    train.to_JSON(callcode=train.wagons[1].call, weight=train.get_total_packed_weight(), length=train.get_total_packed_length(), distance=train.get_total_travel_distance(), amount=len(placed_containers), wagons=[])
+    train.to_CSV()
     
     train.print_solution()
 
     trainplanning_plot = train.get_tableplot(unplaced_containers)
     trainplanning_plot.show()
+
+
+
 
 
 

@@ -558,6 +558,8 @@ class Train():
                 if (xlen + wagon.total_length) < 320:
                     wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6.1), y_val]
                     xlen += wagon.total_length
+                    if wagon.location[1] == 0:
+                        splitshift = wagon
 
                 else:
                     xlen = 0
