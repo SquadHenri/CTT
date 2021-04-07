@@ -136,13 +136,13 @@ if __name__ == '__main__':
     # train, axle_load_success, objective_value = TrainLoadingConstraint.main(train)
     # print("axle_load_success: ", axle_load_success, ", objective_value: ", objective_value)
 
-    x = 15
+    x = 50
 
     max_objective = 0
     wrong_axles = 100
     travel_solutions = []
     alternative_solutions = []
-    while x >= 10:
+    while x >= 50:
         train = setup(dataset)
         train.max_traveldistance = x
         try:

@@ -69,14 +69,16 @@ def main(train, max_objective, objective_value_limit = None):
     """
 
     #region variables
-
-    positions = list(range(5))
-
-    # x[c_i, w_j] = 1 if container c_i is packed in wagon w_j
+    
+    interval = 2
+    
+    # x[c_i, w_j] = 1 if container c_i is packed in wagon w_j, p_k is the location on the wagon
+    # p_k is het middelpunt van de container vanaf het begin van het wagon in meters
     x = {}
     for c_i, _ in enumerate(containers):    
         for w_j, wagon in enumerate(train.wagons):
-            x[(c_i,w_j)] = model.NewIntVar(0, 1, 'cont:%i,wagon%i' % (c_i, w_j))
+            for p_k in wagon.get_positions(interval):
+                x[(c_i,w_j,p_k)] = model.NewIntVar(0, 1, 'cont:%i,wagon%i,pos%i' % (c_i, w_j, p_k))
     
     # c_pos = {}
     # for w_j, wagon in enumerate(train.wagons):
@@ -113,44 +115,53 @@ def main(train, max_objective, objective_value_limit = None):
     for c_i, container in enumerate(containers):
         if container not in priority_list:
             model.Add(
-                sum(x[(c_i, w_j)] for w_j, _ in enumerate(train.wagons)) <= 1
+                sum(x[(c_i, w_j, p_k)] 
+                for w_j, wagon in enumerate(train.wagons) 
+                for p_k in wagon.get_positions(interval)) <= 1
                 )
      # All containers in the priority list need to be loaded on the train, no matter what.
     for c_i in priority_list:
-        model.Add(sum(x[(c_i,w_j)] for w_j, _ in enumerate(train.wagons)) == 1)
+        model.Add(sum(x[(c_i,w_j, p_k)] 
+        for w_j, wagon in enumerate(train.wagons) 
+        for p_k in wagon.get_positions(interval)) == 1)
 
     # Each wagon has at least one container
     # Only enforce if there are enough containers
     model.Add( 
         spreadContainers == (len(containers) > len(train.wagons)) # Check if there are enough containers to spread them out over wagons
         )
-    for w_j, _ in enumerate(train.wagons):
+    for w_j, wagon in enumerate(train.wagons):
         model.Add(
-            sum(x[(c_i, w_j)] for c_i, _ in enumerate(containers)) >= 1 # Each wagon has at least one container
+            sum(x[(c_i, w_j, p_k)] 
+            for c_i, _ in enumerate(containers)
+            for p_k in wagon.get_positions(interval)) >= 1 # Each wagon has at least one container
         ).OnlyEnforceIf(spreadContainers)
 
     # The amount packed in each wagon cannot exceed its weight capacity.
     for w_j, wagon in enumerate(train.wagons):
         model.Add(
-            sum(x[(c_i, w_j)] * container.get_gross_weight()
-                for c_i, container in enumerate(containers))
+            sum(x[(c_i, w_j, p_k)] * container.get_gross_weight()
+                for c_i, container in enumerate(containers)
+                for p_k in wagon.get_positions(interval))
                 <=
-                int(wagon.get_weight_capacity() * 1)
+                int(wagon.get_weight_capacity())
         )
 
     # The length of the containers cannot exceed the length of the wagon
     for w_j, wagon in enumerate(train.wagons):
             model.Add(
-                sum(x[(c_i, w_j)] * container.get_length()
-                    for c_i, container in enumerate(containers))
+                sum(x[(c_i, w_j, p_k)] * container.get_length()
+                    for c_i, container in enumerate(containers)
+                    for p_k in wagon.get_positions(interval))
                     <=
                     int(wagon.get_length_capacity())
             )
 
     #Travel distance constraint for total distance.
-    model.Add(sum(x[(c_i, w_j)] * int(Container.get_travel_distance(container.get_position(), wagon.get_location()))
+    model.Add(sum(x[(c_i, w_j, p_k)] * int(Container.get_travel_distance(container.get_position(), wagon.get_location()))
                     for c_i, container in enumerate(containers) 
                     for w_j, wagon in enumerate(train.wagons) 
+                    for p_k in wagon.get_positions(interval)
                     if (len(container.get_position()) == 3) and 
                     (container.get_position()[0] <= 52) and 
                     (container.get_position()[1] <= 7) ) <= int(train.get_max_traveldistance()) * 
@@ -160,9 +171,10 @@ def main(train, max_objective, objective_value_limit = None):
                         (container.get_position()[1] <= 7)]))
 
     # A train may not surpass a maximum weight, based on the destination of the train.
-    model.Add(sum(x[(c_i, w_j)] * container.get_gross_weight() 
+    model.Add(sum(x[(c_i, w_j, p_k)] * container.get_gross_weight() 
                     for c_i, container in enumerate(containers) 
-                    for w_j, wagon in enumerate(train.wagons)) <= train.maxWeight)
+                    for w_j, wagon in enumerate(train.wagons)
+                    for p_k in wagon.get_positions(interval)) <= train.maxWeight)
     
     # Two halfs of the split wagon may not surpass total weight
     for w_j, wagon1 in enumerate(train.wagons):
@@ -170,8 +182,9 @@ def main(train, max_objective, objective_value_limit = None):
             if w_j != w_jj:
                 if wagon1.is_copy == True and wagon2.is_copy == True:
                     if wagon1.wagonID == wagon2.wagonID:
-                        model.Add(sum(x[c_i, w_j] * container.get_gross_weight() + x[c_i, w_jj] * container.get_gross_weight() 
-                        for c_i, container in enumerate(containers))
+                        model.Add(sum(x[c_i, w_j, p_k] * container.get_gross_weight() + x[c_i, w_jj, p_k] * container.get_gross_weight() 
+                        for c_i, container in enumerate(containers)
+                        for p_k in wagon1.get_positions(interval))
                         <= int(wagon1.get_weight_capacity() * 1))
 
     # Containers that are between 20 and 30 foot, may not be placed on an 80 foot wagon
@@ -179,7 +192,10 @@ def main(train, max_objective, objective_value_limit = None):
         #print(wagon.get_length_capacity())
         if wagon.get_length_capacity() == 40 and wagon.is_copy == True:
             print("Adding constraint for wagon", wagon.wagonID)
-            model.Add(sum(x[c_i, w_j] for c_i, container in enumerate(containers) if container.get_actual_length() != container.get_length()) < 1)
+            model.Add(sum(x[c_i, w_j, p_k] 
+            for c_i, container in enumerate(containers) 
+            for p_k in wagon.get_positions(interval)
+            if container.get_actual_length() != container.get_length()) < 1)
 
     # The distance between two hazardous containers should be at least one wagon
     for c_i, container_i in enumerate(containers):
@@ -206,10 +222,14 @@ def main(train, max_objective, objective_value_limit = None):
             position = model.NewIntVar(0, 50, 'position_%i' % c_i)
             position_2 = model.NewIntVar(0, 50, 'position_%i' % c_ii)
             model.Add(
-                position == sum(x[c_i, w_j] * int(wagon.get_position()) for w_j, wagon in enumerate(train.wagons))
+                position == sum(x[c_i, w_j, p_k] * int(wagon.get_position()) 
+                for w_j, wagon in enumerate(train.wagons) 
+                for p_k in wagon.get_positions(interval))
                 )
             model.Add(
-                position_2 == sum(x[c_ii, w_j] * int(wagon.get_position()) for w_j, wagon in enumerate(train.wagons))
+                position_2 == sum(x[c_ii, w_j, p_k] * int(wagon.get_position()) 
+                for w_j, wagon in enumerate(train.wagons) 
+                for p_k in wagon.get_positions(interval))
                 )
             model.Add(
                 position >= 2 + position_2
@@ -217,6 +237,154 @@ def main(train, max_objective, objective_value_limit = None):
             model.Add(
                 position  <= -2 + position_2
             ).OnlyEnforceIf(direction.Not())
+
+    print("Adding axle load constraints")
+    print("First the positional constraints")
+    # the middle position of the container has to be half the 
+    # container length from position 0 and from the end
+    for w_j, wagon in enumerate(train.wagons):
+        for c_i, container in enumerate(containers):
+            for p_k in wagon.get_positions(interval):
+                model.Add(
+                    p_k >= int(container.get_length() * 0.5)
+                    ).OnlyEnforceIf(x[c_i, w_j, p_k])
+                model.Add(
+                    p_k <= int(wagon.get_length_capacity() - container.get_length() * 0.5)
+                ).OnlyEnforceIf(x[c_i, w_j, p_k])
+    print('Added distance from beginning to container positions. Now adding distance between containers')
+
+    # TODO: REMOVE HARDCODE RANGE LIMIT!
+
+    # The distance between the p_k of two containers on the same wagon needs
+    # to be at least: 
+    # p_k - p_kk >= 0.5 * (container.get_length() + containerii.get_length())
+    # OR depending on the direction boolean variable
+    # p_kk - p_k >= 0.5 * (container.get_length() + containerii.get_length())
+    stop_point = math.ceil(len(containers) / 2) # Cache stop_point
+    for w_j, wagon in enumerate(train.wagons):
+        for c_i, container in enumerate(containers):
+            if(c_i == stop_point):
+                break
+            for c_ii, containerii in enumerate(containers):
+                if c_i == c_ii:
+                    continue
+                print(f'wagon: {w_j}, container: {c_i} with {c_ii}')
+                for p_k in wagon.get_positions(interval):
+                    if p_k < 10 or p_k > wagon.get_length_capacity() - 10: # TODO: REMOVE HARDCODED 10
+                        continue
+                    for p_kk in wagon.get_positions(interval):
+                        if p_kk < 10 or p_kk > wagon.get_length_capacity() - 10: # TODO: REMOVE HARDCODED 10
+                            continue
+                        if p_k == p_kk:
+                            continue
+
+                        direction = model.NewBoolVar('')
+                        model.Add(
+                        p_k - p_kk
+                        >=
+                        int(0.5 * container.get_length() + containerii.get_length())
+                        ).OnlyEnforceIf(model.AddBoolAnd([direction, x[c_i, w_j,p_k], x[c_ii, w_j, p_kk]]))
+
+                        model.Add(
+                        p_kk - p_k
+                        >=
+                        int(0.5 * container.get_length() + containerii.get_length())
+                        ).OnlyEnforceIf(model.AddBoolAnd([direction.Not(), x[c_i, w_j,p_k], x[c_ii, w_j, p_kk]]))
+
+
+    print('positional constraints added. Now adding axle load constraint')
+
+    for w_j, wagon in enumerate(train.wagons):
+        key = str(wagon.length_capacity).split('.')[0] + str(wagon.number_of_axles).split('.')[0]
+        if key == '456':
+            key = '906'
+        if key == '406':
+            key = '806'
+        dictionairy = wagon.wagon_dictionairy
+    
+        axleshift = dictionairy[key]['shift dist(m)']
+        axledist = dictionairy[key]['axle dist']
+
+        if(wagon.get_number_of_axles() == 43):
+            # Left Axle
+            left_axle_load = model.NewIntVar(0, 1000000, '')
+            model.Add(
+                left_axle_load == 
+                int(0.5 * wagon.wagon_weight) +
+                sum(
+                    x[c_i, w_j, p_k] * int(wagon.container_load(container.get_gross_weight(), p_k * 0.3048 - float(axleshift), axledist))
+                    for c_i, container in enumerate(containers)
+                    for p_k in wagon.get_positions(interval)
+                )
+            )
+
+            # Right Axle load
+            right_axle_load = model.NewIntVar(0, 100000, '')
+            model.Add(
+                right_axle_load == 
+                int(wagon.wagon_weight) + sum(
+                    x[c_i, w_j, p_k] * int(wagon.container_load(container.get_gross_weight(), p_k * 0.3048 - float(axleshift), axledist))
+                    for c_i, container in enumerate(containers)
+                    for p_k in wagon.get_positions(interval)
+                ) - left_axle_load
+            )
+
+            model.Add(right_axle_load < 22500)
+            model.Add(left_axle_load < 22500)
+        elif(wagon.get_number_of_axles() == 20):
+            for w_jj, wagon2 in enumerate(train.wagons):
+                if w_jj == w_j:
+                    continue
+                if wagon.wagonID == wagon2.wagonID:
+                    # Left Axle
+                    left_axle_load = model.NewIntVar(0, 1000000, '')
+                    model.Add(
+                        left_axle_load == 
+                        int(wagon.wagon_weight / 3) +
+                        sum(
+                            x[c_i, w_j, p_k] * int(wagon.container_load(container.get_gross_weight(), p_k * 0.3048 - float(axleshift), axledist))
+                            for c_i, container in enumerate(containers)
+                            for p_k in wagon.get_positions(interval)
+                        )
+                    )
+
+                    # Right Axle
+                    right_axle_load = model.NewIntVar(0, 1000000, '')
+                    model.Add(
+                        right_axle_load == 
+                        int(wagon.wagon_weight / 3) +
+                        sum(
+                            x[c_i, w_j, p_k] * int(wagon2.container_load(container.get_gross_weight(), p_k * 0.3048 - float(axleshift), axledist))
+                            for c_i, container in enumerate(containers)
+                            for p_k in wagon.get_positions(interval)
+                        )
+                    )
+
+                    middle_axle_load = model.NewIntVar(0, 1000000, '')
+                    model.Add(
+                    middle_axle_load == 
+                    int(wagon.wagon_weight / 3) + sum(
+                        x[c_i, w_j, p_k] * int(wagon.container_load(container.get_gross_weight(), p_k * 0.3048 - float(axleshift), axledist))
+                        for c_i, container in enumerate(containers)
+                        for p_k in wagon.get_positions(interval)
+                    ) +
+                    sum(
+                        x[c_i, w_j, p_k] * int(wagon2.container_load(container.get_gross_weight(), p_k * 0.3048 - float(axleshift), axledist))
+                        for c_i, container in enumerate(containers)
+                        for p_k in wagon.get_positions(interval)
+                        )- left_axle_load - right_axle_load
+                    )
+                    model.Add(right_axle_load < 220000)
+                    model.Add(left_axle_load < 220000)
+                    model.Add(middle_axle_load < 220000)
+
+
+                
+
+
+
+        # where wagon.get_max_axle_load() gives 22500 or whatever 
+
 
     # # Bogie in middle of wagon constraint
     # for w_j, wagon in enumerate(train.wagons):
@@ -260,18 +428,20 @@ def main(train, max_objective, objective_value_limit = None):
     objective_length = model.NewIntVar(0, int(train.get_total_length_capacity()), 'length')
     model.Add(
         objective_length == sum(
-            x[(c_i, w_j)] * container.get_length() 
+            x[(c_i, w_j, p_k)] * container.get_length() 
                 for c_i, container in enumerate(containers) 
-                for w_j, _ in enumerate(train.wagons)
+                for w_j, wagon in enumerate(train.wagons)
+                for p_k in wagon.get_positions(interval)
             )
         )
 
     objective_weight = model.NewIntVar(0, int(train.get_total_weight_capacity()), 'weight')
     model.Add(
         objective_weight == sum(
-            x[(c_i, w_j)] * container.get_gross_weight() 
+            x[(c_i, w_j, p_k)] * container.get_gross_weight() 
                 for c_i, container in enumerate(containers) 
-                for w_j, _ in enumerate(train.wagons)
+                for w_j, wagon in enumerate(train.wagons)
+                for p_k in wagon.get_positions(interval)
             )
         )  
 
@@ -288,7 +458,7 @@ def main(train, max_objective, objective_value_limit = None):
 
     print("Starting Solve...")
     solver = cp_model.CpSolver()
-    solver.parameters.max_time_in_seconds = 10
+    solver.parameters.num_search_workers = 8
     status = solver.Solve(model)
 
     if status == cp_model.OPTIMAL:
@@ -301,10 +471,12 @@ def main(train, max_objective, objective_value_limit = None):
         placed_containers = []
         for w_j, wagon in enumerate(train.wagons):
             for c_i, container in enumerate(containers):
-                if solver.Value(x[c_i,w_j]) > 0:
-                    train.wagons[w_j].add_container(container)
-                    added_containers_indices.append(c_i)
-                    placed_containers.append(container)
+                for p_k in wagon.get_positions(interval):
+                    if solver.Value(x[c_i,w_j, p_k]) > 0:
+                        print(f"c_i:{c_i}, w_j:{w_j},p_k:{p_k}")
+                        train.wagons[w_j].add_container(container)
+                        added_containers_indices.append(c_i)
+                        placed_containers.append(container)
 
 
         unplaced_containers = []

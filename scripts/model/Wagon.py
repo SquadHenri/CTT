@@ -200,9 +200,6 @@ class Wagon():
         axleshift = dictionairy[key]['shift dist(m)']
         axledist = dictionairy[key]['axle dist']
 
-
-
-
         # Starting with all the Wagons that have 2 bogies and so have 4 axles
         if self.number_of_axles == 4:
             left_axle_load = 0.5 * self.wagon_weight
@@ -259,14 +256,9 @@ class Wagon():
         return load         
 
     def get_axle_load_cp(self, containers):
-        res = ""
-        for container in containers:
-            res += f'({container.get_containerID()})'
-        print(res)
         axle_load, _ = self.get_axle_load(containers)
         for i in range(len(axle_load)):
             axle_load[i] = int(axle_load[i])
-        print(axle_load)
         return axle_load
         
 
@@ -399,8 +391,14 @@ class Wagon():
     def get_number_of_axles(self):
         return self.number_of_axles
     
+    def get_max_axle_load(self):
+        return self.get_max_axle_load
+    
     def get_wagon_weight(self):
         return self.wagon_weight
+
+    def get_positions(self, num):
+        return list(range(0, int(self.get_length_capacity()),num))
     
     # Setters
     
