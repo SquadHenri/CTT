@@ -143,19 +143,15 @@ def setup(dataset):
 
 
 if __name__ == '__main__':
-    # train = setup(dataset)
-    # train, axle_load_success, objective_value = TrainLoadingConstraint.main(train)
-    # print("axle_load_success: ", axle_load_success, ", objective_value: ", objective_value)
-
-    #region looping through possilbe solutions to find a solution that works and is somewhat optimal
-
-    x = 20
+    train = setup(dataset)
+    x = train.max_traveldistance
 
     max_objective = 0
     wrong_axles = 100
     travel_solutions = []
     alternative_solutions = []
-    while x >= 10:
+    boundary = train.max_traveldistance
+    while x >= boundary-10:
         train = setup(dataset)
         train.max_traveldistance = x
         try:
@@ -194,7 +190,7 @@ if __name__ == '__main__':
     #             max_objective = objective_value
     #         print(weight_solutions)
     #         y += 0.05
-    
+
 
 
 
@@ -203,7 +199,7 @@ if __name__ == '__main__':
     for wagon in train.wagons:
         print(wagon)
 
-    
+
     if len(travel_solutions) > 0:
         train.max_traveldistance = min(travel_solutions)
 
@@ -229,19 +225,20 @@ if __name__ == '__main__':
     # while(axle_load_success is False):
     #     train, axle_load_success, objective_value = TrainLoadingConstraint.main(train, objective_value)
     #     print("axle_load_success: ", axle_load_success, ", objective_value: ", objective_value)
-    
+
 
     placed_containers = train.get_placed_containers()
     containers = train.get_containers()
     unplaced_containers = train.get_unplaced_containers()
-    
-    train.to_JSON(callcode=train.wagons[1].call, weight=train.get_total_packed_weight(), length=train.get_total_packed_length(), distance=train.get_total_travel_distance(), amount=len(placed_containers), wagons=[])
-    train.to_CSV()
-    
+
+    #train.to_JSON(callcode=train.wagons[1].call, weight=train.get_total_packed_weight(), length=train.get_total_packed_length(), distance=train.get_total_travel_distance(), amount=len(placed_containers), wagons=[])
+    #train.to_CSV()
+
     train.print_solution()
 
     trainplanning_plot = train.get_tableplot(unplaced_containers)
     trainplanning_plot.show()
+
 
 
 
