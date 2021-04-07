@@ -3,16 +3,21 @@ import matplotlib.pyplot as plt
 import math
 import random
 import numpy as np
+import pandas as pd
 import json
 import pandas as pd
 from datetime import date, datetime
 from model.Container import Container
 from model.Wagon import Wagon
 from colors import Color
+import os
+from pathlib import Path
 
 class Train():
-
     
+    
+    
+
     # wagons should be a list of wagons
     def __init__(self, wagons, containers, wrong_wagons, split, isReversed, max_traveldistance, maxTrainWeight, weightPerc, hide_unplaced, lengthPerc, callcode):
         self.wagons = wagons # This is the list of all the wagons on the train
@@ -41,7 +46,10 @@ class Train():
         self.set_location()
         self.placed_containers = []
         self.unplaced_containers = []  
-        self.callcode = callcode      
+        self.callcode = callcode
+
+        Path(os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop/CTT-trainplanning/' + self.callcode)).mkdir(parents=True, exist_ok=True)
+        self.PATH_OUTPUT = str(os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop\CTT-trainplanning\\' + self.callcode + '\\'))      
     
 
     # Create some wagons, to use for testing
@@ -96,7 +104,7 @@ class Train():
                 #print(wagon.wagonID, "has too much axle load")
                 success = False
         return success
-            
+        
     def to_JSON(self, **kwargs):
         result = {}
         result["train"] = kwargs
@@ -107,7 +115,7 @@ class Train():
 
         filename = self.callcode + " " + str(datetime.now().strftime("%d-%m-%Y %H%M"))
 
-        with open('data/' + filename + ".json", 'w') as output:
+        with open(self.PATH_OUTPUT + filename + ".json", 'w') as output:
             json.dump(result, output)
         
     def to_CSV(self):
@@ -155,7 +163,8 @@ class Train():
         df = pd.DataFrame(data)
         unplaced_df = pd.DataFrame(unplaced_dict)
 
-        writer = pd.ExcelWriter('planning.xlsx', engine="xlsxwriter")
+        filename = self.callcode + " " + str(datetime.now().strftime("%d-%m-%Y %H%M"))
+        writer = pd.ExcelWriter(self.PATH_OUTPUT + filename + 'planning.xlsx', engine="xlsxwriter")
 
         df.to_excel(writer, sheet_name="Planning")    
         unplaced_df.to_excel(writer, sheet_name="Unplaced Containers")
@@ -535,9 +544,7 @@ class Train():
             raise TypeError("No wagons")
 
         for wagon in self.wagons:
-            if self.split != None:
-
-
+            if pd.notna(self.split) and self.split != None:
                 if wagon.position < self.split:
                     wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6.1), y_val]
                     xlen += wagon.total_length
@@ -553,7 +560,6 @@ class Train():
                 else:
                     wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6.1), y_val]
                     xlen += wagon.total_length
-
             else:
                 if (xlen + wagon.total_length) < 320:
                     wagon.location = [math.ceil((xlen + 0.5 * wagon.total_length)/6.1), y_val]
