@@ -1,3 +1,5 @@
+__authors__ = "Dennis Maneschijn, Rowin Veneman, Hein Rödel, Maurits Becks"
+
 import math
 import pandas as pd
 

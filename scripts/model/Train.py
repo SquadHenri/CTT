@@ -1,3 +1,4 @@
+__authors__ = "Dennis Maneschijn, Rowin Veneman, Hein Rödel, Maurits Becks"
 import matplotlib.pyplot as plt
 
 import math
@@ -14,9 +15,6 @@ import os
 from pathlib import Path
 
 class Train():
-    
-    
-    
 
     # wagons should be a list of wagons
     def __init__(self, wagons, containers, wrong_wagons, split, isReversed, max_traveldistance, maxTrainWeight, weightPerc, hide_unplaced, lengthPerc, callcode):
@@ -50,16 +48,6 @@ class Train():
 
         Path(os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop/CTT-trainplanning/' + self.callcode)).mkdir(parents=True, exist_ok=True)
         self.PATH_OUTPUT = str(os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop\CTT-trainplanning\\' + self.callcode + '\\'))      
-    
-
-    # Create some wagons, to use for testing
-    def test_train(self):
-        wagon1 = Wagon(0, 100, 5, None, [0,0])
-        wagon2 = Wagon(1, 110, 7, None, [0,1])
-        wagon3 = Wagon(2, 130, 6, None, [1,0])
-        wagon4 = Wagon(3, 150, 9, None, [1,0])
-        wagon5 = Wagon(4, 140, 8, None, [0,2])
-        return Train([wagon1, wagon2, wagon3, wagon4, wagon5])
 
     # Show the basic information
     def __str__(self):
@@ -95,13 +83,11 @@ class Train():
         print('Total distance travelled:', total_travel_distance)
 
 
-
     # Maybe check for success, but this is fine for now
     def set_optimal_axle_load(self):
         success = True
         for wagon in self.wagons:
             if(not wagon.set_optimal_axle_load()):
-                #print(wagon.wagonID, "has too much axle load")
                 success = False
         return success
         
@@ -121,7 +107,6 @@ class Train():
     def to_CSV(self):
         data = []
         unplaced_containers = self.containers
-        print(len(unplaced_containers))
         for wagon in self.wagons:
             if not wagon.containers:
                 wagon_dict = {}
@@ -159,7 +144,6 @@ class Train():
             container_dict["hazard_class"] = container.get_hazard_class()
             unplaced_dict.append(container_dict)
 
-
         df = pd.DataFrame(data)
         unplaced_df = pd.DataFrame(unplaced_dict)
 
@@ -170,6 +154,8 @@ class Train():
         unplaced_df.to_excel(writer, sheet_name="Unplaced Containers")
         
         writer.save()
+
+    #region getters
 
     def get_containers(self):
         return self.containers
@@ -234,20 +220,10 @@ class Train():
     def set_unplaced_containers(self, unplaced_containers):
         self.unplaced_containers = unplaced_containers
 
-    # Set the weight capacities of the wagons to a value between min and max
-    def set_random_weight_capacities(self, min, max):
-        for wagon in self.wagons:
-            wagon.set_weight_capacity(get_random_value(min, max))
-
     # Same as the functions above, but for setting to 1 value
     def set_weight_capacities(self, value):
         for wagon in self.wagons:
             wagon.set_weight_capacity(value)
-
-    # Set the weight capacities of the wagons to a value between min and max
-    def set_random_length_capacities(self, min, max):
-        for wagon in self.wagons:
-            wagon.set_length_capacity(get_random_value(min, max))
 
     # Same as the functions above, but for setting to 1 value
     def set_length_capacities(self, value):
@@ -595,56 +571,3 @@ class Train():
                 wagon.location[0] += x_shift
 
         return result
-
-    # CONSTRAINTS
-
-    # UNUSED/UNFINISHED CONSTRAINTS
-
-    # Travel distance constraint
-    # def c_container_travel_distance(self, y, c_i, container):
-    #     for w_j, wagon in enumerate(self.wagons):
-    #         for s_k, _ in enumerate(wagon.get_slots()):
-    #             # If the container is on the wagon, add the constraint.
-    #             if y[(c_i, w_j, s_k)] == 1:
-    #                 # The difference in position between the container and the wagon may not be larger than 50 metres.
-    #                 return Container.get_travel_distance(container.get_position(), wagon.get_location()) < 50
-
-
-
-    #Total weight of train may not surpass the maximum allowed weight on the track.
-    #Later on we need to replace 100000000 with the max weight of the location of the train.
-    # def c_max_train_weight(self, y, containers):
-    #     slot_found = False
-    #     total_weight = 0
-    #     for c_i, container in enumerate(containers):
-    #         for w_j, wagon in enumerate(self.wagons):
-    #             for s_k, _ in enumerate(wagon.get_slots()):
-    #                 if y[(c_i, w_j, s_k)] == 1:
-    #                     print(container.get_gross_weight())
-    #                     total_weight += container.get_gross_weight()
-    #                     slot_found = True
-    #                     break
-    #         if slot_found:
-    #             break
-    #     print(total_weight)
-    #     return total_weight < self.maxWeight
-
-    # Contents constraint
-    # def c_container_location_valid(self, x, c1_i, c2_i, container_1, container_2):
-    #     c1_pos = 0
-    #     c2_pos = 0
-    #     #print(c1_i)
-    #     #print(c2_i)
-    #     for w_j, wagon in enumerate(self.wagons):
-    #             # get the positions of both wagons
-    #             if(x[(c1_i, w_j)] == 1):
-    #                 c1_pos = wagon.get_position()
-    #                 print(c1_pos)
-    #             elif(x[(c2_i, w_j)] == 1):
-    #                 c2_pos = wagon.get_position()
-    #                 print(c2_pos)
-    #     # make sure that the wagon positions >= 2, so that there is 1 wagon in between.
-    #     return abs(c1_pos - c2_pos) >= 2
-
-
-    

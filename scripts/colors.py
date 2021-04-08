@@ -1,3 +1,5 @@
+__authors__ = "Dennis Maneschijn"
+
 class Color:
    PURPLE = '\033[95m'
    CYAN = '\033[96m'

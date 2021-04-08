@@ -1,7 +1,8 @@
+__authors__ = "Dennis Maneschijn, Rowin Veneman, Hein Rödel, Carlijn Kokkeler, Maurits Becks"
+
 import itertools as it
 import math
 import json
-from statistics import mean
 from model.Container import Container
 
 
@@ -201,9 +202,6 @@ class Wagon():
     
         axleshift = dictionairy[key]['shift dist(m)']
         axledist = dictionairy[key]['axle dist']
-
-
-
 
         # Starting with all the Wagons that have 2 bogies and so have 4 axles
         if self.number_of_axles == 4:
