@@ -241,7 +241,7 @@ def main(train, max_objective, final_run, objective_value_limit = None):
     status = solver.Solve(model)    # solve the model
 
     if status == cp_model.OPTIMAL:
-
+        print("Done with solving")
         if solver.ObjectiveValue() < max_objective: # if the objective is lower the case is not considered
             return train, False, solver.ObjectiveValue(), 0
 
@@ -265,8 +265,8 @@ def main(train, max_objective, final_run, objective_value_limit = None):
         train.set_unplaced_containers(unplaced_containers)
         #endregion
 
-        for wagon in train.wagons:
-            wagon.add_dummies()
+        # for wagon in train.wagons:
+        #     wagon.add_dummies()
 
         # Combine the split wagons
         # once all the containers have been placed the split containers are put together so axle load can be determined
@@ -303,5 +303,67 @@ def main(train, max_objective, final_run, objective_value_limit = None):
         return train, axle_load_success, solver.ObjectiveValue(), wrong_wagons
     elif status == cp_model.FEASIBLE:
         print('status == cp_model.FEASIBLE, no optimal solution found')
+        print(solver.ObjectiveValue())
+
+        if solver.ObjectiveValue() < max_objective: # if the objective is lower the case is not considered
+            return train, False, solver.ObjectiveValue(), 0
+
+        #region creating lists that show what containers are placed and which are unplaced
+        added_containers_indices = []
+        placed_containers = []
+        for w_j, wagon in enumerate(train.wagons):
+            for c_i, container in enumerate(containers):
+                if solver.Value(x[c_i,w_j]) > 0:
+                    train.wagons[w_j].add_container(container)
+                    added_containers_indices.append(c_i)
+                    placed_containers.append(container)
+
+
+        unplaced_containers = []
+        for c_i, container in enumerate(containers):
+            if(c_i not in added_containers_indices):
+                unplaced_containers.append(container)
+
+        train.set_placed_containers(placed_containers)
+        train.set_unplaced_containers(unplaced_containers)
+        #endregion
+
+        # for wagon in train.wagons:
+        #     wagon.add_dummies()
+
+        # Combine the split wagons
+        # once all the containers have been placed the split containers are put together so axle load can be determined
+        #region combine split wagons
+        visited_list = []
+        final_list = []
+        for wagon in train.wagons:
+            if wagon.is_copy == True: # if copy combine and add to final list
+                if wagon.wagonID not in visited_list:
+                    combined_wagon = Wagon(wagon.wagonID, wagon.weight_capacity, wagon.length_capacity * 2, wagon.contents, wagon.position, wagon.number_of_axles, wagon.total_length, wagon.wagon_weight, wagon.call)
+                    combined_wagon.is_copy = False
+                    combined_wagon.location = wagon.location
+                    combined_wagon.containers = wagon.containers
+                    visited_list.append(wagon.wagonID)
+                    final_list.append(combined_wagon)
+                else:
+                    for final_wagon in final_list:
+                        if final_wagon.wagonID == wagon.wagonID:
+                            try:
+                                final_wagon.containers += wagon.containers
+                            except:
+                                continue
+            else:
+                final_list.append(wagon) # if not a copy, but an original, add to the final list
+        
+        train.wagons = final_list
+        #endregion
+
+        axle_load_success = train.set_optimal_axle_load() # returns a boolean that tells if axle load is not to high
+
+        # The amount of wagons that exeeds the max weight
+        wrong_wagons = len([wagon.max_axle_load for wagon in train.wagons if wagon.max_axle_load > 22000]) 
+
+        return train, axle_load_success, solver.ObjectiveValue(), wrong_wagons
+
     else:
         print("Solution Not found. Stats: ", solver.ResponseStats())

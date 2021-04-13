@@ -22,7 +22,7 @@ def setup(dataset):
     max_traveldistance = 50 #max traveldistance as set
     if dataset.MAXTRAVELDISTANCE[1] is not None:
         max_traveldistance = dataset.MAXTRAVELDISTANCE[1]
-
+    max_traveldistance = 30
     #Set the position where the train is spit
     split = None
     if dataset.TRAINSPLIT[1] is not None and pandas.notna(dataset.TRAINSPLIT[1]):
@@ -88,6 +88,8 @@ def setup(dataset):
     containerdf = pandas.DataFrame(containerlist, columns =['containerID', 'containerType', 'unNR', 'unKlasse', 'nettWeight', 'terminalWeightNett', 'containerTEU', 'containerPosition', 'containerTarra', 'containerCall'])
     #Sort wagons on wagon position
     wagondf = wagondf.sort_values(by='wagonPosition')
+    print(containerdf)
+    print(wagondf)
     #Reverse wagons if neccesary
     if isReversed:
         wagondf = wagondf[::-1]
@@ -149,8 +151,11 @@ if __name__ == '__main__':
     wrong_axles = 100
     travel_solutions = []
     alternative_solutions = []
-    boundary = train.max_traveldistance
-    while max_traveldistance >= boundary-10:
+    boundary = train.max_traveldistance - 10
+
+    _, axle_load_success, objective_value, wrong_wagons = TrainLoadingConstraint.main(train, max_objective, False)
+
+    while max_traveldistance >= boundary:
         train = setup(dataset)
         train.max_traveldistance = max_traveldistance
         try:
@@ -181,20 +186,21 @@ if __name__ == '__main__':
         train.max_traveldistance = min(alternative_solutions)
 
     final_run = True
-    train, axle_load_success, objective_value, wrong_wagons = TrainLoadingConstraint.main(train, max_objective, final_run)
+    try:
+        train, axle_load_success, objective_value, wrong_wagons = TrainLoadingConstraint.main(train, max_objective, final_run)
+        placed_containers = train.get_placed_containers()
+        containers = train.get_containers()
+        unplaced_containers = train.get_unplaced_containers()
 
-    placed_containers = train.get_placed_containers()
-    containers = train.get_containers()
-    unplaced_containers = train.get_unplaced_containers()
+        train.to_JSON(callcode=train.wagons[1].call, weight=train.get_total_packed_weight(), length=train.get_total_packed_length(), distance=train.get_total_travel_distance(), amount=len(placed_containers), wagons=[])
+        train.to_CSV()
 
-    train.to_JSON(callcode=train.wagons[1].call, weight=train.get_total_packed_weight(), length=train.get_total_packed_length(), distance=train.get_total_travel_distance(), amount=len(placed_containers), wagons=[])
-    train.to_CSV()
+        train.print_solution()
 
-    train.print_solution()
-
-    trainplanning_plot = train.get_tableplot(unplaced_containers)
-    trainplanning_plot.show()
-
+        trainplanning_plot = train.get_tableplot(unplaced_containers)
+        trainplanning_plot.show()
+    except:
+        "No planning possible"
 
 
 
