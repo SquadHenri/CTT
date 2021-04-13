@@ -22,7 +22,7 @@ def setup(dataset):
     max_traveldistance = 50 #max traveldistance as set
     if dataset.MAXTRAVELDISTANCE[1] is not None:
         max_traveldistance = dataset.MAXTRAVELDISTANCE[1]
-    max_traveldistance = 30
+
     #Set the position where the train is spit
     split = None
     if dataset.TRAINSPLIT[1] is not None and pandas.notna(dataset.TRAINSPLIT[1]):
@@ -88,8 +88,7 @@ def setup(dataset):
     containerdf = pandas.DataFrame(containerlist, columns =['containerID', 'containerType', 'unNR', 'unKlasse', 'nettWeight', 'terminalWeightNett', 'containerTEU', 'containerPosition', 'containerTarra', 'containerCall'])
     #Sort wagons on wagon position
     wagondf = wagondf.sort_values(by='wagonPosition')
-    print(containerdf)
-    print(wagondf)
+
     #Reverse wagons if neccesary
     if isReversed:
         wagondf = wagondf[::-1]
@@ -152,8 +151,6 @@ if __name__ == '__main__':
     travel_solutions = []
     alternative_solutions = []
     boundary = train.max_traveldistance - 10
-
-    _, axle_load_success, objective_value, wrong_wagons = TrainLoadingConstraint.main(train, max_objective, False)
 
     while max_traveldistance >= boundary:
         train = setup(dataset)

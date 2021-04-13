@@ -370,7 +370,7 @@ class Wagon():
             elif len(containers) == 2:
                 # Find all possible combinations and calculate the axle load
                 if containers[0].get_length() == 20:
-                    if containers[1].get_length == 20:
+                    if containers[1].get_length() == 20:
                         left_axle_load = ((containers[0].get_gross_weight() * 0.968 + self.wagon_weight * (0.968+6.132)
                                            + containers[1].get_gross_weight() * (0.968+6.132+6.132))/14.2) / 2
                         right_axle_load = ((self.wagon_weight_load() + self.wagon_weight) - (left_axle_load * 2)) / 2
@@ -392,7 +392,7 @@ class Wagon():
                         axle_load = [left_axle_load, right_axle_load]
 
                 elif containers[0].get_length() == 30:
-                    if containers[1].get_length == 20:
+                    if containers[1].get_length() == 20:
                         left_axle_load = ((containers[0].get_gross_weight() * 2.5665 + self.wagon_weight * (2.5665+4.5335)
                                            + containers[1].get_gross_weight() * (2.5665+4.5335+6.132)) / 14.2 / 2)
                         right_axle_load = ((self.wagon_weight_load() + self.wagon_weight) - (left_axle_load * 2)) / 2
@@ -407,7 +407,7 @@ class Wagon():
                         axle_load = [left_axle_load, right_axle_load]
 
                 elif containers[0].get_length() == 40:
-                    if containers[1].get_length == 20:
+                    if containers[1].get_length() == 20:
                         left_axle_load = (containers[0].get_gross_weight() * 4.034 + self.wagon_weight * 7.1
                                           + containers[1].get_gross_weight() * 13.232) / 14.2 / 2
                         right_axle_load = ((self.wagon_weight_load() + self.wagon_weight) - (left_axle_load * 2)) / 2
